@@ -98,7 +98,13 @@ class WC_PikPay extends WC_Payment_Gateway {
         else{
             $this->has_fields = true;     
             $this->check_3dsecure_response();
-        }        
+        }
+        
+        // Delete monri log file
+        $log_file = "/var/sentora/hostdata/admin/public_html/wp-content/plugins/woocommerce-monri/log.txt";  
+   
+        // Use unlink() function to delete a file  
+        unlink($log_file);
 
     } // End __construct()
 
@@ -811,11 +817,6 @@ class WC_PikPay extends WC_Payment_Gateway {
         if($validation["response"] == "false")
         {
             wc_add_notice($validation["message"], 'error');
-            //log parameters
-            $date = date('Y-m-d H:i:s');
-            $myfile = fopen("/var/sentora/hostdata/admin/public_html/wp-content/plugins/woocommerce-monri/log.txt", "a+");
-            fwrite($myfile, $date ."\nError: \n- " .$validation["message"] . "\nCard details: \n" . $card_data_string ."\n\n");
-            fclose($myfile);
             return;
         }  
 
@@ -1052,15 +1053,6 @@ class WC_PikPay extends WC_Payment_Gateway {
         }
                
   }
-
-    function logMessage($title, $message)
-    {
-        //log parameters
-        $date = date('Y-m-d H:i:s');
-        $myfile = fopen("/var/sentora/hostdata/admin/public_html/wp-content/plugins/woocommerce-monri/log.txt", "a+");
-        fwrite($myfile, $date ." - " .$title . ": " . $message);
-        fclose($myfile);
-    }
 
   /**
      * Validate WooCommerce Form fields
