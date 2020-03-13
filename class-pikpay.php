@@ -104,7 +104,7 @@ class WC_PikPay extends WC_Payment_Gateway {
         $log_file = "/var/sentora/hostdata/admin/public_html/wp-content/plugins/woocommerce-monri/log.txt";  
    
         // Use unlink() function to delete a file  
-        unlink($log_file);
+        @unlink($log_file);
 
     } // End __construct()
 
