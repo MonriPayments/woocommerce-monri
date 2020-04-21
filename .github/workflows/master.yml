@@ -9,7 +9,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Create release Folder
-      run: rsync -arv --exclude='.git/' --exclude='.github/' --exclude='.gitignore' . ./release/woocommerce-monri
+      run: rsync -arRv --exclude='.git/' --exclude='.github/' --exclude='.gitignore' . ./release/woocommerce-monri
     - name: Switch to release Folder
       run: |
         cd release
