@@ -9,10 +9,10 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Create woocommerce-monri Folder
-      run: rsync -arv --exclude='.git/' --exclude='.github/' --exclude='.gitignore' . ./woocommerce-monri
+      run: rsync -arv --exclude='.git/' --exclude='.github/' --exclude='.gitignore' . ./release
     - name: Switch to woocommerce-monri Folder
       run: |
-        cd woocommerce-monri
+        cd release
         ls -la
     - name: Bump version and push tag
       uses: anothrNick/github-tag-action@master
