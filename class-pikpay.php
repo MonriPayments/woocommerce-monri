@@ -928,7 +928,7 @@ class WC_PikPay extends WC_Payment_Gateway {
         }
 
         //Convert order amount to number without decimals
-        $amount = $amount * 100;
+        $amount = ceil($amount * 100);
 
         if ( version_compare( WOOCOMMERCE_VERSION, '3.0.0', '>=' ) ) {
             $order_data = $order->get_data();  
