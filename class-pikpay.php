@@ -159,7 +159,7 @@ class WC_PikPay extends WC_Payment_Gateway {
                 'description' => __( 'Instructions that will be added to the thank you page.', 'wcwcCpg1' ),
                 'default' => __( 'Instructions for Monri.', 'wcwcCpg1' )
             ),
-            'thankyou_page_new' => array(
+            'thankyou_page' => array(
                 'title' => __( 'Success page', 'wcwcCpg1' ),
                 'type' => 'text',
                 'description' => __( 'Success URL potrebno je kopirati u Monri Account na predviđeno mjesto! ', 'wcwcCpg1' ),
