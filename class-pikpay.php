@@ -908,7 +908,7 @@ class WC_PikPay extends WC_Payment_Gateway
             'ch_address' => $order->billing_address_1,
             'ch_city' => $order->billing_city,
             'ch_zip' => $order->billing_postcode,
-            'ch_country' => WC()->countries->countries[$order->billing_country],
+            'ch_country' => $order->billing_country,
             'ch_phone' => $order->billing_phone,
             'ch_email' => $order->billing_email,
 
