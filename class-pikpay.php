@@ -676,7 +676,7 @@ class WC_PikPay extends WC_Payment_Gateway {
                         $protocol = 'http://';
                     }
 
-                    $url = $protocol . $_SERVER['SERVER_NAME'] . dirname($_SERVER['REQUEST_URI']);
+                    $url = $protocol . $_SERVER['SERVER_NAME'] . parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
                     $full_url = $url.'?'.$_SERVER['QUERY_STRING'];
                     $url_parsed = parse_url(preg_replace('/&digest=[^&]*/', '', $full_url));
                     $calculated_url = $url_parsed['scheme'].'://'.$url_parsed['host'].$url_parsed['path'].'?'.$url_parsed['query'];
@@ -735,7 +735,7 @@ class WC_PikPay extends WC_Payment_Gateway {
                             $order->add_order_note($this->msg['message']);
                         }
 
-                        add_action('the_content', array(&$this, 'showMessage'));
+                        wp_redirect($this->get_return_url($order));
                     }
                 }catch(Exception $e){
                         // $errorOccurred = true;
