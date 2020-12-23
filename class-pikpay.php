@@ -676,10 +676,9 @@ class WC_PikPay extends WC_Payment_Gateway {
                         $protocol = 'http://';
                     }
 
-                    $url = $protocol . $_SERVER['SERVER_NAME'] . dirname($_SERVER['REQUEST_URI']);
-                    $full_url = $url.'?'.$_SERVER['QUERY_STRING'];
-                    $url_parsed = parse_url(preg_replace('/&digest=[^&]*/', '', $full_url));
-                    $calculated_url = $url_parsed['scheme'].'://'.$url_parsed['host'].$url_parsed['path'].'?'.$url_parsed['query'];
+                    $url = strtok($this->thankyou_page, '?');
+                    $full_url = $url . '?' . $_SERVER['QUERY_STRING'];
+                    $calculated_url = preg_replace('/&digest=[^&]*/', '', $full_url);
                     //Generate digest
                     $checkdigest = hash('sha512', $this->pikpaykey.$calculated_url);
                     $transauthorised = false;
