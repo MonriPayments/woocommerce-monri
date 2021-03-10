@@ -670,10 +670,9 @@ class WC_PikPay extends WC_Payment_Gateway
                         $protocol = 'http://';
                     }
 
-                    $url = $protocol . $_SERVER['SERVER_NAME'] . dirname($_SERVER['REQUEST_URI']);
+                    $url = strtok($this->thankyou_page, '?');
                     $full_url = $url . '?' . $_SERVER['QUERY_STRING'];
-                    $url_parsed = parse_url(preg_replace('/&digest=[^&]*/', '', $full_url));
-                    $calculated_url = $url_parsed['scheme'] . '://' . $url_parsed['host'] . $url_parsed['path'] . '?' . $url_parsed['query'];
+                    $calculated_url = preg_replace('/&digest=[^&]*/', '', $full_url);
                     //Generate digest
                     $checkdigest = hash('sha512', $this->pikpaykey . $calculated_url);
                     $transauthorised = false;
@@ -927,10 +926,12 @@ class WC_PikPay extends WC_Payment_Gateway
             'transaction_type' => $transaction_type,
             'authenticity_token' => $this->pikpayauthtoken,
             'digest' => $digest,
-            'number_of_installments' => $card_installments,
             'temp_card_id' => $monri_token,
-
         );
+
+        if ($card_installments > 1) {
+            $params['number_of_installments'] = $card_installments;
+        }
 
         if ($transaction_type == "authorize") {
             $resultJSON = $this->authorize($params);
@@ -1005,7 +1006,8 @@ class WC_PikPay extends WC_Payment_Gateway
 
     }
 
-    function monri_token_validation($monri_token){
+    function monri_token_validation($monri_token)
+    {
 
         if ($this->form_language == "en") {
             $lang = $this->get_en_translation();
@@ -1284,14 +1286,14 @@ class WC_PikPay extends WC_Payment_Gateway
                 }
 
                 // No longer needed, Morni components JS plugin integrated
-                 $default_fields = array(
-                          'card-installments' => '<p id="pikpay-card-installments-p" style="display: block; float: left;" class="form-row form-row-wide">
-                                  <label for="' . esc_attr( $this->id ) . '-card-installments">'.$lang['INSTALLMENTS_NUMBER'].'</label>
-                                  <select id="' . esc_attr( $this->id ) . '-card-installments" class="input-text wc-credit-card-form-card-cvc"  name="' . ( $args['fields_have_names'] ? $this->id . '-card-installments' : '' ) . '">
-                                    ' .$options_string
-                                  .'</select>'.$price_increase_message
+                $default_fields = array(
+                    'card-installments' => '<p id="pikpay-card-installments-p" style="display: block; float: left;" class="form-row form-row-wide">
+                                  <label for="' . esc_attr($this->id) . '-card-installments">' . $lang['INSTALLMENTS_NUMBER'] . '</label>
+                                  <select id="' . esc_attr($this->id) . '-card-installments" class="input-text wc-credit-card-form-card-cvc"  name="' . ($args['fields_have_names'] ? $this->id . '-card-installments' : '') . '">
+                                    ' . $options_string
+                        . '</select>' . $price_increase_message
 
-                  );
+                );
             } else {
                 $default_fields = array();
             }
@@ -1303,7 +1305,7 @@ class WC_PikPay extends WC_Payment_Gateway
 
             ?>
 
-            <?php echo isset($default_fields['card-installments']) ? $default_fields['card-installments']: ''; ?>
+            <?php echo isset($default_fields['card-installments']) ? $default_fields['card-installments'] : ''; ?>
 
             <div id="<?php echo $this->id; ?>">
                 <?php do_action('woocommerce_credit_card_form_start', $this->id); ?>
@@ -1325,7 +1327,7 @@ class WC_PikPay extends WC_Payment_Gateway
 
                     };
                     // Add an instance of the card Component into the `card-element` <div>.
-                    var card = components.create('card',{style: style});
+                    var card = components.create('card', {style: style});
                     card.mount('<?php echo $this->id; ?>');
 
 
@@ -1379,7 +1381,7 @@ class WC_PikPay extends WC_Payment_Gateway
 
                             jQuery('.woocommerce-error').remove();
 
-                            if(jQuery('#card-errors').html() == ''){
+                            if (jQuery('#card-errors').html() == '') {
                                 jQuery('#place_order').trigger('click');
                             }
 
