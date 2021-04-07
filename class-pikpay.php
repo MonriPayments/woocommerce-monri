@@ -1413,8 +1413,13 @@ class WC_PikPay extends WC_Payment_Gateway
 
     function credit_card_script()
     {
+        if ($this->test_mode) {
+            $source_url = 'https://ipgtest.monri.com/dist/components.js';
+        } else {
+            $source_url = 'https://ipg.monri.com/dist/components.js';
+        }
         wp_register_script('installments', plugin_dir_url(__FILE__) . 'assets/js/installments.js', array('jquery'), '1', true);
-        wp_register_script('monri-components', 'https://ipgtest.monri.com/dist/components.js', array('jquery'), '1', true);
+        wp_register_script('monri-components', $source_url, array('jquery'), '1', true);
         wp_enqueue_script('installments');
         wp_enqueue_script('monri-components');
         wp_enqueue_script('wc-credit-card-form');
@@ -1435,10 +1440,8 @@ class WC_PikPay extends WC_Payment_Gateway
         // check test mode
         if ($this->test_mode) {
             $liveurl = 'https://ipgtest.monri.com/v2/transaction';
-            //$liveurl = 'https://ipgtest.monri.com/api';
         } else {
             $liveurl = 'https://ipg.monri.com/v2/transaction';
-            //$liveurl = 'https://ipg.monri.com/api';
         }
 
         return $this->curlJSON($liveurl, $params);
