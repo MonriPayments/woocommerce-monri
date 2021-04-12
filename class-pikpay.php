@@ -637,6 +637,23 @@ class WC_PikPay extends WC_Payment_Gateway
 
     }
 
+    /**
+     * In some cases page url is rewritten and it contains page path and query string.
+     * @return string
+     */
+    private function get_query_string()
+    {
+        $arr = explode("?", $_SERVER['REQUEST_URI']);
+        // If there's more than one '?' shift and join with ?, it's special case of having '?' in success url
+        // eg http://testiranjeintegracija.net/?page_id=6order-recieved?
+
+        if (count($arr) > 2) {
+            array_shift($arr);
+            return implode('?', $arr);
+        }
+
+        return end($arr);
+    }
 
     /**
      * Check for valid pikpay server callback
@@ -664,14 +681,11 @@ class WC_PikPay extends WC_Payment_Gateway
                     $digest = $_REQUEST['digest'];
                     $response_code = $_REQUEST['response_code'];
 
-                    if (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] == 'on' || $_SERVER['HTTPS'] == 1) || isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
-                        $protocol = 'https://';
-                    } else {
-                        $protocol = 'http://';
-                    }
-
                     $url = strtok($this->thankyou_page, '?');
-                    $full_url = $url . '?' . $_SERVER['QUERY_STRING'];
+
+                    $query_string = $this->get_query_string();
+                    $full_url = $url . '?' . $query_string;
+
                     $calculated_url = preg_replace('/&digest=[^&]*/', '', $full_url);
                     //Generate digest
                     $checkdigest = hash('sha512', $this->pikpaykey . $calculated_url);
@@ -901,7 +915,7 @@ class WC_PikPay extends WC_Payment_Gateway
         //Generate digest key
         $digest = hash('sha512', $this->pikpaykey . $order->get_id() . $amount . $currency);
 
-        //Array of order information 
+        //Array of order information
         $params = array(
             'ch_full_name' => $order->billing_first_name . " " . $order->billing_last_name,
             'ch_address' => $order->billing_address_1,
@@ -1693,7 +1707,7 @@ class WC_PikPay extends WC_Payment_Gateway
         $lang['CARD_CODE'] = 'Card Code';
         $lang['INSTALLMENTS_NUMBER'] = 'Number of installments';
 
-        // Validation messages 
+        // Validation messages
         $lang['FIRST_NAME_ERROR'] = 'First name must have between 3 and 11 characters';
         $lang['LAST_NAME_ERROR'] = 'Last name must have between 3 and 28 characters';
         $lang['ADDRESS_ERROR'] = 'Address must have between 3 and 300 characters';
@@ -1748,7 +1762,7 @@ class WC_PikPay extends WC_Payment_Gateway
         $lang['CARD_CODE'] = 'Cvv kod';
         $lang['INSTALLMENTS_NUMBER'] = 'Broj rata';
 
-        // Validation messages 
+        // Validation messages
         $lang['FIRST_NAME_ERROR'] = 'Ime mora imati između 3 i 11 karaktera';
         $lang['LAST_NAME_ERROR'] = 'Prezime mora imati između 3 i 28 karaktera';
         $lang['ADDRESS_ERROR'] = 'Adresa mora imati između 3 i 300 karaktera';
