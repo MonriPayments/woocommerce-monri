@@ -43,9 +43,9 @@ class WC_Monri extends WC_Payment_Gateway
         $this->description = $this->settings['description'];
         $this->thankyou_page = $this->settings['thankyou_page'];
         $this->instructions = $this->get_option('instructions');
-        $this->monrikey = $this->get_option('monrikey');
-        $this->monriauthtoken = $this->get_option('monriauthtoken');
-        $this->pickpay_methods = $this->get_option('pickpay_methods', array());
+        $this->monri_key = $this->get_option('monri_key');
+        $this->monri_auth_token = $this->get_option('monri_auth_token');
+        $this->monri_methods = $this->get_option('monri_methods', array());
         $this->payment_processor = $this->get_option('payment_processor', array());
         $this->test_mode = $this->get_option('test_mode', array());
         $this->transaction_type = $this->get_option('transaction_type', array());
@@ -91,7 +91,7 @@ class WC_Monri extends WC_Payment_Gateway
             add_action('woocommerce_update_options_payment_gateways', array(&$this, 'process_admin_options'));
         }
 
-        if (!$this->pickpay_methods) {
+        if (!$this->monri_methods) {
             $this->check_monri_response();
             add_action('woocommerce_receipt_monri', array(&$this, 'receipt_page'));
             $this->has_fields = false;
@@ -110,7 +110,7 @@ class WC_Monri extends WC_Payment_Gateway
 
     function init_form_fields()
     {
-        $pickpay_methods = array(
+        $monri_methods = array(
             "0" => 'No',
             "1" => 'Yes'
         );
@@ -166,28 +166,28 @@ class WC_Monri extends WC_Payment_Gateway
                 'desc_tip' => true,
                 'default' => __(wc_get_checkout_url() . get_option('woocommerce_checkout_order_received_endpoint', 'order-received'), 'wcwcCpg1')
             ),
-            'monrikey' => array(
+            'monri_key' => array(
                 'title' => __('Monri Key', 'wcwcCpg1'),
                 'type' => 'text',
                 'description' => __('', 'wcwcCpg1'),
                 'desc_tip' => true,
                 'default' => __('', 'wcwcCpg1')
             ),
-            'monriauthtoken' => array(
+            'monri_auth_token' => array(
                 'title' => __('Monri authenticity token', 'wcwcCpg1'),
                 'type' => 'text',
                 'description' => __('', 'wcwcCpg1'),
                 'desc_tip' => true,
                 'default' => __('', 'wcwcCpg1')
             ),
-            'pickpay_methods' => array(
+            'monri_methods' => array(
                 'title' => __('Use DIRECT Monri processing method:', 'wcwcCpg1'),
                 'type' => 'select',
                 'class' => 'chosen_select',
                 'css' => 'width: 450px;',
                 'default' => true,
                 'description' => __('', 'wcwcCpg1'),
-                'options' => $pickpay_methods,
+                'options' => $monri_methods,
                 'desc_tip' => true,
             ),
             'test_mode' => array(
@@ -197,7 +197,7 @@ class WC_Monri extends WC_Payment_Gateway
                 'css' => 'width: 450px;',
                 'default' => 0,
                 'description' => __('', 'wcwcCpg1'),
-                'options' => $pickpay_methods,
+                'options' => $monri_methods,
                 'desc_tip' => true,
             ),
             'transaction_type' => array(
@@ -227,7 +227,7 @@ class WC_Monri extends WC_Payment_Gateway
                 'css' => 'width: 450px;',
                 'default' => 0,
                 'description' => __('', 'wcwcCpg1'),
-                'options' => $pickpay_methods,
+                'options' => $monri_methods,
                 'desc_tip' => true,
             ),
             'number_of_allowed_installments' => array(
@@ -450,7 +450,7 @@ class WC_Monri extends WC_Payment_Gateway
             return;
         }
 
-        if ($this->pickpay_methods) {
+        if ($this->monri_methods) {
             //Direct integration
             return $this->direct_integration($order_id);
         } else {
@@ -573,7 +573,7 @@ class WC_Monri extends WC_Payment_Gateway
         }
 
         //Generate digest key
-        $digest = hash('sha512', $this->monrikey . $order->get_id() . $order_total . $currency);
+        $digest = hash('sha512', $this->monri_key . $order->get_id() . $order_total . $currency);
 
         //Combine first and last name in one string
         $full_name = $order->billing_first_name . " " . $order->billing_last_name;
@@ -596,7 +596,7 @@ class WC_Monri extends WC_Payment_Gateway
 
             'language' => $this->form_language,
             'transaction_type' => $transaction_type,
-            'authenticity_token' => $this->monriauthtoken,
+            'authenticity_token' => $this->monri_auth_token,
             'digest' => $digest
 
         );
@@ -688,7 +688,7 @@ class WC_Monri extends WC_Payment_Gateway
 
                     $calculated_url = preg_replace('/&digest=[^&]*/', '', $full_url);
                     //Generate digest
-                    $checkdigest = hash('sha512', $this->monrikey . $calculated_url);
+                    $checkdigest = hash('sha512', $this->monri_key . $calculated_url);
                     $transauthorised = false;
                     if ($order->status !== 'completed') {
                         if ($digest == $checkdigest) {
@@ -913,7 +913,7 @@ class WC_Monri extends WC_Payment_Gateway
         }
 
         //Generate digest key
-        $digest = hash('sha512', $this->monrikey . $order->get_id() . $amount . $currency);
+        $digest = hash('sha512', $this->monri_key . $order->get_id() . $amount . $currency);
 
         //Array of order information
         $params = array(
@@ -938,7 +938,7 @@ class WC_Monri extends WC_Payment_Gateway
             'ip' => $_SERVER['REMOTE_ADDR'],
             'language' => $this->form_language,
             'transaction_type' => $transaction_type,
-            'authenticity_token' => $this->monriauthtoken,
+            'authenticity_token' => $this->monri_auth_token,
             'digest' => $digest,
             'temp_card_id' => $monri_token,
         );
@@ -1048,7 +1048,7 @@ class WC_Monri extends WC_Payment_Gateway
             $lang = $this->get_sr_translation();
         }
 
-        if (!$this->pickpay_methods) {
+        if (!$this->monri_methods) {
             if ($this->description) echo wpautop(wptexturize($this->description));
         } else {
 
@@ -1314,7 +1314,7 @@ class WC_Monri extends WC_Payment_Gateway
 
             $radnomToken = wp_generate_uuid4();
             $timestamp = (new DateTime())->format('c');
-            $digest = hash('SHA512', $this->monrikey . $radnomToken . '' . $timestamp . '');
+            $digest = hash('SHA512', $this->monri_key . $radnomToken . '' . $timestamp . '');
 
 
             ?>
@@ -1331,7 +1331,7 @@ class WC_Monri extends WC_Payment_Gateway
 
                 jQuery('#' + '<?php echo $this->id; ?>').ready(function () {
 
-                    var monri = Monri('<?php echo $this->monriauthtoken ?>');
+                    var monri = Monri('<?php echo $this->monri_auth_token ?>');
                     var components = monri.components("<?php echo $radnomToken ?>", "<?php echo $digest ?>", '<?php echo $timestamp ?>');
 
                     var style = {
@@ -1627,7 +1627,7 @@ class WC_Monri extends WC_Payment_Gateway
                   <amount>{$params[$amount]}</amount>
                   <currency>{$params[$currency]}</currency>
                   <digest>{$params[$digest]}</digest>
-                  <authenticity-token>$this->monriauthtoken</authenticity-token>
+                  <authenticity-token>$this->monri_auth_token</authenticity-token>
                   <order-number>{$params[$order_number]}</order-number>";
 
         if ($type === 'authorize' || $type === 'purchase') {
