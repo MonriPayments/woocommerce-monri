@@ -43,8 +43,14 @@ class WC_Monri extends WC_Payment_Gateway
         $this->description = $this->settings['description'];
         $this->thankyou_page = $this->settings['thankyou_page'];
         $this->instructions = $this->get_option('instructions');
-        $this->monri_key = $this->get_option('monri_key');
-        $this->monri_auth_token = $this->get_option('monri_auth_token');
+
+        /**
+         * Using `htmlspecialchars_decode` to remove any HTML entities from these two entries.
+         * Resolves: https://github.com/MonriPayments/woocommerce-plugin/issues/6.
+         */
+        $this->monri_key = htmlspecialchars_decode($this->get_option('monri_key'));
+        $this->monri_auth_token = htmlspecialchars_decode($this->get_option('monri_auth_token'));
+
         $this->monri_methods = $this->get_option('monri_methods', array());
         $this->payment_processor = $this->get_option('payment_processor', array());
         $this->test_mode = $this->get_option('test_mode', array());
