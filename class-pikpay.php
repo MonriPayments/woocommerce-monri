@@ -48,8 +48,8 @@ class WC_Monri extends WC_Payment_Gateway
          * Using `htmlspecialchars_decode` to remove any HTML entities from these two entries.
          * Resolves: https://github.com/MonriPayments/woocommerce-plugin/issues/6.
          */
-        $this->monri_key = htmlspecialchars_decode($this->get_option('monri_key'));
-        $this->monri_auth_token = htmlspecialchars_decode($this->get_option('monri_auth_token'));
+        $this->monri_merchant_key = htmlspecialchars_decode($this->get_option('monri_merchant_key'));
+        $this->monri_authenticity_token = htmlspecialchars_decode($this->get_option('monri_authenticity_token'));
 
         $this->monri_methods = $this->get_option('monri_methods', array());
         $this->payment_processor = $this->get_option('payment_processor', array());
@@ -172,15 +172,15 @@ class WC_Monri extends WC_Payment_Gateway
                 'desc_tip' => true,
                 'default' => __(wc_get_checkout_url() . get_option('woocommerce_checkout_order_received_endpoint', 'order-received'), 'wcwcCpg1')
             ),
-            'monri_key' => array(
-                'title' => __('Monri Key', 'wcwcCpg1'),
+            'monri_merchant_key' => array(
+                'title' => __('Monri Merchant Key', 'wcwcCpg1'),
                 'type' => 'text',
                 'description' => __('', 'wcwcCpg1'),
                 'desc_tip' => true,
                 'default' => __('', 'wcwcCpg1')
             ),
-            'monri_auth_token' => array(
-                'title' => __('Monri authenticity token', 'wcwcCpg1'),
+            'monri_authenticity_token' => array(
+                'title' => __('Monri Authenticity Token', 'wcwcCpg1'),
                 'type' => 'text',
                 'description' => __('', 'wcwcCpg1'),
                 'desc_tip' => true,
@@ -579,7 +579,7 @@ class WC_Monri extends WC_Payment_Gateway
         }
 
         //Generate digest key
-        $digest = hash('sha512', $this->monri_key . $order->get_id() . $order_total . $currency);
+        $digest = hash('sha512', $this->monri_merchant_key . $order->get_id() . $order_total . $currency);
 
         //Combine first and last name in one string
         $full_name = $order->billing_first_name . " " . $order->billing_last_name;
@@ -602,7 +602,7 @@ class WC_Monri extends WC_Payment_Gateway
 
             'language' => $this->form_language,
             'transaction_type' => $transaction_type,
-            'authenticity_token' => $this->monri_auth_token,
+            'authenticity_token' => $this->monri_authenticity_token,
             'digest' => $digest
 
         );
@@ -694,7 +694,7 @@ class WC_Monri extends WC_Payment_Gateway
 
                     $calculated_url = preg_replace('/&digest=[^&]*/', '', $full_url);
                     //Generate digest
-                    $checkdigest = hash('sha512', $this->monri_key . $calculated_url);
+                    $checkdigest = hash('sha512', $this->monri_merchant_key . $calculated_url);
                     $transauthorised = false;
                     if ($order->status !== 'completed') {
                         if ($digest == $checkdigest) {
@@ -919,7 +919,7 @@ class WC_Monri extends WC_Payment_Gateway
         }
 
         //Generate digest key
-        $digest = hash('sha512', $this->monri_key . $order->get_id() . $amount . $currency);
+        $digest = hash('sha512', $this->monri_merchant_key . $order->get_id() . $amount . $currency);
 
         //Array of order information
         $params = array(
@@ -944,7 +944,7 @@ class WC_Monri extends WC_Payment_Gateway
             'ip' => $_SERVER['REMOTE_ADDR'],
             'language' => $this->form_language,
             'transaction_type' => $transaction_type,
-            'authenticity_token' => $this->monri_auth_token,
+            'authenticity_token' => $this->monri_authenticity_token,
             'digest' => $digest,
             'temp_card_id' => $monri_token,
         );
@@ -1320,7 +1320,7 @@ class WC_Monri extends WC_Payment_Gateway
 
             $radnomToken = wp_generate_uuid4();
             $timestamp = (new DateTime())->format('c');
-            $digest = hash('SHA512', $this->monri_key . $radnomToken . '' . $timestamp . '');
+            $digest = hash('SHA512', $this->monri_merchant_key . $radnomToken . '' . $timestamp . '');
 
 
             ?>
@@ -1337,7 +1337,7 @@ class WC_Monri extends WC_Payment_Gateway
 
                 jQuery('#' + '<?php echo $this->id; ?>').ready(function () {
 
-                    var monri = Monri('<?php echo $this->monri_auth_token ?>');
+                    var monri = Monri('<?php echo $this->monri_authenticity_token ?>');
                     var components = monri.components("<?php echo $radnomToken ?>", "<?php echo $digest ?>", '<?php echo $timestamp ?>');
 
                     var style = {
@@ -1633,7 +1633,7 @@ class WC_Monri extends WC_Payment_Gateway
                   <amount>{$params[$amount]}</amount>
                   <currency>{$params[$currency]}</currency>
                   <digest>{$params[$digest]}</digest>
-                  <authenticity-token>$this->monri_auth_token</authenticity-token>
+                  <authenticity-token>$this->monri_authenticity_token</authenticity-token>
                   <order-number>{$params[$order_number]}</order-number>";
 
         if ($type === 'authorize' || $type === 'purchase') {
