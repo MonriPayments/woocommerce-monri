@@ -1,4 +1,4 @@
-# woocommerce-plugin
+# woocommerce-monri
 WooCommerce Plugin
 
 Installation guide:
