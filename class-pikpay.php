@@ -1346,7 +1346,8 @@ class WC_PikPay extends WC_Payment_Gateway
 
 
                     jQuery('form.checkout').on('checkout_place_order', function () {
-
+                        // If the Monri radio button is checked, handle Monri token
+                        if (jQuery('input#payment_method_pikpay').is(':checked')) {
 
                         if (jQuery('#monri-token').length == 0) {
                             // If monri-token element could not be found add it to the form and set its value to 'not-set'.
@@ -1368,7 +1369,6 @@ class WC_PikPay extends WC_Payment_Gateway
                                     errorElement.textContent = result.error.message;
 
                                 } else {
-
                                     monriTokenHandler(result.result);
                                 }
                             });
@@ -1382,11 +1382,15 @@ class WC_PikPay extends WC_Payment_Gateway
                             }
 
                         }
-
+                    } else {
+                        // If the Monri radio button is not checked, delete the errors and the Monri token
+                        var displayError = document.getElementById('card-errors');
+                        displayError.textContent = '';
+                        jQuery('#monri-token').remove();
+                    }
                     });
 
                     jQuery(document.body).on('checkout_error', function () {
-
                         // Trigger the submit of the checkout form If the thrown wc error is 'set_monri_token_notice' and
                         // no error was returend by  monri.createToken. Else remove the 'monri token' html elemente so a new one can be generated on the next form submit.
                         var error_text = jQuery('.woocommerce-error').find('li').first().text();
@@ -1400,7 +1404,6 @@ class WC_PikPay extends WC_Payment_Gateway
                             }
 
                         }
-
                     });
 
                     card.onChange(function (event) {
