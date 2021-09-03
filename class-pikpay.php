@@ -831,7 +831,27 @@ class WC_Monri extends WC_Payment_Gateway
             $transaction_type = 'purchase';
         }
 
+        for($i = 2; $i <= 24; $i++) {
+            if($number_of_installments !== $i) {
+                continue;
+            }
 
+            $price_increase_property = 'price_increase_' . $i;
+
+            if(!property_exists($this, $price_increase_property)) {
+                continue;
+            }
+
+            $price_increase = $this->$price_increase_property;
+
+            if($price_increase !== 0) {
+                $amount = $order->order_total + (
+                        ($order->order_total * $price_increase) / 100
+                    );
+            }
+        }
+
+        /**
         if ($number_of_installments === 2) {
             if ($this->price_increase_2 != 0)
                 $amount = $order->order_total + ($order->order_total * $this->price_increase_2 / 100);
@@ -901,7 +921,7 @@ class WC_Monri extends WC_Payment_Gateway
         } elseif ($number_of_installments === 24) {
             if ($this->price_increase_24 != 0)
                 $amount = $order->order_total + ($order->order_total * $this->price_increase_24 / 100);
-        }
+        } */
 
         //Convert order amount to number without decimals
         $amount = ceil($amount * 100);
@@ -1071,6 +1091,27 @@ class WC_Monri extends WC_Payment_Gateway
 
             $price_increase_message = "<span id='price-increase-1' class='price-increase-message' style='display: none; color: red;'></span>";
 
+            for($i = 2; $i <= 24; $i++) {
+                $price_increase_property = 'price_increase_' . $i;
+
+                if(!property_exists($this, $price_increase_property)) {
+                    continue;
+                }
+
+                $price_increase = $this->$price_increase_property;
+
+                if($price_increase !== 0) {
+                    $amount = $order_total + (
+                        ($order_total * $price_increase) / 100
+                    );
+
+                    $amount_formatted = number_format($amount, 2);
+
+                    $price_increase_message .= "<span id='price-increase-" . $i . "' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $price_increase . "% = " . $amount_formatted . "</span>";
+                }
+            }
+
+            /**
             if ($this->price_increase_2 != 0) {
                 $amount2 = $order_total + ($order_total * $this->price_increase_2 / 100);
                 $price_increase_message .= "<span id='price-increase-2' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_2 . "% = " . $amount2 . "</span>";
@@ -1253,7 +1294,7 @@ class WC_Monri extends WC_Payment_Gateway
             } else {
                 $amount24 = $order_total;
                 $price_increase_message .= "<span id='price-increase-24' class='price-increase-message' style='display: none; color: red;'></span>";
-            }
+            } */
 
             if ($this->paying_in_installments and $order_total >= $this->bottom_limit) {
                 if ($this->number_of_allowed_installments == 24) {
