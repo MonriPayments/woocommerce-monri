@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection ALL */
 /*
     Plugin Name: Monri
     Plugin URI: http://www.monri.com
@@ -53,3 +53,44 @@ function fake_checkout_form_error($posted) {
         wc_add_notice( __( "set_monri_token_notice", 'fake_error' ), 'error');
     }
 }
+
+define('MONRI_CALLBACK_IMPL', true);
+require_once 'callback-url.php';
+
+add_action( 'parse_request', function() {
+    $monri_settings = get_option('woocommerce_pikpay_settings');
+
+    if(!is_array($monri_settings) || !isset($monri_settings['callback_url_endpoint'])) {
+        return;
+    }
+
+    $monri_callback_url_endpoint = isset($monri_settings['callback_url_endpoint']) ?
+        $monri_settings['callback_url_endpoint'] : '/monri-callback';
+
+    monri_handle_callback($monri_callback_url_endpoint, function($payload) {
+        $order_number = $payload['order_number'];
+
+        try {
+            $order = new WC_Order($order_number);
+
+            $skip_statuses = array('cancelled', 'failed', 'refunded');
+
+            if(in_array($order->get_status(), $skip_statuses)) {
+                monri_done();
+            }
+
+            if($payload['status'] === 'approved') {
+                $note = sprintf(
+                    'Order #%s-%s is successfully processed, ref. num. %s: %s.',
+                    $payload['id'], $order_number, $payload['reference_number'], $payload['response_message']
+                );
+
+                $order->update_status('wc-completed', $note);
+                $order->add_order_note($note);
+            }
+        } catch (\Exception $e) {
+            $message = sprintf('Order ID: %s not found or does not exist.', $order_number);
+            monri_error($message, array(404, 'Not Found'));
+        }
+    });
+});
