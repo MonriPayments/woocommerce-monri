@@ -43,6 +43,7 @@ class WC_PikPay extends WC_Payment_Gateway
         $this->description = $this->settings['description'];
         $this->thankyou_page = $this->settings['thankyou_page'];
         $this->instructions = $this->get_option('instructions');
+        $this->callback_url_endpoint = $this->get_option('callback_url_endpoint');
         $this->pikpaykey = $this->get_option('pikpaykey');
         $this->pikpayauthtoken = $this->get_option('pikpayauthtoken');
         $this->pickpay_methods = $this->get_option('pickpay_methods', array());
@@ -165,6 +166,13 @@ class WC_PikPay extends WC_Payment_Gateway
                 'description' => __('Success URL potrebno je kopirati u Monri Account na predviđeno mjesto! ', 'wcwcCpg1'),
                 'desc_tip' => true,
                 'default' => __(wc_get_checkout_url() . get_option('woocommerce_checkout_order_received_endpoint', 'order-received'), 'wcwcCpg1')
+            ),
+            'callback_url_endpoint' => array(
+                'title' => __('Callback URL endpoint', 'wcwcGpg1'),
+                'type' => 'text',
+                'description' => __('Monri Callback URL endpoint koji će primati POST zahtjev sa Monri Gateway-a ', 'wcwcCpg1'),
+                'desc_tip' => true,
+                'default' => '/monri-callback', 'wcwcCpg1',
             ),
             'pikpaykey' => array(
                 'title' => __('Monri Key', 'wcwcCpg1'),
@@ -429,7 +437,7 @@ class WC_PikPay extends WC_Payment_Gateway
     {
         if ($this->enabled == "yes") {
             if (get_option('woocommerce_force_ssl_checkout') == "no") {
-                echo "<div class=\"error\"><p>" . sprintf(__("<strong>%s</strong> is enabled and WooCommerce is not forcing the SSL certificate on your checkout page. Please ensure that you have a valid SSL certificate and that you are <a href=\"%s\">forcing the checkout pages to be secured.</a>"), $this->method_title, admin_url('admin.php?page=wc-settings&tab=checkout')) . "</p></div>";
+                //echo "<div class=\"error\"><p>" . sprintf(__("<strong>%s</strong> is enabled and WooCommerce is not forcing the SSL certificate on your checkout page. Please ensure that you have a valid SSL certificate and that you are <a href=\"%s\">forcing the checkout pages to be secured.</a>"), $this->method_title, admin_url('admin.php?page=wc-settings&tab=checkout')) . "</p></div>";
             }
         }
     }
