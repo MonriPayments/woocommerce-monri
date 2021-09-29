@@ -681,7 +681,7 @@ class WC_PikPay extends WC_Payment_Gateway
                 lineHeight:"32px"
         }
         });
-        // jQuery("#submit_pikpay_payment_form").click();    
+        jQuery("#submit_pikpay_payment_form").click();    
     });</script>
                 </form>';
 
