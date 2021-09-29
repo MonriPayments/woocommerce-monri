@@ -640,15 +640,15 @@ class WC_PikPay extends WC_Payment_Gateway
         );
 
         if($success_url_override = $this->get_option('success_url_override')) {
-            $args['success_url_override'] = rawurlencode($success_url_override);
+            $args['success_url_override'] = $success_url_override;
         }
 
         if($cancel_url_override = $this->get_option('cancel_url_override')) {
-            $args['cancel_url_override'] = rawurlencode($cancel_url_override);
+            $args['cancel_url_override'] = $cancel_url_override;
         }
 
         if($callback_url_override = $this->get_option('callback_url_override')) {
-            $args['callback_url_override'] = rawurlencode($callback_url_override);
+            $args['callback_url_override'] = $callback_url_override;
         }
 
         //Generating input fields with order information that will be sent on pikpay
