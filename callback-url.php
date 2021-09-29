@@ -70,9 +70,10 @@ function monri_done()
  * The payload must be a valid JSON.
  *
  * @param $pathname
+ * @param $merchant_key
  * @param $callback
  */
-function monri_handle_callback($pathname, $callback)
+function monri_handle_callback($pathname, $merchant_key, $callback)
 {
     if (!str_ends_with($_SERVER['REQUEST_URI'], $pathname)) {
         return;
@@ -88,7 +89,23 @@ function monri_handle_callback($pathname, $callback)
     }
 
     // Grabbing read-only stream from the request body.
-    $input = file_get_contents('php://input');
+    $json = file_get_contents('php://input');
+
+    if(!isset($_SERVER['HTTP_AUTHORIZATION'])) {
+        monri_error('Authorization header missing.', $bad_request_header);
+    }
+
+    // Strip-out the 'WP3-callback' part from the Authorization header.
+    $authorization = trim(
+        str_replace('WP3-callback', '', $_SERVER['HTTP_AUTHORIZATION'])
+    );
+    // Calculating the digest...
+    $digest = hash('sha512', $merchant_key . $json);
+
+    // ... and comparing it with one from the headers.
+    if($digest !== $authorization) {
+        monri_error('Authorization header missing.', $bad_request_header);
+    }
 
     $payload = null;
     $json_malformed = 'JSON payload is malformed.';
@@ -96,14 +113,14 @@ function monri_handle_callback($pathname, $callback)
     // Handling JSON parsing for PHP >= 7.3...
     if(class_exists('JsonException')) {
         try {
-            $payload = json_decode($input, true);
+            $payload = json_decode($json, true);
         } catch (\JsonException $e) {
             monri_error($json_malformed, $bad_request_header);
         }
     }
     // ... and for PHP <= 7.2.
     else {
-        $payload = json_decode($input, true);
+        $payload = json_decode($json, true);
 
         if($payload === null && json_last_error() !== JSON_ERROR_NONE) {
             monri_error($json_malformed, $bad_request_header);

@@ -18,14 +18,14 @@ function woocommerce_monri_init() {
 	if ( ! class_exists( 'WC_Payment_Gateway' ) ) return;
 
 	// If we made it this far, then include our Gateway Class
-	include_once( 'class-monri.php' );
+	include_once( 'class-pikpay.php' );
 
 	// Now that we have successfully included our class,
 	// Lets add it too WooCommerce
 	add_filter( 'woocommerce_payment_gateways', 'woocommerce_add_monri_gateway' );
 
 	function woocommerce_add_monri_gateway( $methods ) {
-		$methods[] = 'WC_Monri';
+		$methods[] = 'WC_PikPay';
 		return $methods;
 	}
 }
@@ -67,7 +67,17 @@ add_action( 'parse_request', function() {
     $monri_callback_url_endpoint = isset($monri_settings['callback_url_endpoint']) ?
         $monri_settings['callback_url_endpoint'] : '/monri-callback';
 
-    monri_handle_callback($monri_callback_url_endpoint, function($payload) {
+    $merchant_key = null;
+
+    if($_SERVER['REQUEST_METHOD'] === 'POST' && str_ends_with($_SERVER['REQUEST_URI'], $monri_callback_url_endpoint)) {
+        if(!isset($monri_settings['monri_merchant_key'])) {
+            monri_error('Monri key is not defined or does not exist.', array(404, 'Not Found'));
+        }
+
+        $merchant_key = $monri_settings['monri_merchant_key'];
+    }
+
+    monri_handle_callback($monri_callback_url_endpoint, $merchant_key, function($payload) {
         $order_number = $payload['order_number'];
 
         try {
