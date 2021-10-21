@@ -41,9 +41,15 @@ class WC_PikPay extends WC_Payment_Gateway
         // Define user set variables.
         $this->title = $this->settings['title'];
         $this->description = $this->settings['description'];
-        $this->thankyou_page = $this->settings['thankyou_page'];
         $this->instructions = $this->get_option('instructions');
+
+        $this->thankyou_page = $this->settings['thankyou_page'];
         $this->callback_url_endpoint = $this->get_option('callback_url_endpoint');
+
+        $this->success_url_override = $this->get_option('success_url_override');
+        $this->cancel_url_override = $this->get_option('cancel_url_override');
+        $this->callback_url_override = $this->get_option('callback_url_override');
+
         $this->pikpaykey = $this->get_option('pikpaykey');
         $this->pikpayauthtoken = $this->get_option('pikpayauthtoken');
         $this->pickpay_methods = $this->get_option('pickpay_methods', array());
@@ -104,7 +110,7 @@ class WC_PikPay extends WC_Payment_Gateway
         // Delete monri log file
         $log_file = "/var/sentora/hostdata/admin/public_html/wp-content/plugins/woocommerce-monri/log.txt";
 
-        // Use unlink() function to delete a file  
+        // Use unlink() function to delete a file
         @unlink($log_file);
 
     } // End __construct()
@@ -167,13 +173,37 @@ class WC_PikPay extends WC_Payment_Gateway
                 'desc_tip' => true,
                 'default' => __(wc_get_checkout_url() . get_option('woocommerce_checkout_order_received_endpoint', 'order-received'), 'wcwcCpg1')
             ),
+
             'callback_url_endpoint' => array(
                 'title' => __('Callback URL endpoint', 'wcwcGpg1'),
                 'type' => 'text',
-                'description' => __('Monri Callback URL endpoint koji će primati POST zahtjev sa Monri Gateway-a ', 'wcwcCpg1'),
+                'description' => __('Monri Callback URL endpoint koji će primati POST zahtjev sa Monri Gateway-a.', 'wcwcCpg1'),
                 'desc_tip' => true,
                 'default' => '/monri-callback', 'wcwcCpg1',
             ),
+
+            'success_url_override' => array(
+                'title' => __('Success URL override', 'wcwcGpg1'),
+                'type' => 'text',
+                'description' => __('Success URL koji želite koristiti pri svakoj transakciji. (HTTPS)', 'wcwcCpg1'),
+                'desc_tip' => true,
+                'default' => '', 'wcwcCpg1',
+            ),
+            'cancel_url_override' => array(
+                'title' => __('Cancel URL override', 'wcwcGpg1'),
+                'type' => 'text',
+                'description' => __('Cancel URL koji želite koristiti pri svakoj transakciji. (HTTPS)', 'wcwcCpg1'),
+                'desc_tip' => true,
+                'default' => '', 'wcwcCpg1',
+            ),
+            'callback_url_override' => array(
+                'title' => __('Callback URL override', 'wcwcGpg1'),
+                'type' => 'text',
+                'description' => __('Callback URL koji želite koristiti pri svakoj transakciji. (HTTPS)', 'wcwcCpg1'),
+                'desc_tip' => true,
+                'default' => '', 'wcwcCpg1',
+            ),
+
             'pikpaykey' => array(
                 'title' => __('Monri Key', 'wcwcCpg1'),
                 'type' => 'text',
@@ -462,9 +492,9 @@ class WC_PikPay extends WC_Payment_Gateway
             //Direct integration
             return $this->direct_integration($order_id);
         } else {
-            //Form integration   
+            //Form integration
             return array('result' => 'success', 'redirect' => add_query_arg('order',
-                $order->get_id(), add_query_arg('key', $order->order_key, WC_Cart::get_checkout_url()))
+                $order->get_id(), add_query_arg('key', $order->order_key, wc_get_checkout_url()))
             );
         }
 
@@ -609,6 +639,18 @@ class WC_PikPay extends WC_Payment_Gateway
 
         );
 
+        if($success_url_override = $this->get_option('success_url_override')) {
+            $args['success_url_override'] = $success_url_override;
+        }
+
+        if($cancel_url_override = $this->get_option('cancel_url_override')) {
+            $args['cancel_url_override'] = $cancel_url_override;
+        }
+
+        if($callback_url_override = $this->get_option('callback_url_override')) {
+            $args['callback_url_override'] = $callback_url_override;
+        }
+
         //Generating input fields with order information that will be sent on pikpay
         $args_array = array();
         foreach ($args as $key => $value) {
@@ -639,7 +681,8 @@ class WC_PikPay extends WC_Payment_Gateway
                 lineHeight:"32px"
         }
         });
-        jQuery("#submit_pikpay_payment_form").click();});</script>
+        jQuery("#submit_pikpay_payment_form").click();    
+    });</script>
                 </form>';
 
 
@@ -1357,45 +1400,45 @@ class WC_PikPay extends WC_Payment_Gateway
                         // If the Monri radio button is checked, handle Monri token
                         if (jQuery('input#payment_method_pikpay').is(':checked')) {
 
-                        if (jQuery('#monri-token').length == 0) {
-                            // If monri-token element could not be found add it to the form and set its value to 'not-set'.
-                            var hiddenInput = document.createElement('input');
-                            hiddenInput.setAttribute('type', 'hidden');
-                            hiddenInput.setAttribute('name', 'monri-token');
-                            hiddenInput.setAttribute('id', 'monri-token');
-                            hiddenInput.setAttribute('value', 'not-set');
-                            jQuery(this).append(hiddenInput);
-                        }
-
-
-                        if (jQuery('#monri-token').val() == 'not-set') {
-
-                            monri.createToken(card).then(function (result) {
-                                if (result.error) {
-                                    // Inform the customer that there was an error.
-                                    var errorElement = document.getElementById('card-errors');
-                                    errorElement.textContent = result.error.message;
-
-                                } else {
-                                    monriTokenHandler(result.result);
-                                }
-                            });
-
-
-                            function monriTokenHandler(token) {
-
-                                // Insert the token ID into the form so it gets submitted to the server
-                                jQuery('#monri-token').val(token.id);
-
+                            if (jQuery('#monri-token').length == 0) {
+                                // If monri-token element could not be found add it to the form and set its value to 'not-set'.
+                                var hiddenInput = document.createElement('input');
+                                hiddenInput.setAttribute('type', 'hidden');
+                                hiddenInput.setAttribute('name', 'monri-token');
+                                hiddenInput.setAttribute('id', 'monri-token');
+                                hiddenInput.setAttribute('value', 'not-set');
+                                jQuery(this).append(hiddenInput);
                             }
 
+
+                            if (jQuery('#monri-token').val() == 'not-set') {
+
+                                monri.createToken(card).then(function (result) {
+                                    if (result.error) {
+                                        // Inform the customer that there was an error.
+                                        var errorElement = document.getElementById('card-errors');
+                                        errorElement.textContent = result.error.message;
+
+                                    } else {
+                                        monriTokenHandler(result.result);
+                                    }
+                                });
+
+
+                                function monriTokenHandler(token) {
+
+                                    // Insert the token ID into the form so it gets submitted to the server
+                                    jQuery('#monri-token').val(token.id);
+
+                                }
+
+                            }
+                        } else {
+                            // If the Monri radio button is not checked, delete the errors and the Monri token
+                            var displayError = document.getElementById('card-errors');
+                            displayError.textContent = '';
+                            jQuery('#monri-token').remove();
                         }
-                    } else {
-                        // If the Monri radio button is not checked, delete the errors and the Monri token
-                        var displayError = document.getElementById('card-errors');
-                        displayError.textContent = '';
-                        jQuery('#monri-token').remove();
-                    }
                     });
 
                     jQuery(document.body).on('checkout_error', function () {
