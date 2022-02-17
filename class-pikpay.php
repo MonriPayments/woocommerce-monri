@@ -922,6 +922,7 @@ class WC_Monri extends WC_Payment_Gateway
         $digest = hash('sha512', $this->monri_merchant_key . $order->get_id() . $amount . $currency);
 
         //Array of order information
+        $order_number = $order->get_id();
         $params = array(
             'ch_full_name' => $order->billing_first_name . " " . $order->billing_last_name,
             'ch_address' => $order->billing_address_1,
@@ -937,7 +938,7 @@ class WC_Monri extends WC_Payment_Gateway
             'expiration_date' => $card_expiry,*/
 
             'order_info' => $order_info,
-            'order_number' => $order->get_id(),
+            'order_number' => $order_number,
             'amount' => $amount,
             'currency' => $currency,
 
@@ -974,10 +975,12 @@ class WC_Monri extends WC_Payment_Gateway
             //show user 3d secure form the
             $result = $resultJSON['secure_message'];
 
+            $payment_token = base64url_encode(json_encode([$result['authenticity_token'], $order_number]));
+
             $urlEncode = array(
                 "acsUrl" => $result['acs_url'],
                 "pareq" => $result['pareq'],
-                "returnUrl" => $this->get_return_url($order),
+                "returnUrl" => plugins_url() . "/woocommerce-monri/paymentresult.php?payment_token=$payment_token",
                 "token" => $result['authenticity_token']
             );
 
