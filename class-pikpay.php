@@ -11,6 +11,8 @@ class WC_PikPay extends WC_Payment_Gateway
         // The global ID for this Payment method
         $this->id = "pikpay";
 
+        $this->monri_api = new MonriApi();
+
         // The Title shown on the top of the Payment Gateways Page next to all the other Payment Gateways
         $this->method_title = __("PikPay", 'pikpay');
 
@@ -106,12 +108,6 @@ class WC_PikPay extends WC_Payment_Gateway
             $this->has_fields = true;
             $this->check_3dsecure_response();
         }
-
-        // Delete monri log file
-        $log_file = "/var/sentora/hostdata/admin/public_html/wp-content/plugins/woocommerce-monri/log.txt";
-
-        // Use unlink() function to delete a file
-        @unlink($log_file);
 
     } // End __construct()
 
@@ -639,15 +635,15 @@ class WC_PikPay extends WC_Payment_Gateway
 
         );
 
-        if($success_url_override = $this->get_option('success_url_override')) {
+        if ($success_url_override = $this->get_option('success_url_override')) {
             $args['success_url_override'] = $success_url_override;
         }
 
-        if($cancel_url_override = $this->get_option('cancel_url_override')) {
+        if ($cancel_url_override = $this->get_option('cancel_url_override')) {
             $args['cancel_url_override'] = $cancel_url_override;
         }
 
-        if($callback_url_override = $this->get_option('callback_url_override')) {
+        if ($callback_url_override = $this->get_option('callback_url_override')) {
             $args['callback_url_override'] = $callback_url_override;
         }
 
@@ -1025,7 +1021,7 @@ class WC_PikPay extends WC_Payment_Gateway
             $urlEncode = array(
                 "acsUrl" => $result['acs_url'],
                 "pareq" => $result['pareq'],
-                "returnUrl" => plugins_url() . "/woocommerce-monri/paymentresult.php?payment_token=$payment_token",
+                "returnUrl" => $this->monri_api->three3dsReturnUrl($order_number),
                 "token" => $result['authenticity_token']
             );
 
