@@ -18,7 +18,7 @@ function woocommerce_monri_init() {
 	if ( ! class_exists( 'WC_Payment_Gateway' ) ) return;
 
 	// If we made it this far, then include our Gateway Class
-	include_once( 'class-pikpay.php' );
+	include_once( 'class-monri.php' );
 
 	// Now that we have successfully included our class,
 	// Lets add it too WooCommerce
@@ -58,7 +58,7 @@ define('MONRI_CALLBACK_IMPL', true);
 require_once 'callback-url.php';
 
 add_action( 'parse_request', function() {
-    $monri_settings = get_option('woocommerce_pikpay_settings');
+    $monri_settings = get_option('woocommerce_monri_settings');
 
     if(!is_array($monri_settings) || !isset($monri_settings['callback_url_endpoint'])) {
         return;
