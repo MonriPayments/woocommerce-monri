@@ -55,9 +55,29 @@ function fake_checkout_form_error($posted) {
 }
 
 define('MONRI_CALLBACK_IMPL', true);
-require_once 'callback-url.php';
+require_once __DIR__ . '/callback-url.php';
+
+function handle_incoming_3ds_request() {
+    $uri = parse_url(site_url() . $_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    
+    if($uri === '/monri-3ds-payment-result') {
+        $payment_token = isset($_GET['payment_token']) ? $_GET['payment_token'] : null;
+
+        if(!$payment_token) {
+            return;
+        }
+
+
+        require_once __DIR__ . '/monri-api.php';
+
+        $monri = new MonriApi();
+        $monri->resolvePaymentStatus($_GET['payment_token']);
+    }
+}
 
 add_action( 'parse_request', function() {
+    handle_incoming_3ds_request();
+
     $monri_settings = get_option('woocommerce_monri_settings');
 
     if(!is_array($monri_settings) || !isset($monri_settings['callback_url_endpoint'])) {
