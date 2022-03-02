@@ -25,7 +25,7 @@ function woocommerce_monri_init() {
 	add_filter( 'woocommerce_payment_gateways', 'woocommerce_add_monri_gateway' );
 
 	function woocommerce_add_monri_gateway( $methods ) {
-		$methods[] = 'WC_PikPay';
+		$methods[] = 'WC_Monri';
 		return $methods;
 	}
 }
