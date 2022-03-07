@@ -157,7 +157,7 @@ class MonriApi
 
     private function redirectToOrderDeclined()
     {
-        MonriApi::redirect('/cart');
+        MonriApi::redirect(wc_get_cart_url());
     }
 
     public function three3dsReturnUrl($order_number, $redirect_url)
