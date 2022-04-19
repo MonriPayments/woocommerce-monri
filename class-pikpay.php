@@ -105,7 +105,6 @@ class WC_PikPay extends WC_Payment_Gateway
 
         // Use unlink() function to delete a file  
         @unlink($log_file);
-
     } // End __construct()
 
     function init_form_fields()
@@ -419,7 +418,6 @@ class WC_PikPay extends WC_Payment_Gateway
         // Generate the HTML For the settings form.
         $this->generate_settings_html();
         echo '</table>';
-
     }
 
 
@@ -455,11 +453,14 @@ class WC_PikPay extends WC_Payment_Gateway
             return $this->direct_integration($order_id);
         } else {
             //Form integration   
-            return array('result' => 'success', 'redirect' => add_query_arg('order',
-                $order->get_id(), add_query_arg('key', $order->order_key, WC_Cart::get_checkout_url()))
+            return array(
+                'result' => 'success', 'redirect' => add_query_arg(
+                    'order',
+                    $order->get_id(),
+                    add_query_arg('key', $order->order_key, WC_Cart::get_checkout_url())
+                )
             );
         }
-
     }
 
     /**
@@ -511,7 +512,6 @@ class WC_PikPay extends WC_Payment_Gateway
             $validation['message'] = $lang['EMAIL_ERROR'];
             return $validation;
         }
-
     }
 
     /**
@@ -528,7 +528,6 @@ class WC_PikPay extends WC_Payment_Gateway
         }
         echo '<p>' . __($lang['RECIEPT_PAGE'], 'Monri') . '</p>';
         echo $this->generate_form($order);
-
     }
 
 
@@ -633,8 +632,6 @@ class WC_PikPay extends WC_Payment_Gateway
         });
         jQuery("#submit_pikpay_payment_form").click();});</script>
                 </form>';
-
-
     }
 
     /**
@@ -698,7 +695,6 @@ class WC_PikPay extends WC_Payment_Gateway
                                 $this->msg['class'] = 'woocommerce_message';
 
                                 if ($order->status == 'processing') {
-
                                 } else {
                                     $order->payment_complete();
                                     $order->add_order_note($lang["PIKPAY_SUCCESS"] . $_REQUEST['approval_code']);
@@ -728,7 +724,6 @@ class WC_PikPay extends WC_Payment_Gateway
                         } else {
                             $this->msg['class'] = 'error';
                             $this->msg['message'] = $lang['SECURITY_ERROR'];
-
                         }
                         if ($transauthorised == false) {
                             $order->update_status('failed');
@@ -777,7 +772,6 @@ class WC_PikPay extends WC_Payment_Gateway
 
                 // Empty the cart (Very important step)
                 $woocommerce->cart->empty_cart();
-
             } else {
                 $order = new WC_Order($resultXml["order-number"]);
 
@@ -785,7 +779,6 @@ class WC_PikPay extends WC_Payment_Gateway
                 $order->add_order_note('Failed');
                 $order->add_order_note($this->msg['message']);
             }
-
         }
     }
 
@@ -982,7 +975,6 @@ class WC_PikPay extends WC_Payment_Gateway
                 'result' => 'success',
                 'redirect' => $redirect,
             );
-
         } elseif (isset($resultJSON['transaction']) && $resultJSON['transaction']['status'] == "approved") {
 
             global $woocommerce;
@@ -1017,7 +1009,6 @@ class WC_PikPay extends WC_Payment_Gateway
             wc_add_notice($lang['TRANSACTION_FAILED'], 'error');
             return false;
         }
-
     }
 
     function monri_token_validation($monri_token)
@@ -1066,7 +1057,7 @@ class WC_PikPay extends WC_Payment_Gateway
             $price_increase_message = "<span id='price-increase-1' class='price-increase-message' style='display: none; color: red;'></span>";
 
             if ($this->price_increase_2 != 0) {
-                $amount2 = $order_total + ($order_total * $this->price_increase_2 / 100);
+                $amount2 = number_format(($order_total + ($order_total * $this->price_increase_2 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-2' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_2 . "% = " . $amount2 . "</span>";
             } else {
                 $amount2 = $order_total;
@@ -1074,7 +1065,7 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_3 != 0) {
-                $amount3 = $order_total + ($order_total * $this->price_increase_3 / 100);
+                $amount3 = number_format(($order_total + ($order_total * $this->price_increase_3 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-3' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_3 . "% = " . $amount3 . "</span>";
             } else {
                 $amount3 = $order_total;
@@ -1082,7 +1073,7 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_4 != 0) {
-                $amount4 = $order_total + ($order_total * $this->price_increase_4 / 100);
+                $amount4 = number_format(($order_total + ($order_total * $this->price_increase_4 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-4' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_4 . "% = " . $amount4 . "</span>";
             } else {
                 $amount4 = $order_total;
@@ -1090,7 +1081,7 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_5 != 0) {
-                $amount5 = $order_total + ($order_total * $this->price_increase_5 / 100);
+                $amount5 = number_format(($order_total + ($order_total * $this->price_increase_5 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-5' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_5 . "% = " . $amount5 . "</span>";
             } else {
                 $amount5 = $order_total;
@@ -1098,7 +1089,7 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_6 != 0) {
-                $amount6 = $order_total + ($order_total * $this->price_increase_6 / 100);
+                $amount6 = number_format(($order_total + ($order_total * $this->price_increase_6 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-6' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_6 . "% = " . $amount6 . "</span>";
             } else {
                 $amount6 = $order_total;
@@ -1106,7 +1097,7 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_7 != 0) {
-                $amount7 = $order_total + ($order_total * $this->price_increase_7 / 100);
+                $amount7 = number_format(($order_total + ($order_total * $this->price_increase_7 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-7' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_7 . "% = " . $amount7 . "</span>";
             } else {
                 $amount7 = $order_total;
@@ -1114,14 +1105,14 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_8 != 0) {
-                $amount8 = $order_total + ($order_total * $this->price_increase_8 / 100);
+                $amount8 = number_format(($order_total + ($order_total * $this->price_increase_8 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-8' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_8 . "% = " . $amount8 . "</span>";
             } else {
                 $amount8 = $order_total;
                 $price_increase_message .= "<span id='price-increase-8' class='price-increase-message' style='display: none; color: red;'></span>";
             }
             if ($this->price_increase_9 != 0) {
-                $amount9 = $order_total + ($order_total * $this->price_increase_9 / 100);
+                $amount9 = number_format(($order_total + ($order_total * $this->price_increase_9 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-9' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_9 . "% = " . $amount9 . "</span>";
             } else {
                 $amount9 = $order_total;
@@ -1129,7 +1120,7 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_10 != 0) {
-                $amount10 = $order_total + ($order_total * $this->price_increase_10 / 100);
+                $amount10 = number_format(($order_total + ($order_total * $this->price_increase_10 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-10' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_10 . "% = " . $amount10 . "</span>";
             } else {
                 $amount10 = $order_total;
@@ -1137,7 +1128,7 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_11 != 0) {
-                $amount11 = $order_total + ($order_total * $this->price_increase_11 / 100);
+                $amount11 = number_format(($order_total + ($order_total * $this->price_increase_11 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-11' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_11 . "% = " . $amount11 . "</span>";
             } else {
                 $amount11 = $order_total;
@@ -1145,7 +1136,7 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_12 != 0) {
-                $amount12 = $order_total + ($order_total * $this->price_increase_12 / 100);
+                $amount12 = number_format(($order_total + ($order_total * $this->price_increase_12 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-12' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_12 . "% = " . $amount12 . "</span>";
             } else {
                 $amount12 = $order_total;
@@ -1153,7 +1144,7 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_13 != 0) {
-                $amount13 = $order_total + ($order_total * $this->price_increase_13 / 100);
+                $amount13 = number_format(($order_total + ($order_total * $this->price_increase_13 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-13' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_13 . "% = " . $amount13 . "</span>";
             } else {
                 $amount13 = $order_total;
@@ -1161,7 +1152,7 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_14 != 0) {
-                $amount14 = $order_total + ($order_total * $this->price_increase_14 / 100);
+                $amount14 = number_format(($order_total + ($order_total * $this->price_increase_14 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-14' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_14 . "% = " . $amount14 . "</span>";
             } else {
                 $amount14 = $order_total;
@@ -1169,7 +1160,7 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_15 != 0) {
-                $amount15 = $order_total + ($order_total * $this->price_increase_15 / 100);
+                $amount15 = number_format(($order_total + ($order_total * $this->price_increase_15 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-15' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_15 . "% = " . $amount15 . "</span>";
             } else {
                 $amount15 = $order_total;
@@ -1177,7 +1168,7 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_16 != 0) {
-                $amount16 = $order_total + ($order_total * $this->price_increase_16 / 100);
+                $amount16 = number_format(($order_total + ($order_total * $this->price_increase_16 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-16' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_16 . "% = " . $amount16 . "</span>";
             } else {
                 $amount16 = $order_total;
@@ -1186,7 +1177,7 @@ class WC_PikPay extends WC_Payment_Gateway
 
 
             if ($this->price_increase_17 != 0) {
-                $amount17 = $order_total + ($order_total * $this->price_increase_17 / 100);
+                $amount17 = number_format(($order_total + ($order_total * $this->price_increase_17 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-17' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_17 . "% = " . $amount17 . "</span>";
             } else {
                 $amount17 = $order_total;
@@ -1194,7 +1185,7 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_18 != 0) {
-                $amount18 = $order_total + ($order_total * $this->price_increase_18 / 100);
+                $amount18 = number_format(($order_total + ($order_total * $this->price_increase_18 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-18' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_18 . "% = " . $amount18 . "</span>";
             } else {
                 $amount18 = $order_total;
@@ -1202,7 +1193,7 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_19 != 0) {
-                $amount19 = $order_total + ($order_total * $this->price_increase_19 / 100);
+                $amount19 = number_format(($order_total + ($order_total * $this->price_increase_19 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-19' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_19 . "% = " . $amount19 . "</span>";
             } else {
                 $amount19 = $order_total;
@@ -1210,7 +1201,7 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_20 != 0) {
-                $amount20 = $order_total + ($order_total * $this->price_increase_20 / 100);
+                $amount20 = number_format(($order_total + ($order_total * $this->price_increase_20 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-20' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_20 . "% = " . $amount20 . "</span>";
             } else {
                 $amount20 = $order_total;
@@ -1218,7 +1209,7 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_21 != 0) {
-                $amount21 = $order_total + ($order_total * $this->price_increase_21 / 100);
+                $amount21 = number_format(($order_total + ($order_total * $this->price_increase_21 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-21' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_21 . "% = " . $amount21 . "</span>";
             } else {
                 $amount21 = $order_total;
@@ -1226,7 +1217,7 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_22 != 0) {
-                $amount22 = $order_total + ($order_total * $this->price_increase_22 / 100);
+                $amount22 = number_format(($order_total + ($order_total * $this->price_increase_22 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-22' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_22 . "% = " . $amount22 . "</span>";
             } else {
                 $amount22 = $order_total;
@@ -1234,7 +1225,7 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_23 != 0) {
-                $amount23 = $order_total + ($order_total * $this->price_increase_23 / 100);
+                $amount23 = number_format(($order_total + ($order_total * $this->price_increase_23 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-23' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_23 . "% = " . $amount23 . "</span>";
             } else {
                 $amount23 = $order_total;
@@ -1242,7 +1233,7 @@ class WC_PikPay extends WC_Payment_Gateway
             }
 
             if ($this->price_increase_24 != 0) {
-                $amount24 = $order_total + ($order_total * $this->price_increase_24 / 100);
+                $amount24 = number_format(($order_total + ($order_total * $this->price_increase_24 / 100) / 100), '.', ' ');
                 $price_increase_message .= "<span id='price-increase-24' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_24 . "% = " . $amount24 . "</span>";
             } else {
                 $amount24 = $order_total;
@@ -1317,7 +1308,7 @@ class WC_PikPay extends WC_Payment_Gateway
             $digest = hash('SHA512', $this->pikpaykey . $radnomToken . '' . $timestamp . '');
 
 
-            ?>
+?>
 
             <?php echo isset($default_fields['card-installments']) ? $default_fields['card-installments'] : ''; ?>
 
@@ -1328,8 +1319,7 @@ class WC_PikPay extends WC_Payment_Gateway
             </div>
 
             <script type="text/javascript">
-
-                jQuery('#' + '<?php echo $this->id; ?>').ready(function () {
+                jQuery('#' + '<?php echo $this->id; ?>').ready(function() {
 
                     var monri = Monri('<?php echo $this->pikpayauthtoken ?>');
                     var components = monri.components("<?php echo $radnomToken ?>", "<?php echo $digest ?>", '<?php echo $timestamp ?>');
@@ -1341,56 +1331,58 @@ class WC_PikPay extends WC_Payment_Gateway
 
                     };
                     // Add an instance of the card Component into the `card-element` <div>.
-                    var card = components.create('card', {style: style});
+                    var card = components.create('card', {
+                        style: style
+                    });
                     card.mount('<?php echo $this->id; ?>');
 
 
-                    jQuery('form.checkout').on('checkout_place_order', function () {
+                    jQuery('form.checkout').on('checkout_place_order', function() {
                         // If the Monri radio button is checked, handle Monri token
                         if (jQuery('input#payment_method_pikpay').is(':checked')) {
 
-                        if (jQuery('#monri-token').length == 0) {
-                            // If monri-token element could not be found add it to the form and set its value to 'not-set'.
-                            var hiddenInput = document.createElement('input');
-                            hiddenInput.setAttribute('type', 'hidden');
-                            hiddenInput.setAttribute('name', 'monri-token');
-                            hiddenInput.setAttribute('id', 'monri-token');
-                            hiddenInput.setAttribute('value', 'not-set');
-                            jQuery(this).append(hiddenInput);
-                        }
-
-
-                        if (jQuery('#monri-token').val() == 'not-set') {
-
-                            monri.createToken(card).then(function (result) {
-                                if (result.error) {
-                                    // Inform the customer that there was an error.
-                                    var errorElement = document.getElementById('card-errors');
-                                    errorElement.textContent = result.error.message;
-
-                                } else {
-                                    monriTokenHandler(result.result);
-                                }
-                            });
-
-
-                            function monriTokenHandler(token) {
-
-                                // Insert the token ID into the form so it gets submitted to the server
-                                jQuery('#monri-token').val(token.id);
-
+                            if (jQuery('#monri-token').length == 0) {
+                                // If monri-token element could not be found add it to the form and set its value to 'not-set'.
+                                var hiddenInput = document.createElement('input');
+                                hiddenInput.setAttribute('type', 'hidden');
+                                hiddenInput.setAttribute('name', 'monri-token');
+                                hiddenInput.setAttribute('id', 'monri-token');
+                                hiddenInput.setAttribute('value', 'not-set');
+                                jQuery(this).append(hiddenInput);
                             }
 
+
+                            if (jQuery('#monri-token').val() == 'not-set') {
+
+                                monri.createToken(card).then(function(result) {
+                                    if (result.error) {
+                                        // Inform the customer that there was an error.
+                                        var errorElement = document.getElementById('card-errors');
+                                        errorElement.textContent = result.error.message;
+
+                                    } else {
+                                        monriTokenHandler(result.result);
+                                    }
+                                });
+
+
+                                function monriTokenHandler(token) {
+
+                                    // Insert the token ID into the form so it gets submitted to the server
+                                    jQuery('#monri-token').val(token.id);
+
+                                }
+
+                            }
+                        } else {
+                            // If the Monri radio button is not checked, delete the errors and the Monri token
+                            var displayError = document.getElementById('card-errors');
+                            displayError.textContent = '';
+                            jQuery('#monri-token').remove();
                         }
-                    } else {
-                        // If the Monri radio button is not checked, delete the errors and the Monri token
-                        var displayError = document.getElementById('card-errors');
-                        displayError.textContent = '';
-                        jQuery('#monri-token').remove();
-                    }
                     });
 
-                    jQuery(document.body).on('checkout_error', function () {
+                    jQuery(document.body).on('checkout_error', function() {
                         // Trigger the submit of the checkout form If the thrown wc error is 'set_monri_token_notice' and
                         // no error was returend by  monri.createToken. Else remove the 'monri token' html elemente so a new one can be generated on the next form submit.
                         var error_text = jQuery('.woocommerce-error').find('li').first().text();
@@ -1406,7 +1398,7 @@ class WC_PikPay extends WC_Payment_Gateway
                         }
                     });
 
-                    card.onChange(function (event) {
+                    card.onChange(function(event) {
                         // If monri.createToken returned and error show it to the user.
                         var displayError = document.getElementById('card-errors');
                         if (event.error) {
@@ -1421,11 +1413,9 @@ class WC_PikPay extends WC_Payment_Gateway
                 });
             </script>
             <div id="card-errors" class="" role="alert"></div>
-            <?php
+<?php
 
         }
-
-
     }
 
     function credit_card_script()
@@ -1542,7 +1532,6 @@ class WC_PikPay extends WC_Payment_Gateway
 
         try {
             $resultXml = new \SimpleXmlElement($result);
-
         } catch (\Exception $e) {
             echo '<pre>'; // for formating
             die(var_export("XML parsing failed. Result: \n $result"));
@@ -1859,7 +1848,6 @@ class WC_PikPay extends WC_Payment_Gateway
 
         return $lang;
     }
-
 }
 
 ?>
