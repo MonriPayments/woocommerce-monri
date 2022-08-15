@@ -456,7 +456,11 @@ class WC_PikPay extends WC_Payment_Gateway
         } else {
             //Form integration   
             return array('result' => 'success', 'redirect' => add_query_arg('order',
-                $order->get_id(), add_query_arg('key', $order->order_key, WC_Cart::get_checkout_url()))
+                //only works with php 7 
+                //$order->get_id(), add_query_arg('key', $order->order_key, WC_Cart::get_checkout_url()))
+
+                //php 8 version
+                $order->get_id(), add_query_arg('key', $order->order_key, wc_get_checkout_url()))
             );
         }
 
