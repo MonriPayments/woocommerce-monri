@@ -1,24 +1,23 @@
 <?php
 
-/* PikPay Payment Gateway Class */
+/* Monri Payment Gateway Class */
 
-class WC_PikPay extends WC_Payment_Gateway
+class WC_Monri extends WC_Payment_Gateway
 {
     // Setup our Gateway's id, description and other values
     function __construct()
     {
-
         // The global ID for this Payment method
-        $this->id = "pikpay";
+        $this->id = "monri";
 
         // The Title shown on the top of the Payment Gateways Page next to all the other Payment Gateways
-        $this->method_title = __("PikPay", 'pikpay');
+        $this->method_title = __("Monri", 'monri');
 
         // The description for this Payment Gateway, shown on the actual Payment options page on the backend
-        $this->method_description = __("PikPay Payment Gateway Plug-in for WooCommerce", 'pikpay');
+        $this->method_description = __("Monri Payment Gateway Plug-in for WooCommerce", 'monri');
 
         // The title to be used for the vertical tabs that can be ordered top to bottom
-        $this->title = __("PikPay", 'pikpay');
+        $this->title = __("Monri", 'monri');
 
         // If you want to show an image next to the gateway's name on the frontend, enter a URL to an image.
         $this->icon = null;
@@ -41,11 +40,18 @@ class WC_PikPay extends WC_Payment_Gateway
         // Define user set variables.
         $this->title = $this->settings['title'];
         $this->description = $this->settings['description'];
-        $this->thankyou_page = $this->settings['thankyou_page'];
         $this->instructions = $this->get_option('instructions');
-        $this->pikpaykey = $this->get_option('pikpaykey');
-        $this->pikpayauthtoken = $this->get_option('pikpayauthtoken');
-        $this->pickpay_methods = $this->get_option('pickpay_methods', array());
+
+        $this->thankyou_page = $this->settings['thankyou_page'];
+        $this->callback_url_endpoint = $this->get_option('callback_url_endpoint');
+
+        $this->success_url_override = $this->get_option('success_url_override');
+        $this->cancel_url_override = $this->get_option('cancel_url_override');
+        $this->callback_url_override = $this->get_option('callback_url_override');
+
+        $this->monri_merchant_key = $this->get_option('monri_merchant_key');
+        $this->monri_authenticity_token = $this->get_option('monri_authenticity_token');
+        $this->monri_methods = $this->get_option('monri_methods', array());
         $this->payment_processor = $this->get_option('payment_processor', array());
         $this->test_mode = $this->get_option('test_mode', array());
         $this->transaction_type = $this->get_option('transaction_type', array());
@@ -91,9 +97,9 @@ class WC_PikPay extends WC_Payment_Gateway
             add_action('woocommerce_update_options_payment_gateways', array(&$this, 'process_admin_options'));
         }
 
-        if (!$this->pickpay_methods) {
-            $this->check_pikpay_response();
-            add_action('woocommerce_receipt_pikpay', array(&$this, 'receipt_page'));
+        if (!$this->monri_methods) {
+            $this->check_monri_response();
+            add_action('woocommerce_receipt_monri', array(&$this, 'receipt_page'));
             $this->has_fields = false;
         } else {
             $this->has_fields = true;
@@ -103,14 +109,14 @@ class WC_PikPay extends WC_Payment_Gateway
         // Delete monri log file
         $log_file = "/var/sentora/hostdata/admin/public_html/wp-content/plugins/woocommerce-monri/log.txt";
 
-        // Use unlink() function to delete a file  
+        // Use unlink() function to delete a file
         @unlink($log_file);
 
     } // End __construct()
 
     function init_form_fields()
     {
-        $pickpay_methods = array(
+        $monri_methods = array(
             "0" => 'No',
             "1" => 'Yes'
         );
@@ -166,28 +172,59 @@ class WC_PikPay extends WC_Payment_Gateway
                 'desc_tip' => true,
                 'default' => __(wc_get_checkout_url() . get_option('woocommerce_checkout_order_received_endpoint', 'order-received'), 'wcwcCpg1')
             ),
-            'pikpaykey' => array(
+
+            'callback_url_endpoint' => array(
+                'title' => __('Callback URL endpoint', 'wcwcGpg1'),
+                'type' => 'text',
+                'description' => __('Monri Callback URL endpoint koji će primati POST zahtjev sa Monri Gateway-a.', 'wcwcCpg1'),
+                'desc_tip' => true,
+                'default' => '/monri-callback', 'wcwcCpg1',
+            ),
+
+            'success_url_override' => array(
+                'title' => __('Success URL override', 'wcwcGpg1'),
+                'type' => 'text',
+                'description' => __('Success URL koji želite koristiti pri svakoj transakciji. (HTTPS)', 'wcwcCpg1'),
+                'desc_tip' => true,
+                'default' => '', 'wcwcCpg1',
+            ),
+            'cancel_url_override' => array(
+                'title' => __('Cancel URL override', 'wcwcGpg1'),
+                'type' => 'text',
+                'description' => __('Cancel URL koji želite koristiti pri svakoj transakciji. (HTTPS)', 'wcwcCpg1'),
+                'desc_tip' => true,
+                'default' => '', 'wcwcCpg1',
+            ),
+            'callback_url_override' => array(
+                'title' => __('Callback URL override', 'wcwcGpg1'),
+                'type' => 'text',
+                'description' => __('Callback URL koji želite koristiti pri svakoj transakciji. (HTTPS)', 'wcwcCpg1'),
+                'desc_tip' => true,
+                'default' => '', 'wcwcCpg1',
+            ),
+
+            'monri_merchant_key' => array(
                 'title' => __('Monri Key', 'wcwcCpg1'),
                 'type' => 'text',
                 'description' => __('', 'wcwcCpg1'),
                 'desc_tip' => true,
                 'default' => __('', 'wcwcCpg1')
             ),
-            'pikpayauthtoken' => array(
+            'monri_authenticity_token' => array(
                 'title' => __('Monri authenticity token', 'wcwcCpg1'),
                 'type' => 'text',
                 'description' => __('', 'wcwcCpg1'),
                 'desc_tip' => true,
                 'default' => __('', 'wcwcCpg1')
             ),
-            'pickpay_methods' => array(
+            'monri_methods' => array(
                 'title' => __('Use DIRECT Monri processing method:', 'wcwcCpg1'),
                 'type' => 'select',
                 'class' => 'chosen_select',
                 'css' => 'width: 450px;',
                 'default' => true,
                 'description' => __('', 'wcwcCpg1'),
-                'options' => $pickpay_methods,
+                'options' => $monri_methods,
                 'desc_tip' => true,
             ),
             'test_mode' => array(
@@ -197,7 +234,7 @@ class WC_PikPay extends WC_Payment_Gateway
                 'css' => 'width: 450px;',
                 'default' => 0,
                 'description' => __('', 'wcwcCpg1'),
-                'options' => $pickpay_methods,
+                'options' => $monri_methods,
                 'desc_tip' => true,
             ),
             'transaction_type' => array(
@@ -227,7 +264,7 @@ class WC_PikPay extends WC_Payment_Gateway
                 'css' => 'width: 450px;',
                 'default' => 0,
                 'description' => __('', 'wcwcCpg1'),
-                'options' => $pickpay_methods,
+                'options' => $monri_methods,
                 'desc_tip' => true,
             ),
             'number_of_allowed_installments' => array(
@@ -429,7 +466,7 @@ class WC_PikPay extends WC_Payment_Gateway
     {
         if ($this->enabled == "yes") {
             if (get_option('woocommerce_force_ssl_checkout') == "no") {
-                echo "<div class=\"error\"><p>" . sprintf(__("<strong>%s</strong> is enabled and WooCommerce is not forcing the SSL certificate on your checkout page. Please ensure that you have a valid SSL certificate and that you are <a href=\"%s\">forcing the checkout pages to be secured.</a>"), $this->method_title, admin_url('admin.php?page=wc-settings&tab=checkout')) . "</p></div>";
+                //echo "<div class=\"error\"><p>" . sprintf(__("<strong>%s</strong> is enabled and WooCommerce is not forcing the SSL certificate on your checkout page. Please ensure that you have a valid SSL certificate and that you are <a href=\"%s\">forcing the checkout pages to be secured.</a>"), $this->method_title, admin_url('admin.php?page=wc-settings&tab=checkout')) . "</p></div>";
             }
         }
     }
@@ -450,16 +487,12 @@ class WC_PikPay extends WC_Payment_Gateway
             return;
         }
 
-        if ($this->pickpay_methods) {
+        if ($this->monri_methods) {
             //Direct integration
             return $this->direct_integration($order_id);
         } else {
-            //Form integration   
+            //Form integration
             return array('result' => 'success', 'redirect' => add_query_arg('order',
-                //only works with php 7 
-                //$order->get_id(), add_query_arg('key', $order->order_key, WC_Cart::get_checkout_url()))
-
-                //php 8 version
                 $order->get_id(), add_query_arg('key', $order->order_key, wc_get_checkout_url()))
             );
         }
@@ -537,7 +570,7 @@ class WC_PikPay extends WC_Payment_Gateway
 
 
     /**
-     * Generate pikpay button link
+     * Generate monri button link
      **/
     public function generate_form($order_id)
     {
@@ -571,13 +604,13 @@ class WC_PikPay extends WC_Payment_Gateway
             $currency = $order_meta["_order_currency"][0];
         }
 
-        //Convert currency to match PikPay's requested currency
+        //Convert currency to match Monri's requested currency
         if ($currency == "KM") {
             $currency = "BAM";
         }
 
         //Generate digest key
-        $digest = hash('sha512', $this->pikpaykey . $order->get_id() . $order_total . $currency);
+        $digest = hash('sha512', $this->monri_merchant_key . $order->get_id() . $order_total . $currency);
 
         //Combine first and last name in one string
         $full_name = $order->billing_first_name . " " . $order->billing_last_name;
@@ -600,21 +633,33 @@ class WC_PikPay extends WC_Payment_Gateway
 
             'language' => $this->form_language,
             'transaction_type' => $transaction_type,
-            'authenticity_token' => $this->pikpayauthtoken,
+            'authenticity_token' => $this->monri_authenticity_token,
             'digest' => $digest
 
         );
 
-        //Generating input fields with order information that will be sent on pikpay
+        if($success_url_override = $this->get_option('success_url_override')) {
+            $args['success_url_override'] = $success_url_override;
+        }
+
+        if($cancel_url_override = $this->get_option('cancel_url_override')) {
+            $args['cancel_url_override'] = $cancel_url_override;
+        }
+
+        if($callback_url_override = $this->get_option('callback_url_override')) {
+            $args['callback_url_override'] = $callback_url_override;
+        }
+
+        //Generating input fields with order information that will be sent on monri
         $args_array = array();
         foreach ($args as $key => $value) {
             $args_array[] = "<input type='hidden' name='$key' value='$value'/>";
         }
 
         //Returning the form
-        return '<form action="' . $liveurl . '" method="post" data-ajax="false" id="pikpay_payment_form">
+        return '<form action="' . $liveurl . '" method="post" data-ajax="false" id="monri_payment_form">
                 ' . implode('', $args_array) . '
-                <input type="submit" class="button-alt" id="submit_pikpay_payment_form" value="' . __('Pay via Monri', 'Monri') . '" /> <a class="button cancel" href="' . $order->get_cancel_order_url() . '">' . __('Cancel order &amp; restore cart', 'Monri') . '</a>
+                <input type="submit" class="button-alt" id="submit_monri_payment_form" value="' . __('Pay via Monri', 'Monri') . '" /> <a class="button cancel" href="' . $order->get_cancel_order_url() . '">' . __('Cancel order &amp; restore cart', 'Monri') . '</a>
                 <script type="text/javascript">
     jQuery(function(){
     jQuery("body").block(
@@ -635,7 +680,8 @@ class WC_PikPay extends WC_Payment_Gateway
                 lineHeight:"32px"
         }
         });
-        jQuery("#submit_pikpay_payment_form").click();});</script>
+        jQuery("#submit_monri_payment_form").click();    
+    });</script>
                 </form>';
 
 
@@ -660,9 +706,9 @@ class WC_PikPay extends WC_Payment_Gateway
     }
 
     /**
-     * Check for valid pikpay server callback
+     * Check for valid monri server callback
      **/
-    public function check_pikpay_response()
+    public function check_monri_response()
     {
         if ($this->form_language == "en") {
             $lang = $this->get_en_translation();
@@ -692,7 +738,7 @@ class WC_PikPay extends WC_Payment_Gateway
 
                     $calculated_url = preg_replace('/&digest=[^&]*/', '', $full_url);
                     //Generate digest
-                    $checkdigest = hash('sha512', $this->pikpaykey . $calculated_url);
+                    $checkdigest = hash('sha512', $this->monri_merchant_key . $calculated_url);
                     $transauthorised = false;
                     if ($order->status !== 'completed') {
                         if ($digest == $checkdigest) {
@@ -705,7 +751,7 @@ class WC_PikPay extends WC_Payment_Gateway
 
                                 } else {
                                     $order->payment_complete();
-                                    $order->add_order_note($lang["PIKPAY_SUCCESS"] . $_REQUEST['approval_code']);
+                                    $order->add_order_note($lang["MONRI_SUCCESS"] . $_REQUEST['approval_code']);
                                     $order->add_order_note($this->msg['message']);
                                     $order->add_order_note("Issuer: " . $_REQUEST['issuer']);
                                     if ($_REQUEST['number_of_installments'] > 1) {
@@ -716,7 +762,7 @@ class WC_PikPay extends WC_Payment_Gateway
                             } else if ($response_code == "pending") {
                                 $this->msg['message'] = $lang["THANKYOU_PENDING"];
                                 $this->msg['class'] = 'woocommerce_message woocommerce_message_info';
-                                $order->add_order_note($lang['PIKPAY_PENDING'] . $_REQUEST['approval_code']);
+                                $order->add_order_note($lang['MONRI_PENDING'] . $_REQUEST['approval_code']);
                                 $order->add_order_note($this->msg['message']);
                                 $order->add_order_note("Issuer: " . $_REQUEST['issuer']);
                                 if ($_REQUEST['number_of_installments'] > 1) {
@@ -764,7 +810,6 @@ class WC_PikPay extends WC_Payment_Gateway
         }
 
         if (isset($_POST['PaRes'])) {
-
             $resultXml = $this->handle3dsReturn($_POST);
 
             if (isset($resultXml->status) && $resultXml->status == "approved") {
@@ -774,7 +819,7 @@ class WC_PikPay extends WC_Payment_Gateway
                 $order = new WC_Order($resultXml["order-number"]);
 
                 // Payment has been successful
-                $order->add_order_note(__($lang['PAYMENT_COMPLETED'], 'pikpay'));
+                $order->add_order_note(__($lang['PAYMENT_COMPLETED'], 'monri'));
 
                 // Mark order as Paid
                 $order->payment_complete();
@@ -805,7 +850,7 @@ class WC_PikPay extends WC_Payment_Gateway
     {
         global $woocommerce;
         $order = new WC_Order($order_id);
-        $card_installments = $_POST['pikpay-card-installments'];
+        $card_installments = $_POST['monri-card-installments'];
         $monri_token = $_POST['monri-token'];
 
 
@@ -917,9 +962,10 @@ class WC_PikPay extends WC_Payment_Gateway
         }
 
         //Generate digest key
-        $digest = hash('sha512', $this->pikpaykey . $order->get_id() . $amount . $currency);
+        $digest = hash('sha512', $this->monri_merchant_key . $order->get_id() . $amount . $currency);
 
         //Array of order information
+        $order_number = $order->get_id();
         $params = array(
             'ch_full_name' => $order->billing_first_name . " " . $order->billing_last_name,
             'ch_address' => $order->billing_address_1,
@@ -935,14 +981,14 @@ class WC_PikPay extends WC_Payment_Gateway
             'expiration_date' => $card_expiry,*/
 
             'order_info' => $order_info,
-            'order_number' => $order->get_id(),
+            'order_number' => $order_number,
             'amount' => $amount,
             'currency' => $currency,
 
             'ip' => $_SERVER['REMOTE_ADDR'],
             'language' => $this->form_language,
             'transaction_type' => $transaction_type,
-            'authenticity_token' => $this->pikpayauthtoken,
+            'authenticity_token' => $this->monri_authenticity_token,
             'digest' => $digest,
             'temp_card_id' => $monri_token,
         );
@@ -972,10 +1018,12 @@ class WC_PikPay extends WC_Payment_Gateway
             //show user 3d secure form the
             $result = $resultJSON['secure_message'];
 
+            $payment_token = $this->base64url_encode(json_encode([$result['authenticity_token'], $order_number, $this->settings['thankyou_page']]));
+
             $urlEncode = array(
                 "acsUrl" => $result['acs_url'],
                 "pareq" => $result['pareq'],
-                "returnUrl" => $this->get_return_url($order),
+                "returnUrl" => site_url() . '/monri-3ds-payment-result?payment_token=' . $payment_token,
                 "token" => $result['authenticity_token']
             );
 
@@ -995,11 +1043,11 @@ class WC_PikPay extends WC_Payment_Gateway
             $order = new WC_Order($transactionResult["order-number"]);
 
             //Payment has been successful
-            $order->add_order_note(__($lang['PAYMENT_COMPLETED'], 'pikpay'));
-            $pikpay_order_amount1 = $transactionResult['amount'] / 100;
-            $pikpay_order_amount2 = number_format($pikpay_order_amount1, 2);
-            if ($pikpay_order_amount2 != $order->total) {
-                $order->add_order_note($lang['PIKPAY_ORDER_AMOUNT'] . ": " . $pikpay_order_amount2, true);
+            $order->add_order_note(__($lang['PAYMENT_COMPLETED'], 'monri'));
+            $monri_order_amount1 = $transactionResult['amount'] / 100;
+            $monri_order_amount2 = number_format($monri_order_amount1, 2);
+            if ($monri_order_amount2 != $order->total) {
+                $order->add_order_note($lang['MONRI_ORDER_AMOUNT'] . ": " . $monri_order_amount2, true);
             }
             if ($params['number_of_installments'] > 1) {
                 $order->add_order_note($lang['NUMBER_OF_INSTALLMENTS'] . ": " . $params['number_of_installments']);
@@ -1023,6 +1071,12 @@ class WC_PikPay extends WC_Payment_Gateway
         }
 
     }
+
+    function base64url_encode($data)
+    {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    }
+
 
     function monri_token_validation($monri_token)
     {
@@ -1052,7 +1106,7 @@ class WC_PikPay extends WC_Payment_Gateway
             $lang = $this->get_sr_translation();
         }
 
-        if (!$this->pickpay_methods) {
+        if (!$this->monri_methods) {
             if ($this->description) echo wpautop(wptexturize($this->description));
         } else {
 
@@ -1305,7 +1359,7 @@ class WC_PikPay extends WC_Payment_Gateway
 
                 // No longer needed, Morni components JS plugin integrated
                 $default_fields = array(
-                    'card-installments' => '<p id="pikpay-card-installments-p" style="display: block; float: left;" class="form-row form-row-wide">
+                    'card-installments' => '<p id="monri-card-installments-p" style="display: block; float: left;" class="form-row form-row-wide">
                                   <label for="' . esc_attr($this->id) . '-card-installments">' . $lang['INSTALLMENTS_NUMBER'] . '</label>
                                   <select id="' . esc_attr($this->id) . '-card-installments" class="input-text wc-credit-card-form-card-cvc"  name="' . ($args['fields_have_names'] ? $this->id . '-card-installments' : '') . '">
                                     ' . $options_string
@@ -1318,7 +1372,7 @@ class WC_PikPay extends WC_Payment_Gateway
 
             $radnomToken = wp_generate_uuid4();
             $timestamp = (new DateTime())->format('c');
-            $digest = hash('SHA512', $this->pikpaykey . $radnomToken . '' . $timestamp . '');
+            $digest = hash('SHA512', $this->monri_merchant_key . $radnomToken . '' . $timestamp . '');
 
 
             ?>
@@ -1335,7 +1389,7 @@ class WC_PikPay extends WC_Payment_Gateway
 
                 jQuery('#' + '<?php echo $this->id; ?>').ready(function () {
 
-                    var monri = Monri('<?php echo $this->pikpayauthtoken ?>');
+                    var monri = Monri('<?php echo $this->monri_authenticity_token ?>');
                     var components = monri.components("<?php echo $radnomToken ?>", "<?php echo $digest ?>", '<?php echo $timestamp ?>');
 
                     var style = {
@@ -1351,47 +1405,47 @@ class WC_PikPay extends WC_Payment_Gateway
 
                     jQuery('form.checkout').on('checkout_place_order', function () {
                         // If the Monri radio button is checked, handle Monri token
-                        if (jQuery('input#payment_method_pikpay').is(':checked')) {
+                        if (jQuery('input#payment_method_monri').is(':checked')) {
 
-                        if (jQuery('#monri-token').length == 0) {
-                            // If monri-token element could not be found add it to the form and set its value to 'not-set'.
-                            var hiddenInput = document.createElement('input');
-                            hiddenInput.setAttribute('type', 'hidden');
-                            hiddenInput.setAttribute('name', 'monri-token');
-                            hiddenInput.setAttribute('id', 'monri-token');
-                            hiddenInput.setAttribute('value', 'not-set');
-                            jQuery(this).append(hiddenInput);
-                        }
-
-
-                        if (jQuery('#monri-token').val() == 'not-set') {
-
-                            monri.createToken(card).then(function (result) {
-                                if (result.error) {
-                                    // Inform the customer that there was an error.
-                                    var errorElement = document.getElementById('card-errors');
-                                    errorElement.textContent = result.error.message;
-
-                                } else {
-                                    monriTokenHandler(result.result);
-                                }
-                            });
-
-
-                            function monriTokenHandler(token) {
-
-                                // Insert the token ID into the form so it gets submitted to the server
-                                jQuery('#monri-token').val(token.id);
-
+                            if (jQuery('#monri-token').length == 0) {
+                                // If monri-token element could not be found add it to the form and set its value to 'not-set'.
+                                var hiddenInput = document.createElement('input');
+                                hiddenInput.setAttribute('type', 'hidden');
+                                hiddenInput.setAttribute('name', 'monri-token');
+                                hiddenInput.setAttribute('id', 'monri-token');
+                                hiddenInput.setAttribute('value', 'not-set');
+                                jQuery(this).append(hiddenInput);
                             }
 
+
+                            if (jQuery('#monri-token').val() == 'not-set') {
+
+                                monri.createToken(card).then(function (result) {
+                                    if (result.error) {
+                                        // Inform the customer that there was an error.
+                                        var errorElement = document.getElementById('card-errors');
+                                        errorElement.textContent = result.error.message;
+
+                                    } else {
+                                        monriTokenHandler(result.result);
+                                    }
+                                });
+
+
+                                function monriTokenHandler(token) {
+
+                                    // Insert the token ID into the form so it gets submitted to the server
+                                    jQuery('#monri-token').val(token.id);
+
+                                }
+
+                            }
+                        } else {
+                            // If the Monri radio button is not checked, delete the errors and the Monri token
+                            var displayError = document.getElementById('card-errors');
+                            displayError.textContent = '';
+                            jQuery('#monri-token').remove();
                         }
-                    } else {
-                        // If the Monri radio button is not checked, delete the errors and the Monri token
-                        var displayError = document.getElementById('card-errors');
-                        displayError.textContent = '';
-                        jQuery('#monri-token').remove();
-                    }
                     });
 
                     jQuery(document.body).on('checkout_error', function () {
@@ -1634,7 +1688,7 @@ class WC_PikPay extends WC_Payment_Gateway
                   <amount>{$params[$amount]}</amount>
                   <currency>{$params[$currency]}</currency>
                   <digest>{$params[$digest]}</digest>
-                  <authenticity-token>$this->pikpayauthtoken</authenticity-token>
+                  <authenticity-token>$this->monri_authenticity_token</authenticity-token>
                   <order-number>{$params[$order_number]}</order-number>";
 
         if ($type === 'authorize' || $type === 'purchase') {
@@ -1702,7 +1756,7 @@ class WC_PikPay extends WC_Payment_Gateway
    Language: English
    ------------------
    */
-    public function get_en_translation()
+    public static function get_en_translation()
     {
 
 
@@ -1734,9 +1788,9 @@ class WC_PikPay extends WC_Payment_Gateway
 
         //Thankyou page messages
         $lang['THANKYOU_SUCCESS'] = 'Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.';
-        $lang['PIKPAY_SUCCESS'] = 'Monri payment successful<br/>Approval code: ';
+        $lang['MONRI_SUCCESS'] = 'Monri payment successful<br/>Approval code: ';
         $lang['THANKYOU_PENDING'] = 'Thank you for shopping with us. Right now your payment status is pending, We will keep you posted regarding the status of your order through e-mail';
-        $lang['PIKPAY_PENDING'] = 'Monri payment status is pending<br/>Approval code: ';
+        $lang['MONRI_PENDING'] = 'Monri payment status is pending<br/>Approval code: ';
         $lang['SECURITY_ERROR'] = 'Security Error. Illegal access detected';
         $lang['THANKYOU_DECLINED'] = 'Thank you for shopping with us. However, the transaction has been declined.';
         $lang['THANKYOU_DECLINED_NOTE'] = 'Transaction Declined: ';
@@ -1748,7 +1802,7 @@ class WC_PikPay extends WC_Payment_Gateway
         $lang['PAYMENT_INCREASE'] = 'Depending on the installments number chosen, the price will increase for';
 
         $lang['NUMBER_OF_INSTALLMENTS'] = 'Number of installments';
-        $lang['PIKPAY_ORDER_AMOUNT'] = 'Monri - Order amount';
+        $lang['MONRI_ORDER_AMOUNT'] = 'Monri - Order amount';
 
         return $lang;
     }
@@ -1758,7 +1812,7 @@ class WC_PikPay extends WC_Payment_Gateway
     Language: Bosanski/Hrvatski
     ------------------
     */
-    public function get_ba_hr_translation()
+    public static function get_ba_hr_translation()
     {
 
         $lang = array();
@@ -1789,9 +1843,9 @@ class WC_PikPay extends WC_Payment_Gateway
 
         //Thankyou page messages
         $lang['THANKYOU_SUCCESS'] = 'Hvala što ste kupovali kod nas. Vaš račun je naplaćen i transakcija je uspješna. Uskoro ćemo vam poslati vašu narudžbu.';
-        $lang['PIKPAY_SUCCESS'] = 'Monri plaćanje uspješno <br/>Approval code: ';
+        $lang['MONRI_SUCCESS'] = 'Monri plaćanje uspješno <br/>Approval code: ';
         $lang['THANKYOU_PENDING'] = 'Hvala što ste kupovali kod nas. Trenutno vaš status plaćanja je na čekanju.';
-        $lang['PIKPAY_PENDING'] = 'Monri plaćanje na čekanju<br/>Approval code: ';
+        $lang['MONRI_PENDING'] = 'Monri plaćanje na čekanju<br/>Approval code: ';
         $lang['SECURITY_ERROR'] = 'Sigurnosna greška. Nedozvoljen pristup detektovan.';
         $lang['THANKYOU_DECLINED'] = 'Hvala što ste kupovali kod nas. Nažalost transakcija je odbijena.';
         $lang['THANKYOU_DECLINED_NOTE'] = 'Transakcija odbijena: ';
@@ -1803,7 +1857,7 @@ class WC_PikPay extends WC_Payment_Gateway
         $lang['PAYMENT_INCREASE'] = 'Na osnovu odabranog broja rata cijena će se povećati za';
 
         $lang['NUMBER_OF_INSTALLMENTS'] = 'Broj rata';
-        $lang['PIKPAY_ORDER_AMOUNT'] = 'Monri - Iznos narudžbe sa naknadom';
+        $lang['MONRI_ORDER_AMOUNT'] = 'Monri - Iznos narudžbe sa naknadom';
 
         return $lang;
     }
@@ -1814,7 +1868,7 @@ class WC_PikPay extends WC_Payment_Gateway
    Language: Srpski
    ------------------
    */
-    public function get_sr_translation()
+    public static function get_sr_translation()
     {
 
         $lang = array();
@@ -1845,9 +1899,9 @@ class WC_PikPay extends WC_Payment_Gateway
 
         //Thankyou page messages
         $lang['THANKYOU_SUCCESS'] = 'Hvala što ste kupovali kod nas. Vaš račun je naplaćen i transakcija je uspešna. Uskoro ćemo vam poslati vašu narudžbu.';
-        $lang['PIKPAY_SUCCESS'] = 'Monri plaćanje uspešno <br/>Approval code: ';
+        $lang['MONRI_SUCCESS'] = 'Monri plaćanje uspešno <br/>Approval code: ';
         $lang['THANKYOU_PENDING'] = 'Hvala što ste kupovali kod nas. Trenutno vaš status plaćanja je na čekanju.';
-        $lang['PIKPAY_PENDING'] = 'Monri plaćanje na čekanju<br/>Approval code: ';
+        $lang['MONRI_PENDING'] = 'Monri plaćanje na čekanju<br/>Approval code: ';
         $lang['SECURITY_ERROR'] = 'Sigurnosna greška. Nedozvoljen pristup detektovan.';
         $lang['THANKYOU_DECLINED'] = 'Hvala što ste kupovali kod nas. Nažalost transakcija je odbijena.';
         $lang['THANKYOU_DECLINED_NOTE'] = 'Transakcija odbijena: ';
@@ -1859,7 +1913,7 @@ class WC_PikPay extends WC_Payment_Gateway
         $lang['PAYMENT_INCREASE'] = 'Na osnovu odabranog broja rata cena će se povećati za';
 
         $lang['NUMBER_OF_INSTALLMENTS'] = 'Broj rata';
-        $lang['PIKPAY_ORDER_AMOUNT'] = 'Monri - Iznos narudžbe sa naknadom';
+        $lang['MONRI_ORDER_AMOUNT'] = 'Monri - Iznos narudžbe sa naknadom';
 
         return $lang;
     }

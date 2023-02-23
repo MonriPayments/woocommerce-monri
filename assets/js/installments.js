@@ -1,6 +1,6 @@
 jQuery(document).ready(function () {
-    jQuery(document).on("keyup", "#pikpay-card-number", function () {
-        var input_value = jQuery("#pikpay-card-number").val();
+    jQuery(document).on("keyup", "#monri-card-number", function () {
+        var input_value = jQuery("#monri-card-number").val();
         input_value = input_value.replace(/\s+/g, '');
         if (input_value.match("^4058400000000005") ||
             input_value.match("^441280") ||
@@ -11,14 +11,14 @@ jQuery(document).ready(function () {
             input_value.match("^404867") ||
             input_value.match("^460043"))
         {
-            jQuery("#pikpay-card-installments-p").show();
+            jQuery("#monri-card-installments-p").show();
         } else {
-            jQuery("#pikpay-card-installments-p").hide();
-            jQuery("#pikpay-card-installments").val('1').change();
+            jQuery("#monri-card-installments-p").hide();
+            jQuery("#monri-card-installments").val('1').change();
         }
     });
-    jQuery(document).on("change", "#pikpay-card-installments", function () {
-        var value = jQuery("#pikpay-card-installments").val();
+    jQuery(document).on("change", "#monri-card-installments", function () {
+        var value = jQuery("#monri-card-installments").val();
         jQuery(".price-increase-message").hide();
         if (value > 1) {
             jQuery("#price-increase-" + value).show();
