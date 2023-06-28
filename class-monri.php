@@ -41,6 +41,7 @@ class WC_Monri extends WC_Payment_Gateway
         $this->title = $this->settings['title'];
         $this->description = $this->settings['description'];
         $this->instructions = $this->get_option('instructions');
+        $this->payment_gateway_service = $this->get_option('monri_payment_gateway_service');
 
         $this->thankyou_page = $this->settings['thankyou_page'];
         $this->callback_url_endpoint = $this->get_option('callback_url_endpoint');
@@ -106,12 +107,6 @@ class WC_Monri extends WC_Payment_Gateway
             $this->check_3dsecure_response();
         }
 
-        // Delete monri log file
-        $log_file = "/var/sentora/hostdata/admin/public_html/wp-content/plugins/woocommerce-monri/log.txt";
-
-        // Use unlink() function to delete a file
-        @unlink($log_file);
-
     } // End __construct()
 
     function init_form_fields()
@@ -139,12 +134,27 @@ class WC_Monri extends WC_Payment_Gateway
             "sr" => "Srpski"
         );
 
+        $payment_gateway_services = array(
+            "monri-web-pay" => "Monri WebPay",
+            "monri-ws-pay" => "Monri WSPay"
+        );
+
         $this->form_fields = array(
             'enabled' => array(
                 'title' => __('Enable/Disable', 'wcwcCpg1'),
                 'type' => 'checkbox',
                 'label' => __('Enable Monri', 'wcwcCpg1'),
                 'default' => 'no'
+            ),
+            'monri_payment_gateway_service' => array(
+                'title' => __('Payment Gateway Service:', 'wcwcCpg1'),
+                'type' => 'select',
+                'class' => 'chosen_select',
+                'css' => 'width: 450px;',
+                'default' => 'monri-web-pay',
+                'description' => __('', 'wcwcCpg1'),
+                'options' => $payment_gateway_services,
+                'desc_tip' => true,
             ),
             'title' => array(
                 'title' => __('Title', 'wcwcCpg1'),
@@ -564,10 +574,71 @@ class WC_Monri extends WC_Payment_Gateway
             $lang = $this->get_sr_translation();
         }
         echo '<p>' . __($lang['RECIEPT_PAGE'], 'Monri') . '</p>';
+        if ($this->payment_gateway_service =='monri-ws-pay') {
+            $this->generate_form_ws_pay($order);
+        } else {
+            
+        }
         echo $this->generate_form($order);
 
     }
 
+    public function generate_form_ws_pay($order_id)
+    {
+        $order = new WC_Order($order_id);
+        $order_info = $order_id . '_' . date("dmy");
+
+        // Check test mode
+        if ($this->test_mode) {
+            $url = 'https://formtest.wspay.biz';
+        } else {
+            $url = 'https://form.wspay.biz';
+        }
+        if (version_compare(WOOCOMMERCE_VERSION, '3.0.0', '>=')) {
+            $order_data = $order->get_data();
+            $currency = $order_data["currency"];
+        } else {
+            $order_meta = get_post_meta($order_id);
+            $currency = $order_meta["_order_currency"][0];
+        }
+
+        //Convert currency to match Monri's requested currency
+        if ($currency == "KM") {
+            $currency = "BAM";
+        }
+        $req = [];
+        $req["shopID"] = $this->monri_authenticity_token;
+        $req["shoppingCartID"] = $order->get_order_number();
+        $amount = number_format($order->order_total, 2, ',', '');
+        $req["totalAmount"] = $amount;
+        $req["signature"] = $this->createTransactionSignature($this->monri_merchant_key, $this->monri_authenticity_token, $req["shoppingCartID"], $amount);
+        if (strpos($this->thankyou_page, "?") !== false) {
+            $req["returnURL"] = $this->thankyou_page . "?payment-gateway-service=monri-ws-pay";
+        } else {
+            $req["returnURL"] = $this->thankyou_page . "&payment-gateway-service=monri-ws-pay";
+        }
+
+//        $req["returnErrorURL"] = "";
+//        $req["cancelURL"] = "";
+        $req["version"] = "2.0";
+        $req["customerFirstName"] = $order->billing_first_name;
+        $req["customerLastName"] = $order->billing_last_name;
+        $req["customerAddress"] = $order->billing_address_1;
+        $req["customerCity"] = $order->billing_city;
+        $req["customerZIP"] = $order->billing_postcode;
+        $req["customerCountry"] = $order->billing_country;
+        $req["customerPhone"] = $order->billing_phone;
+        $req["customerEmail"] = $order->billing_email;
+//        $req["lang"] = "";
+        $req["CurrencyCode"] = $currency;
+        $response = $this->curlJSON($url . "/api/create-transaction", $req);
+    }
+
+    private function createTransactionSignature($secretKey, $shopId, $shoppingCartId, $totalAmount)
+    {
+        $amount = preg_replace('~\D~', '', $totalAmount);;
+        return hash("sha512", $shopId.$secretKey.$shoppingCartId.$secretKey.$amount.$secretKey);
+    }
 
     /**
      * Generate monri button link
@@ -638,15 +709,15 @@ class WC_Monri extends WC_Payment_Gateway
 
         );
 
-        if($success_url_override = $this->get_option('success_url_override')) {
+        if ($success_url_override = $this->get_option('success_url_override')) {
             $args['success_url_override'] = $success_url_override;
         }
 
-        if($cancel_url_override = $this->get_option('cancel_url_override')) {
+        if ($cancel_url_override = $this->get_option('cancel_url_override')) {
             $args['cancel_url_override'] = $cancel_url_override;
         }
 
-        if($callback_url_override = $this->get_option('callback_url_override')) {
+        if ($callback_url_override = $this->get_option('callback_url_override')) {
             $args['callback_url_override'] = $callback_url_override;
         }
 
