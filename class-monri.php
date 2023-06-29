@@ -574,13 +574,11 @@ class WC_Monri extends WC_Payment_Gateway
             $lang = $this->get_sr_translation();
         }
         echo '<p>' . __($lang['RECIEPT_PAGE'], 'Monri') . '</p>';
-        if ($this->payment_gateway_service =='monri-ws-pay') {
+        if ($this->payment_gateway_service == 'monri-ws-pay') {
             $this->generate_form_ws_pay($order);
         } else {
-            
+            echo $this->generate_form($order);
         }
-        echo $this->generate_form($order);
-
     }
 
     public function generate_form_ws_pay($order_id)
@@ -632,12 +630,27 @@ class WC_Monri extends WC_Payment_Gateway
 //        $req["lang"] = "";
         $req["CurrencyCode"] = $currency;
         $response = $this->curlJSON($url . "/api/create-transaction", $req);
+        if (isset($response['PaymentFormUrl'])) {
+            echo '<html lang="en">
+<form action="' . $response['PaymentFormUrl'] . '" method="get" id="monri-ws-pay-form"></form>
+<script>
+    (function () {
+        document.getElementById("monri-ws-pay-form").submit();
+    })()
+</script>
+</html>';
+        } else {
+            var_dump($url);
+            var_dump($req);
+            var_dump($response);
+            echo 'Narudžba neuspješna';
+        }
     }
 
     private function createTransactionSignature($secretKey, $shopId, $shoppingCartId, $totalAmount)
     {
         $amount = preg_replace('~\D~', '', $totalAmount);;
-        return hash("sha512", $shopId.$secretKey.$shoppingCartId.$secretKey.$amount.$secretKey);
+        return hash("sha512", $shopId . $secretKey . $shoppingCartId . $secretKey . $amount . $secretKey);
     }
 
     /**
@@ -1073,7 +1086,6 @@ class WC_Monri extends WC_Payment_Gateway
         } else {
             $resultJSON = $this->purchase($params);
         }
-
 
         if ($this->form_language == "en") {
             $lang = $this->get_en_translation();
@@ -1590,7 +1602,7 @@ class WC_Monri extends WC_Payment_Gateway
             $liveurl = 'https://ipg.monri.com/v2/transaction';
         }
 
-        return $this->curlJSON($liveurl, $params);
+        return $this->curlJSON($liveurl, ['transaction' => $params]);
         //return $this->curl($liveurl, $xml);
     }
 
@@ -1612,7 +1624,7 @@ class WC_Monri extends WC_Payment_Gateway
             $liveurl = 'https://ipg.monri.com/v2/transaction';
         }
 
-        return $this->curlJSON($liveurl, $params);
+        return $this->curlJSON($liveurl, ['transaction' => $params]);
     }
 
 
@@ -1702,7 +1714,7 @@ class WC_Monri extends WC_Payment_Gateway
         ]);
 
 
-        $payload = json_encode(['transaction' => $params]);
+        $payload = json_encode($params);
 
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
