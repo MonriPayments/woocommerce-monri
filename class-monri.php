@@ -501,10 +501,17 @@ class WC_Monri extends WC_Payment_Gateway
             //Direct integration
             return $this->direct_integration($order_id);
         } else {
-            //Form integration
-            return array('result' => 'success', 'redirect' => add_query_arg('order',
-                $order->get_id(), add_query_arg('key', $order->order_key, wc_get_checkout_url()))
-            );
+            if ($this->payment_gateway_service == 'monri-ws-pay') {
+                return array(
+                    'result' => 'success',
+                    'redirect' => $this->generate_form_ws_pay($order)
+                );
+            } else {
+                // Form integration
+                return array('result' => 'success', 'redirect' => add_query_arg('order',
+                    $order->get_id(), add_query_arg('key', $order->order_key, wc_get_checkout_url()))
+                );
+            }
         }
 
     }
@@ -574,17 +581,12 @@ class WC_Monri extends WC_Payment_Gateway
             $lang = $this->get_sr_translation();
         }
         echo '<p>' . __($lang['RECIEPT_PAGE'], 'Monri') . '</p>';
-        if ($this->payment_gateway_service == 'monri-ws-pay') {
-            $this->generate_form_ws_pay($order);
-        } else {
-            echo $this->generate_form($order);
-        }
+        echo $this->generate_form($order);
     }
 
-    public function generate_form_ws_pay($order_id)
+    public function generate_form_ws_pay($order)
     {
-        $order = new WC_Order($order_id);
-        $order_info = $order_id . '_' . date("dmy");
+        $order_id = $order->get_id();
 
         // Check test mode
         if ($this->test_mode) {
@@ -616,8 +618,8 @@ class WC_Monri extends WC_Payment_Gateway
             $req["returnURL"] = $this->thankyou_page . "&payment-gateway-service=monri-ws-pay";
         }
 
-//        $req["returnErrorURL"] = "";
-//        $req["cancelURL"] = "";
+        $req["returnErrorURL"] = WC_Order::get_cancel_endpoint();
+        $req["cancelURL"] = WC_Order::get_cancel_endpoint();
         $req["version"] = "2.0";
         $req["customerFirstName"] = $order->billing_first_name;
         $req["customerLastName"] = $order->billing_last_name;
@@ -627,23 +629,16 @@ class WC_Monri extends WC_Payment_Gateway
         $req["customerCountry"] = $order->billing_country;
         $req["customerPhone"] = $order->billing_phone;
         $req["customerEmail"] = $order->billing_email;
-//        $req["lang"] = "";
-        $req["CurrencyCode"] = $currency;
         $response = $this->curlJSON($url . "/api/create-transaction", $req);
         if (isset($response['PaymentFormUrl'])) {
-            echo '<html lang="en">
-<form action="' . $response['PaymentFormUrl'] . '" method="get" id="monri-ws-pay-form"></form>
-<script>
-    (function () {
-        document.getElementById("monri-ws-pay-form").submit();
-    })()
-</script>
-</html>';
+            return $response['PaymentFormUrl'];
         } else {
-            var_dump($url);
+            // TODO: error
+            var_dump($url . "/api/create-transaction");
             var_dump($req);
+            var_dump($order);
             var_dump($response);
-            echo 'Narudžba neuspješna';
+            return "";
         }
     }
 
@@ -1709,7 +1704,7 @@ class WC_Monri extends WC_Payment_Gateway
 
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            //  'Accept: application/json',
+            'Accept: application/json',
             'Content-Type: application/json'
         ]);
 
