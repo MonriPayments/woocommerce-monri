@@ -3,30 +3,6 @@
 defined('MONRI_CALLBACK_IMPL') or die('Invalid request.');
 
 /**
- * This function isn't available in PHP before PHP 8+s, so we'll conduct this small consistency check
- * and implement a failsafe solution:
- */
-if (!function_exists('str_ends_with')) {
-    /**
-     * Checks if a string ends with a given substring.
-     *
-     * @param $haystack
-     * @param $needle
-     * @return bool
-     */
-    function str_ends_with($haystack, $needle)
-    {
-        $length = strlen($needle);
-
-        if (!$length) {
-            return true;
-        }
-
-        return substr($haystack, -$length) === $needle;
-    }
-}
-
-/**
  * Sets proper Status header with along with HTTP Status Code and Status Name.
  *
  * @param array $status
@@ -64,6 +40,12 @@ function monri_done()
     exit(0);
 }
 
+function monri_redirect($url)
+{
+    header("Location: ".$url);
+    exit(0);
+}
+
 /**
  * Handles the given URL `$callback` as the callback URL for Monri Payment Gateway.
  * This endpoint accepts only POST requests which have their payload in the PHP Input Stream.
@@ -91,7 +73,7 @@ function monri_handle_callback($pathname, $merchant_key, $callback)
     // Grabbing read-only stream from the request body.
     $json = file_get_contents('php://input');
 
-    if(!isset($_SERVER['HTTP_AUTHORIZATION'])) {
+    if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
         monri_error('Authorization header missing.', $bad_request_header);
     }
 
@@ -103,7 +85,7 @@ function monri_handle_callback($pathname, $merchant_key, $callback)
     $digest = hash('sha512', $merchant_key . $json);
 
     // ... and comparing it with one from the headers.
-    if($digest !== $authorization) {
+    if ($digest !== $authorization) {
         monri_error('Authorization header missing.', $bad_request_header);
     }
 
@@ -111,18 +93,17 @@ function monri_handle_callback($pathname, $merchant_key, $callback)
     $json_malformed = 'JSON payload is malformed.';
 
     // Handling JSON parsing for PHP >= 7.3...
-    if(class_exists('JsonException')) {
+    if (class_exists('JsonException')) {
         try {
             $payload = json_decode($json, true);
         } catch (\JsonException $e) {
             monri_error($json_malformed, $bad_request_header);
         }
-    }
-    // ... and for PHP <= 7.2.
+    } // ... and for PHP <= 7.2.
     else {
         $payload = json_decode($json, true);
 
-        if($payload === null && json_last_error() !== JSON_ERROR_NONE) {
+        if ($payload === null && json_last_error() !== JSON_ERROR_NONE) {
             monri_error($json_malformed, $bad_request_header);
         }
     }

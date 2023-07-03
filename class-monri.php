@@ -43,7 +43,7 @@ class WC_Monri extends WC_Payment_Gateway
         $this->instructions = $this->get_option('instructions');
         $this->payment_gateway_service = $this->get_option('monri_payment_gateway_service');
 
-        $this->thankyou_page = $this->settings['thankyou_page'];
+//        $this->thankyou_page = $this->settings['thankyou_page'];
         $this->callback_url_endpoint = $this->get_option('callback_url_endpoint');
 
         $this->success_url_override = $this->get_option('success_url_override');
@@ -139,323 +139,320 @@ class WC_Monri extends WC_Payment_Gateway
             "monri-ws-pay" => "Monri WSPay"
         );
 
+        $form_id = 'wcwcCpg1';
         $this->form_fields = array(
             'enabled' => array(
-                'title' => __('Enable/Disable', 'wcwcCpg1'),
+                'title' => __('Enable/Disable', $form_id),
                 'type' => 'checkbox',
-                'label' => __('Enable Monri', 'wcwcCpg1'),
+                'label' => __('Enable Monri', $form_id),
                 'default' => 'no'
             ),
             'monri_payment_gateway_service' => array(
-                'title' => __('Payment Gateway Service:', 'wcwcCpg1'),
+                'title' => __('Payment Gateway Service:', $form_id),
                 'type' => 'select',
                 'class' => 'chosen_select',
                 'css' => 'width: 450px;',
                 'default' => 'monri-web-pay',
-                'description' => __('', 'wcwcCpg1'),
+                'description' => __('', $form_id),
                 'options' => $payment_gateway_services,
                 'desc_tip' => true,
             ),
             'title' => array(
-                'title' => __('Title', 'wcwcCpg1'),
+                'title' => __('Title', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the title which the user sees during checkout.', 'wcwcCpg1'),
+                'description' => __('This controls the title which the user sees during checkout.', $form_id),
                 'desc_tip' => true,
-                'default' => __('Monri', 'wcwcCpg1')
+                'default' => __('Monri', $form_id)
             ),
             'description' => array(
-                'title' => __('Description', 'wcwcCpg1'),
+                'title' => __('Description', $form_id),
                 'type' => 'textarea',
-                'description' => __('This controls the description which the user sees during checkout.', 'wcwcCpg1'),
-                'default' => __('Description for Monri', 'wcwcCpg1')
+                'description' => __('This controls the description which the user sees during checkout.', $form_id),
+                'default' => __('Description for Monri', $form_id)
             ),
             'instructions' => array(
-                'title' => __('Instructions', 'wcwcCpg1'),
+                'title' => __('Instructions', $form_id),
                 'type' => 'textarea',
-                'description' => __('Instructions that will be added to the thank you page.', 'wcwcCpg1'),
-                'default' => __('Instructions for Monri.', 'wcwcCpg1')
+                'description' => __('Instructions that will be added to the thank you page.', $form_id),
+                'default' => __('Instructions for Monri.', $form_id)
             ),
             'thankyou_page' => array(
-                'title' => __('Success page', 'wcwcCpg1'),
+                'title' => __('Success page', $form_id),
                 'type' => 'text',
-                'description' => __('Success URL potrebno je kopirati u Monri Account na predviđeno mjesto! ', 'wcwcCpg1'),
+                'description' => __('Success URL potrebno je kopirati u Monri Account na predviđeno mjesto! ', $form_id),
                 'desc_tip' => true,
-                'default' => __(wc_get_checkout_url() . get_option('woocommerce_checkout_order_received_endpoint', 'order-received'), 'wcwcCpg1')
+                'default' => __(wc_get_checkout_url() . get_option('woocommerce_checkout_order_received_endpoint', 'order-received'), $form_id)
             ),
-
             'callback_url_endpoint' => array(
                 'title' => __('Callback URL endpoint', 'wcwcGpg1'),
                 'type' => 'text',
-                'description' => __('Monri Callback URL endpoint koji će primati POST zahtjev sa Monri Gateway-a.', 'wcwcCpg1'),
+                'description' => __('Monri Callback URL endpoint koji će primati POST zahtjev sa Monri Gateway-a.', $form_id),
                 'desc_tip' => true,
-                'default' => '/monri-callback', 'wcwcCpg1',
+                'default' => '/monri-callback', $form_id,
             ),
-
             'success_url_override' => array(
                 'title' => __('Success URL override', 'wcwcGpg1'),
                 'type' => 'text',
-                'description' => __('Success URL koji želite koristiti pri svakoj transakciji. (HTTPS)', 'wcwcCpg1'),
+                'description' => __('Success URL koji želite koristiti pri svakoj transakciji. (HTTPS)', $form_id),
                 'desc_tip' => true,
-                'default' => '', 'wcwcCpg1',
+                'default' => '', $form_id,
             ),
             'cancel_url_override' => array(
                 'title' => __('Cancel URL override', 'wcwcGpg1'),
                 'type' => 'text',
-                'description' => __('Cancel URL koji želite koristiti pri svakoj transakciji. (HTTPS)', 'wcwcCpg1'),
+                'description' => __('Cancel URL koji želite koristiti pri svakoj transakciji. (HTTPS)', $form_id),
                 'desc_tip' => true,
-                'default' => '', 'wcwcCpg1',
+                'default' => '', $form_id,
             ),
             'callback_url_override' => array(
                 'title' => __('Callback URL override', 'wcwcGpg1'),
                 'type' => 'text',
-                'description' => __('Callback URL koji želite koristiti pri svakoj transakciji. (HTTPS)', 'wcwcCpg1'),
+                'description' => __('Callback URL koji želite koristiti pri svakoj transakciji. (HTTPS)', $form_id),
                 'desc_tip' => true,
-                'default' => '', 'wcwcCpg1',
+                'default' => '', $form_id,
             ),
-
             'monri_merchant_key' => array(
-                'title' => __('Monri Key', 'wcwcCpg1'),
+                'title' => __('Monri Key', $form_id),
                 'type' => 'text',
-                'description' => __('', 'wcwcCpg1'),
+                'description' => __('', $form_id),
                 'desc_tip' => true,
-                'default' => __('', 'wcwcCpg1')
+                'default' => __('', $form_id)
             ),
             'monri_authenticity_token' => array(
-                'title' => __('Monri authenticity token', 'wcwcCpg1'),
+                'title' => __('Monri authenticity token', $form_id),
                 'type' => 'text',
-                'description' => __('', 'wcwcCpg1'),
+                'description' => __('', $form_id),
                 'desc_tip' => true,
-                'default' => __('', 'wcwcCpg1')
+                'default' => __('', $form_id)
             ),
             'monri_methods' => array(
-                'title' => __('Use DIRECT Monri processing method:', 'wcwcCpg1'),
+                'title' => __('Use DIRECT Monri processing method:', $form_id),
                 'type' => 'select',
                 'class' => 'chosen_select',
                 'css' => 'width: 450px;',
                 'default' => true,
-                'description' => __('', 'wcwcCpg1'),
+                'description' => __('', $form_id),
                 'options' => $monri_methods,
                 'desc_tip' => true,
             ),
             'test_mode' => array(
-                'title' => __('Test mode enabled:', 'wcwcCpg1'),
+                'title' => __('Test mode enabled:', $form_id),
                 'type' => 'select',
                 'class' => 'chosen_select',
                 'css' => 'width: 450px;',
                 'default' => 0,
-                'description' => __('', 'wcwcCpg1'),
+                'description' => __('', $form_id),
                 'options' => $monri_methods,
                 'desc_tip' => true,
             ),
             'transaction_type' => array(
-                'title' => __('Transaction type:', 'wcwcCpg1'),
+                'title' => __('Transaction type:', $form_id),
                 'type' => 'select',
                 'class' => 'chosen_select',
                 'css' => 'width: 450px;',
                 'default' => 0,
-                'description' => __('', 'wcwcCpg1'),
+                'description' => __('', $form_id),
                 'options' => $transaction_type,
                 'desc_tip' => true,
             ),
             'form_language' => array(
-                'title' => __('Form language:', 'wcwcCpg1'),
+                'title' => __('Form language:', $form_id),
                 'type' => 'select',
                 'class' => 'chosen_select',
                 'css' => 'width: 450px;',
                 'default' => 'EN',
-                'description' => __('', 'wcwcCpg1'),
+                'description' => __('', $form_id),
                 'options' => $form_language,
                 'desc_tip' => true,
             ),
             'paying_in_installments' => array(
-                'title' => __('Allow paying in installments', 'wcwcCpg1'),
+                'title' => __('Allow paying in installments', $form_id),
                 'type' => 'select',
                 'class' => 'chosen_select',
                 'css' => 'width: 450px;',
                 'default' => 0,
-                'description' => __('', 'wcwcCpg1'),
+                'description' => __('', $form_id),
                 'options' => $monri_methods,
                 'desc_tip' => true,
             ),
             'number_of_allowed_installments' => array(
-                'title' => __('Number of allowed installments', 'wcwcCpg1'),
+                'title' => __('Number of allowed installments', $form_id),
                 'type' => 'select',
                 'class' => 'chosen_select',
                 'css' => 'width: 450px;',
                 'default' => 0,
-                'description' => __('', 'wcwcCpg1'),
+                'description' => __('', $form_id),
                 'options' => $number_of_allowed_installments,
                 'desc_tip' => true,
             ),
             'bottom_limit' => array(
-                'title' => __('Price limit for paying in installments:', 'wcwcCpg1'),
+                'title' => __('Price limit for paying in installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the bottom price limit on which the installments can be used.', 'wcwcCpg1'),
+                'description' => __('This controls the bottom price limit on which the installments can be used.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_2' => array(
-                'title' => __('Price increase when paying in 2 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 2 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_3' => array(
-                'title' => __('Price increase when paying in 3 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 3 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_4' => array(
-                'title' => __('Price increase when paying in 4 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 4 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_5' => array(
-                'title' => __('Price increase when paying in 5 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 5 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_6' => array(
-                'title' => __('Price increase when paying in 6 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 6 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_7' => array(
-                'title' => __('Price increase when paying in 7 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 7 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_8' => array(
-                'title' => __('Price increase when paying in 8 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 8 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_9' => array(
-                'title' => __('Price increase when paying in 9 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 9 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_10' => array(
-                'title' => __('Price increase when paying in 10 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 10 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_11' => array(
-                'title' => __('Price increase when paying in 11 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 11 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_12' => array(
-                'title' => __('Price increase when paying in 12 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 12 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_13' => array(
-                'title' => __('Price increase when paying in 13 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 13 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_14' => array(
-                'title' => __('Price increase when paying in 14 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 14 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_15' => array(
-                'title' => __('Price increase when paying in 15 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 15 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_16' => array(
-                'title' => __('Price increase when paying in 16 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 16 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_17' => array(
-                'title' => __('Price increase when paying in 17 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 17 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_18' => array(
-                'title' => __('Price increase when paying in 18 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 18 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_19' => array(
-                'title' => __('Price increase when paying in 19 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 19 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_20' => array(
-                'title' => __('Price increase when paying in 20 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 20 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_21' => array(
-                'title' => __('Price increase when paying in 21 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 21 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_22' => array(
-                'title' => __('Price increase when paying in 22 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 22 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_23' => array(
-                'title' => __('Price increase when paying in 23 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 23 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             ),
             'price_increase_24' => array(
-                'title' => __('Price increase when paying in 24 installments:', 'wcwcCpg1'),
+                'title' => __('Price increase when paying in 24 installments:', $form_id),
                 'type' => 'text',
-                'description' => __('This controls the price increase when paying with installments.', 'wcwcCpg1'),
+                'description' => __('This controls the price increase when paying with installments.', $form_id),
                 'desc_tip' => true,
-                'default' => __('0', 'wcwcCpg1')
+                'default' => __('0', $form_id)
             )
-
         );
     }
 
@@ -586,38 +583,20 @@ class WC_Monri extends WC_Payment_Gateway
 
     public function generate_form_ws_pay($order)
     {
-        $order_id = $order->get_id();
-
         // Check test mode
         if ($this->test_mode) {
             $url = 'https://formtest.wspay.biz';
         } else {
             $url = 'https://form.wspay.biz';
         }
-        if (version_compare(WOOCOMMERCE_VERSION, '3.0.0', '>=')) {
-            $order_data = $order->get_data();
-            $currency = $order_data["currency"];
-        } else {
-            $order_meta = get_post_meta($order_id);
-            $currency = $order_meta["_order_currency"][0];
-        }
 
-        //Convert currency to match Monri's requested currency
-        if ($currency == "KM") {
-            $currency = "BAM";
-        }
         $req = [];
         $req["shopID"] = $this->monri_authenticity_token;
         $req["shoppingCartID"] = $order->get_order_number();
         $amount = number_format($order->order_total, 2, ',', '');
         $req["totalAmount"] = $amount;
         $req["signature"] = $this->createTransactionSignature($this->monri_merchant_key, $this->monri_authenticity_token, $req["shoppingCartID"], $amount);
-        if (strpos($this->thankyou_page, "?") !== false) {
-            $req["returnURL"] = $this->thankyou_page . "?payment-gateway-service=monri-ws-pay";
-        } else {
-            $req["returnURL"] = $this->thankyou_page . "&payment-gateway-service=monri-ws-pay";
-        }
-
+        $req['returnURL'] = site_url() . '/ws-pay-redirect';
         $req["returnErrorURL"] = WC_Order::get_cancel_endpoint();
         $req["cancelURL"] = WC_Order::get_cancel_endpoint();
         $req["version"] = "2.0";
@@ -666,9 +645,9 @@ class WC_Monri extends WC_Payment_Gateway
 
         // Check test mode
         if ($this->test_mode) {
-            $liveurl = 'https://ipgtest.monri.com/v2/form';
+            $live_url = 'https://ipgtest.monri.com/v2/form';
         } else {
-            $liveurl = 'https://ipg.monri.com/v2/form';
+            $live_url = 'https://ipg.monri.com/v2/form';
         }
 
 
@@ -736,7 +715,7 @@ class WC_Monri extends WC_Payment_Gateway
         }
 
         //Returning the form
-        return '<form action="' . $liveurl . '" method="post" data-ajax="false" id="monri_payment_form">
+        return '<form action="' . $live_url . '" method="post" data-ajax="false" id="monri_payment_form">
                 ' . implode('', $args_array) . '
                 <input type="submit" class="button-alt" id="submit_monri_payment_form" value="' . __('Pay via Monri', 'Monri') . '" /> <a class="button cancel" href="' . $order->get_cancel_order_url() . '">' . __('Cancel order &amp; restore cart', 'Monri') . '</a>
                 <script type="text/javascript">
@@ -795,83 +774,16 @@ class WC_Monri extends WC_Payment_Gateway
             $lang = $this->get_ba_hr_translation();
         } elseif ($this->form_language == "sr") {
             $lang = $this->get_sr_translation();
+        } else {
+            $lang = $this->get_en_translation();
         }
 
         global $woocommerce;
 
         if (isset($_REQUEST['approval_code']) && isset($_REQUEST['digest'])) {
-            wp_enqueue_style('thankyou-page', plugins_url() . '/woocommerce-monri/assets/style/thankyou-page.css');
-            $order_id = $_REQUEST['order_number'];
-
-            if ($order_id != '') {
-                try {
-                    $order = new WC_Order($order_id);
-
-                    $digest = $_REQUEST['digest'];
-                    $response_code = $_REQUEST['response_code'];
-
-                    $url = strtok($this->thankyou_page, '?');
-
-                    $query_string = $this->get_query_string();
-                    $full_url = $url . '?' . $query_string;
-
-                    $calculated_url = preg_replace('/&digest=[^&]*/', '', $full_url);
-                    //Generate digest
-                    $checkdigest = hash('sha512', $this->monri_merchant_key . $calculated_url);
-                    $transauthorised = false;
-                    if ($order->status !== 'completed') {
-                        if ($digest == $checkdigest) {
-                            if ($response_code == "0000") {
-                                $transauthorised = true;
-                                $this->msg['message'] = $lang["THANKYOU_SUCCESS"];
-                                $this->msg['class'] = 'woocommerce_message';
-
-                                if ($order->status == 'processing') {
-
-                                } else {
-                                    $order->payment_complete();
-                                    $order->add_order_note($lang["MONRI_SUCCESS"] . $_REQUEST['approval_code']);
-                                    $order->add_order_note($this->msg['message']);
-                                    $order->add_order_note("Issuer: " . $_REQUEST['issuer']);
-                                    if ($_REQUEST['number_of_installments'] > 1) {
-                                        $order->add_order_note($lang['NUMBER_OF_INSTALLMENTS'] . ": " . $_REQUEST['number_of_installments']);
-                                    }
-                                    $woocommerce->cart->empty_cart();
-                                }
-                            } else if ($response_code == "pending") {
-                                $this->msg['message'] = $lang["THANKYOU_PENDING"];
-                                $this->msg['class'] = 'woocommerce_message woocommerce_message_info';
-                                $order->add_order_note($lang['MONRI_PENDING'] . $_REQUEST['approval_code']);
-                                $order->add_order_note($this->msg['message']);
-                                $order->add_order_note("Issuer: " . $_REQUEST['issuer']);
-                                if ($_REQUEST['number_of_installments'] > 1) {
-                                    $order->add_order_note($lang['NUMBER_OF_INSTALLMENTS'] . ": " . $_REQUEST['number_of_installments']);
-                                }
-                                $order->update_status('on-hold');
-                                $woocommerce->cart->empty_cart();
-                            } else {
-                                $this->msg['class'] = 'woocommerce_error';
-                                $this->msg['message'] = $lang['THANKYOU_DECLINED'];
-                                $order->add_order_note($lang['THANKYOU_DECLINED_NOTE'] . $_REQUEST['Error']);
-                            }
-                        } else {
-                            $this->msg['class'] = 'error';
-                            $this->msg['message'] = $lang['SECURITY_ERROR'];
-
-                        }
-                        if ($transauthorised == false) {
-                            $order->update_status('failed');
-                            $order->add_order_note('Failed');
-                            $order->add_order_note($this->msg['message']);
-                        }
-
-                        add_action('the_content', array(&$this, 'showMessage'));
-                    }
-                } catch (Exception $e) {
-                    // $errorOccurred = true;
-                    $msg = "Error";
-                }
-            }
+            $this->monri_web_pay_handle_redirect($lang, $woocommerce);
+        } else if (isset($_REQUEST['WsPayOrderId']) && isset($_REQUEST['ApprovalCode'])) {
+            $this->monri_ws_pay_handle_redirect($lang, $woocommerce);
         }
     }
 
@@ -909,9 +821,7 @@ class WC_Monri extends WC_Payment_Gateway
             } else {
                 $order = new WC_Order($resultXml["order-number"]);
 
-                $order->update_status('failed');
-                $order->add_order_note('Failed');
-                $order->add_order_note($this->msg['message']);
+                $this->order_failed($order);
             }
 
         }
@@ -1567,12 +1477,12 @@ class WC_Monri extends WC_Payment_Gateway
     function credit_card_script()
     {
         if ($this->test_mode) {
-            $liveurl = 'https://ipgtest.monri.com/dist/components.js';
+            $live_url = 'https://ipgtest.monri.com/dist/components.js';
         } else {
-            $liveurl = 'https://ipg.monri.com/dist/components.js';
+            $live_url = 'https://ipg.monri.com/dist/components.js';
         }
         wp_register_script('installments', plugin_dir_url(__FILE__) . 'assets/js/installments.js', array('jquery'), '1', true);
-        wp_register_script('monri-components', $liveurl, array('jquery'), '1', true);
+        wp_register_script('monri-components', $live_url, array('jquery'), '1', true);
         wp_enqueue_script('installments');
         wp_enqueue_script('monri-components');
         wp_enqueue_script('wc-credit-card-form');
@@ -1592,13 +1502,13 @@ class WC_Monri extends WC_Payment_Gateway
 
         // check test mode
         if ($this->test_mode) {
-            $liveurl = 'https://ipgtest.monri.com/v2/transaction';
+            $live_url = 'https://ipgtest.monri.com/v2/transaction';
         } else {
-            $liveurl = 'https://ipg.monri.com/v2/transaction';
+            $live_url = 'https://ipg.monri.com/v2/transaction';
         }
 
-        return $this->curlJSON($liveurl, ['transaction' => $params]);
-        //return $this->curl($liveurl, $xml);
+        return $this->curlJSON($live_url, ['transaction' => $params]);
+        //return $this->curl($live_url, $xml);
     }
 
     /**
@@ -1614,12 +1524,12 @@ class WC_Monri extends WC_Payment_Gateway
     {
         // check test mode
         if ($this->test_mode) {
-            $liveurl = 'https://ipgtest.monri.com/v2/transaction';
+            $live_url = 'https://ipgtest.monri.com/v2/transaction';
         } else {
-            $liveurl = 'https://ipg.monri.com/v2/transaction';
+            $live_url = 'https://ipg.monri.com/v2/transaction';
         }
 
-        return $this->curlJSON($liveurl, ['transaction' => $params]);
+        return $this->curlJSON($live_url, ['transaction' => $params]);
     }
 
 
@@ -1633,12 +1543,11 @@ class WC_Monri extends WC_Payment_Gateway
 
         // check test mode
         if ($this->test_mode) {
-            $liveurl = 'https://ipgtest.monri.com/pares';
+            $live_url = 'https://ipgtest.monri.com/pares';
         } else {
-            $liveurl = 'https://ipg.monri.com/pares';
+            $live_url = 'https://ipg.monri.com/pares';
         }
-        $return = $this->curl($liveurl, $xml);
-        return $return;
+        return $this->curl($live_url, $xml);
     }
 
     /**
@@ -1733,100 +1642,174 @@ class WC_Monri extends WC_Payment_Gateway
 
 
     /**
-     * Generates XML string for purchase and authorize requests
-     *
-     * @param string purchase or authorize
-     * @return string generated xml
+     * @param array $lang
+     * @param $woocommerce
+     * @return void
      */
-    function generateXml($type, $params)
+    public function monri_web_pay_handle_redirect($lang, $woocommerce)
     {
-        $amount = "amount";
-        $currency = "currency";
-        $digest = "digest";
-        $order_number = "order_number";
-        $expiration_date = "expiration_date";
-        $pan = "pan";
-        $ip = "ip";
-        $order_info = "order_info";
-        $ch_address = "ch_address";
-        $ch_city = "ch_city";
-        $ch_country = "ch_country";
-        $ch_email = "ch_email";
-        $ch_full_name = "ch_full_name";
-        $ch_phone = "ch_phone";
-        $ch_zip = "ch_zip";
-        $language = "language";
-        $cvv = "cvv";
-        $number_of_installments = "number_of_installments";
+        wp_enqueue_style('thankyou-page', plugins_url() . '/woocommerce-monri/assets/style/thankyou-page.css');
+        $order_id = $_REQUEST['order_number'];
 
+        if ($order_id != '') {
+            try {
+                $order = new WC_Order($order_id);
 
-        $xml = "<?xml version='1.0' encoding='UTF-8'?>
-                <transaction>
-                  <transaction-type>$type</transaction-type>
-                  <amount>{$params[$amount]}</amount>
-                  <currency>{$params[$currency]}</currency>
-                  <digest>{$params[$digest]}</digest>
-                  <authenticity-token>$this->monri_authenticity_token</authenticity-token>
-                  <order-number>{$params[$order_number]}</order-number>";
+                $digest = $_REQUEST['digest'];
+                $response_code = $_REQUEST['response_code'];
 
-        if ($type === 'authorize' || $type === 'purchase') {
-            $xml .= "<expiration-date>{$params[$expiration_date]}</expiration-date>
-                  <pan>{$params[$pan]}</pan>
-                  <ip>{$params[$ip]}</ip>
-                  <order-info>{$params[$order_info]}</order-info>
-                  <ch-address>{$params[$ch_address]}</ch-address>
-                  <ch-city>{$params[$ch_city]}</ch-city>
-                  <ch-country>{$params[$ch_country]}</ch-country>
-                  <ch-email>{$params[$ch_email]}</ch-email>
-                  <ch-full-name>{$params[$ch_full_name]}</ch-full-name>
-                  <ch-phone>{$params[$ch_phone]}</ch-phone>
-                  <ch-zip>{$params[$ch_zip]}</ch-zip>
-                  <language>{$params[$language]}</language>
-                  <cvv>{$params[$cvv]}</cvv>";
+                $url = strtok($this->thankyou_page, '?');
 
-            if ($this->paying_in_installments && $params[$number_of_installments] > 1) {
-                $xml .= "<number-of-installments>{$params[$number_of_installments]}</number-of-installments>";
+                $query_string = $this->get_query_string();
+                $full_url = $url . '?' . $query_string;
+
+                $calculated_url = preg_replace('/&digest=[^&]*/', '', $full_url);
+                //Generate digest
+                $check_digest = hash('sha512', $this->monri_merchant_key . $calculated_url);
+                $trx_authorized = false;
+                if ($order->status !== 'completed') {
+                    if ($digest == $check_digest) {
+                        if ($response_code == "0000") {
+                            $trx_authorized = true;
+                            $this->msg['message'] = $lang["THANK_YOU_SUCCESS"];
+                            $this->msg['class'] = 'woocommerce_message';
+
+                            if ($order->status == 'processing') {
+
+                            } else {
+                                $order->payment_complete();
+                                $order->add_order_note($lang["MONRI_SUCCESS"] . $_REQUEST['approval_code']);
+                                $order->add_order_note($this->msg['message']);
+                                $order->add_order_note("Issuer: " . $_REQUEST['issuer']);
+                                if ($_REQUEST['number_of_installments'] > 1) {
+                                    $order->add_order_note($lang['NUMBER_OF_INSTALLMENTS'] . ": " . $_REQUEST['number_of_installments']);
+                                }
+                                $woocommerce->cart->empty_cart();
+                            }
+                        } else if ($response_code == "pending") {
+                            $this->msg['message'] = $lang["THANK_YOU_PENDING"];
+                            $this->msg['class'] = 'woocommerce_message woocommerce_message_info';
+                            $order->add_order_note($lang['MONRI_PENDING'] . $_REQUEST['approval_code']);
+                            $order->add_order_note($this->msg['message']);
+                            $order->add_order_note("Issuer: " . $_REQUEST['issuer']);
+                            if ($_REQUEST['number_of_installments'] > 1) {
+                                $order->add_order_note($lang['NUMBER_OF_INSTALLMENTS'] . ": " . $_REQUEST['number_of_installments']);
+                            }
+                            $order->update_status('on-hold');
+                            $woocommerce->cart->empty_cart();
+                        } else {
+                            $this->msg['class'] = 'woocommerce_error';
+                            $this->msg['message'] = $lang['THANK_YOU_DECLINED'];
+                            $order->add_order_note($lang['THANK_YOU_DECLINED_NOTE'] . $_REQUEST['Error']);
+                        }
+                    } else {
+                        $this->security_error($lang);
+
+                    }
+                    if ($trx_authorized == false) {
+                        $this->order_failed($order);
+                    }
+
+                    add_action('the_content', array(&$this, 'showMessage'));
+                }
+            } catch (Exception $e) {
+                // $errorOccurred = true;
+                $msg = "Error";
             }
         }
-
-        $xml .= "</transaction>";
-
-        return $xml;
     }
 
     /**
-     * Echoes 3D Secure form to user
-     *
-     * @param string $acsUrl
-     * @param string $pareq
-     * @param string $token
-     * @param string $returnUrl
+     * @param array $lang
+     * @param $woocommerce
+     * @return void
      */
-    protected function show3dSecureForm($acsUrl, $pareq, $token, $returnUrl)
+    public function monri_ws_pay_handle_redirect($lang, $woocommerce)
     {
-        return [
-            '3ds' => true,
-            'form' => "<!DOCTYPE html>
-            <html style='display:none'>
-              <head>
-                <title>Monri 3D Secure Verification</title>
-                <script language='Javascript'>
-                  function OnLoadEvent() { document.form.submit(); }
-                </script>
-              </head>
-              <body OnLoad='OnLoadEvent();'>
-                Invoking 3-D secure form, please wait ...
-                <form name='form' action='$acsUrl' method='post'>
-                  <input type='hidden' name='PaReq' value='$pareq'>
-                  <input type='hidden' name='TermUrl' value='$returnUrl'>
-                  <input type='hidden' name='MD' value='$token'>
-                  <noscript>
-                    <p>Please click</p><input id='to-asc-button' type='submit'>
-                  </noscript>
-                </form>
-                </body>
-            </html>"
-        ]; // Output 3DS Verification Form
+        wp_enqueue_style('thankyou-page', plugins_url() . '/woocommerce-monri/assets/style/thankyou-page.css');
+        $order_id = $_REQUEST['ShoppingCartID'];
+
+        if ($order_id != '') {
+            try {
+                $order = new WC_Order($order_id);
+
+                if ($order->status === 'completed') {
+                    $this->msg['message'] = $lang["THANK_YOU_SUCCESS"];
+                    $this->msg['class'] = 'woocommerce_message';
+                } else {
+                    $digest = $_REQUEST['Signature'];
+                    $success = isset($_REQUEST['Success']) ? $_REQUEST['Success'] : '0';
+                    $approval_code = isset($_REQUEST['ApprovalCode']) ? $_REQUEST['ApprovalCode'] : null;
+                    $shop_id = $this->monri_authenticity_token;
+                    $secret_key = $this->monri_merchant_key;
+                    // ShopID
+                    // SecretKey
+                    // ShoppingCartID
+                    // SecretKey
+                    // Success
+                    // SecretKey
+                    // ApprovalCode
+                    // SecretKey
+                    $digest_parts = array(
+                        $shop_id,
+                        $secret_key,
+                        $order_id,
+                        $secret_key,
+                        $success,
+                        $secret_key,
+                        $approval_code,
+                        $secret_key,
+                    );
+                    $check_digest = hash('sha512', join("", $digest_parts));
+                    if ($check_digest != $digest) {
+                        $this->security_error($lang);
+                    } else {
+                        $trx_authorized = $success == '1' && !empty($approval_code);
+                        if ($trx_authorized) {
+                            $this->msg['message'] = $lang["THANK_YOU_SUCCESS"];
+                            $this->msg['class'] = 'woocommerce_message';
+                            $order->payment_complete();
+                            $order->add_order_note($lang["MONRI_SUCCESS"] . $_REQUEST['approval_code']);
+                            $order->add_order_note($this->msg['message']);
+                            $woocommerce->cart->empty_cart();
+                        } else {
+                            $this->msg['class'] = 'woocommerce_error';
+                            $this->msg['message'] = $lang['THANK_YOU_DECLINED'];
+                            $this->order_failed($order);
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                // $errorOccurred = true;
+                $msg = "Error";
+            }
+        } else {
+            $this->msg['class'] = 'woocommerce_error';
+            $this->msg['message'] = $lang['THANK_YOU_DECLINED'];
+        }
+
+        add_action('the_content', array(&$this, 'showMessage'));
+    }
+
+    /**
+     * @param WC_Order $order
+     * @return void
+     */
+    public function order_failed(WC_Order $order)
+    {
+        $order->update_status('failed');
+        $order->add_order_note('Failed');
+        $order->add_order_note($this->msg['message']);
+    }
+
+    /**
+     * @param $lang
+     * @return void
+     */
+    public function security_error($lang)
+    {
+        $this->msg['class'] = 'error';
+        $this->msg['message'] = $lang['SECURITY_ERROR'];
     }
 
     /*
@@ -1836,53 +1819,7 @@ class WC_Monri extends WC_Payment_Gateway
    */
     public static function get_en_translation()
     {
-
-
-        $lang = array();
-
-        //Credit card
-        $lang['CARD_NUMBER'] = 'Card Number';
-        $lang['EXPIRY'] = 'Expiry';
-        $lang['CARD_CODE'] = 'Card Code';
-        $lang['INSTALLMENTS_NUMBER'] = 'Number of installments';
-
-        // Validation messages
-        $lang['FIRST_NAME_ERROR'] = 'First name must have between 3 and 11 characters';
-        $lang['LAST_NAME_ERROR'] = 'Last name must have between 3 and 28 characters';
-        $lang['ADDRESS_ERROR'] = 'Address must have between 3 and 300 characters';
-        $lang['CITY_ERROR'] = 'City must have between 3 and 30 characters';
-        $lang['ZIP_ERROR'] = 'ZIP must have between 3 and 30 characters';
-        $lang['PHONE_ERROR'] = 'Phone must have between 3 and 30 characters';
-        $lang['EMAIL_ERROR'] = 'Email must have between 3 and 30 characters';
-
-        $lang['CARD_NUMBER_ERROR'] = 'Card Number is emtpy';
-        $lang['CARD_EXPIRY_ERROR'] = 'Card Expiry is emtpy';
-        $lang['CARD_EXPIRY_ERROR_PAST'] = 'Card expiry is in past';
-        $lang['CARD_CODE_ERROR'] = 'Card Code is emtpy';
-        $lang['INVALID_CARD_NUMBER'] = 'Invalid Credit Card number';
-
-        //Reciept page messages
-        $lang['RECIEPT_PAGE'] = 'Thank you for your order, please click the button below to pay with Monri.';
-
-        //Thankyou page messages
-        $lang['THANKYOU_SUCCESS'] = 'Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.';
-        $lang['MONRI_SUCCESS'] = 'Monri payment successful<br/>Approval code: ';
-        $lang['THANKYOU_PENDING'] = 'Thank you for shopping with us. Right now your payment status is pending, We will keep you posted regarding the status of your order through e-mail';
-        $lang['MONRI_PENDING'] = 'Monri payment status is pending<br/>Approval code: ';
-        $lang['SECURITY_ERROR'] = 'Security Error. Illegal access detected';
-        $lang['THANKYOU_DECLINED'] = 'Thank you for shopping with us. However, the transaction has been declined.';
-        $lang['THANKYOU_DECLINED_NOTE'] = 'Transaction Declined: ';
-
-        //Payment notes
-        $lang['PAYMENT_COMPLETED'] = 'Monri payment completed.';
-        $lang['TRANSACTION_FAILED'] = 'Transaction failed.';
-
-        $lang['PAYMENT_INCREASE'] = 'Depending on the installments number chosen, the price will increase for';
-
-        $lang['NUMBER_OF_INSTALLMENTS'] = 'Number of installments';
-        $lang['MONRI_ORDER_AMOUNT'] = 'Monri - Order amount';
-
-        return $lang;
+        return MonriI18n::get_en_translation();
     }
 
     /*
@@ -1892,52 +1829,7 @@ class WC_Monri extends WC_Payment_Gateway
     */
     public static function get_ba_hr_translation()
     {
-
-        $lang = array();
-
-        //Credit card
-        $lang['CARD_NUMBER'] = 'Broj kartice';
-        $lang['EXPIRY'] = 'Datum isteka';
-        $lang['CARD_CODE'] = 'Cvv kod';
-        $lang['INSTALLMENTS_NUMBER'] = 'Broj rata';
-
-        // Validation messages
-        $lang['FIRST_NAME_ERROR'] = 'Ime mora imati između 3 i 11 karaktera';
-        $lang['LAST_NAME_ERROR'] = 'Prezime mora imati između 3 i 28 karaktera';
-        $lang['ADDRESS_ERROR'] = 'Adresa mora imati između 3 i 300 karaktera';
-        $lang['CITY_ERROR'] = 'Grad mora imati između 3 i 30 karaktera';
-        $lang['ZIP_ERROR'] = 'Poštanski broj mora imati između 3 i 30 karaktera';
-        $lang['PHONE_ERROR'] = 'Telefon mora imati između 3 i 30 karaktera';
-        $lang['EMAIL_ERROR'] = 'Email mora imati između 3 i 30 karaktera';
-        $lang['INVALID_CARD_NUMBER'] = 'Neispravan broj kreditne kartice';
-
-        $lang['CARD_NUMBER_ERROR'] = 'Polje Broj kartice je prazno';
-        $lang['CARD_EXPIRY_ERROR'] = 'Polje Datum isteka je prazno';
-        $lang['CARD_EXPIRY_ERROR_PAST'] = 'Datum isteka je u prošlosti';
-        $lang['CARD_CODE_ERROR'] = 'Polje Cvv kod je prazno';
-
-        //Reciept page messages
-        $lang['RECIEPT_PAGE'] = 'Zahvaljujemo se na vašoj narudžbi, kliknite da dugme ispod kako bi platili preko Monri-a.';
-
-        //Thankyou page messages
-        $lang['THANKYOU_SUCCESS'] = 'Hvala što ste kupovali kod nas. Vaš račun je naplaćen i transakcija je uspješna. Uskoro ćemo vam poslati vašu narudžbu.';
-        $lang['MONRI_SUCCESS'] = 'Monri plaćanje uspješno <br/>Approval code: ';
-        $lang['THANKYOU_PENDING'] = 'Hvala što ste kupovali kod nas. Trenutno vaš status plaćanja je na čekanju.';
-        $lang['MONRI_PENDING'] = 'Monri plaćanje na čekanju<br/>Approval code: ';
-        $lang['SECURITY_ERROR'] = 'Sigurnosna greška. Nedozvoljen pristup detektovan.';
-        $lang['THANKYOU_DECLINED'] = 'Hvala što ste kupovali kod nas. Nažalost transakcija je odbijena.';
-        $lang['THANKYOU_DECLINED_NOTE'] = 'Transakcija odbijena: ';
-
-        //Payment notes
-        $lang['PAYMENT_COMPLETED'] = 'Monri plaćanje uspješno.';
-        $lang['TRANSACTION_FAILED'] = 'Transakcija neuspješna.';
-
-        $lang['PAYMENT_INCREASE'] = 'Na osnovu odabranog broja rata cijena će se povećati za';
-
-        $lang['NUMBER_OF_INSTALLMENTS'] = 'Broj rata';
-        $lang['MONRI_ORDER_AMOUNT'] = 'Monri - Iznos narudžbe sa naknadom';
-
-        return $lang;
+        return MonriI18n::get_ba_hr_translation();
     }
 
 
@@ -1948,52 +1840,7 @@ class WC_Monri extends WC_Payment_Gateway
    */
     public static function get_sr_translation()
     {
-
-        $lang = array();
-
-        //Credit card
-        $lang['CARD_NUMBER'] = 'Broj kartice';
-        $lang['EXPIRY'] = 'Datum isteka';
-        $lang['CARD_CODE'] = 'Cvv kod';
-        $lang['INSTALLMENTS_NUMBER'] = 'Broj rata';
-
-        // Validation messages
-        $lang['FIRST_NAME_ERROR'] = 'Ime mora da ima između 3 i 11 karaktera';
-        $lang['LAST_NAME_ERROR'] = 'Prezime mora da ima između 3 i 28 karaktera';
-        $lang['ADDRESS_ERROR'] = 'Adresa mora da ima između 3 i 300 karaktera';
-        $lang['CITY_ERROR'] = 'Grad mora da ima između 3 i 30 karaktera';
-        $lang['ZIP_ERROR'] = 'Poštanski broj mora da ima između 3 i 30 karaktera';
-        $lang['PHONE_ERROR'] = 'Telefon mora da ima između 3 i 30 karaktera';
-        $lang['EMAIL_ERROR'] = 'Email mora da ima između 3 i 30 karaktera';
-        $lang['INVALID_CARD_NUMBER'] = 'Neispravan broj kreditne kartice';
-
-        $lang['CARD_NUMBER_ERROR'] = 'Polje Broj kartice je prazno';
-        $lang['CARD_EXPIRY_ERROR'] = 'Polje Datum isteka je prazno';
-        $lang['CARD_EXPIRY_ERROR_PAST'] = 'Datum isteka je u prošlosti';
-        $lang['CARD_CODE_ERROR'] = 'Polje Cvv kod je prazno';
-
-        //Reciept page messages
-        $lang['RECIEPT_PAGE'] = 'Zahvaljujemo se na vašoj narudžbi, kliknite da dugme ispod kako bi platili preko Monri-a.';
-
-        //Thankyou page messages
-        $lang['THANKYOU_SUCCESS'] = 'Hvala što ste kupovali kod nas. Vaš račun je naplaćen i transakcija je uspešna. Uskoro ćemo vam poslati vašu narudžbu.';
-        $lang['MONRI_SUCCESS'] = 'Monri plaćanje uspešno <br/>Approval code: ';
-        $lang['THANKYOU_PENDING'] = 'Hvala što ste kupovali kod nas. Trenutno vaš status plaćanja je na čekanju.';
-        $lang['MONRI_PENDING'] = 'Monri plaćanje na čekanju<br/>Approval code: ';
-        $lang['SECURITY_ERROR'] = 'Sigurnosna greška. Nedozvoljen pristup detektovan.';
-        $lang['THANKYOU_DECLINED'] = 'Hvala što ste kupovali kod nas. Nažalost transakcija je odbijena.';
-        $lang['THANKYOU_DECLINED_NOTE'] = 'Transakcija odbijena: ';
-
-        //Payment notes
-        $lang['PAYMENT_COMPLETED'] = 'Monri plaćanje uspešno.';
-        $lang['TRANSACTION_FAILED'] = 'Transakcija neuspešna.';
-
-        $lang['PAYMENT_INCREASE'] = 'Na osnovu odabranog broja rata cena će se povećati za';
-
-        $lang['NUMBER_OF_INSTALLMENTS'] = 'Broj rata';
-        $lang['MONRI_ORDER_AMOUNT'] = 'Monri - Iznos narudžbe sa naknadom';
-
-        return $lang;
+        return MonriI18n::get_sr_translation();
     }
 
 }

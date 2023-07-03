@@ -23,7 +23,8 @@ class MonriApi
         exit(0);
     }
 
-    private function calculateDigest($order_number) {
+    private function calculateDigest($order_number)
+    {
         return hash('SHA1', $this->merchant_key . $order_number);
     }
 
@@ -222,6 +223,103 @@ class MonriApi
         foreach ($headers as $headerName => $headerValue) {
             yield sprintf('%s: %s', $headerName, $headerValue);
         }
+    }
+
+    /**
+     * @param array $lang
+     * @param $woocommerce
+     * @return array
+     */
+    public function monri_ws_pay_handle_redirect($lang)
+    {
+        global $woocommerce;
+        $order_id = $_REQUEST['ShoppingCartID'];
+
+        if ($order_id != '') {
+            try {
+                $order = new WC_Order($order_id);
+
+                if ($order->status === 'completed') {
+                    return [
+                        'success' => true,
+                        'message' => $lang["THANK_YOU_SUCCESS"],
+                        'class' => 'woocommerce_message'
+                    ];
+                } else {
+                    $digest = $_REQUEST['Signature'];
+                    $success = isset($_REQUEST['Success']) ? $_REQUEST['Success'] : '0';
+                    $approval_code = isset($_REQUEST['ApprovalCode']) ? $_REQUEST['ApprovalCode'] : null;
+                    $shop_id = $this->authenticity_token;
+                    $secret_key = $this->merchant_key;
+                    // ShopID
+                    // SecretKey
+                    // ShoppingCartID
+                    // SecretKey
+                    // Success
+                    // SecretKey
+                    // ApprovalCode
+                    // SecretKey
+                    $digest_parts = array(
+                        $shop_id,
+                        $secret_key,
+                        $order_id,
+                        $secret_key,
+                        $success,
+                        $secret_key,
+                        $approval_code,
+                        $secret_key,
+                    );
+                    $check_digest = hash('sha512', join("", $digest_parts));
+                    if ($check_digest != $digest) {
+                        return [
+                            'success' => false,
+                            'message' => $lang["SECURITY_ERROR"],
+                            'class' => 'error'
+                        ];
+                    } else {
+                        $trx_authorized = $success == '1' && !empty($approval_code);
+                        if ($trx_authorized) {
+                            $order->add_order_note($lang["MONRI_SUCCESS"] . $_REQUEST['ApprovalCode']);
+                            $order->add_order_note($lang["THANK_YOU_SUCCESS"]);
+                            $order->payment_complete();
+                            $woocommerce->cart->empty_cart();
+                            return [
+                                'success' => true,
+                                'message' => $lang["THANK_YOU_SUCCESS"],
+                                'class' => 'woocommerce_message'
+                            ];
+                        } else {
+                            $this->order_failed($order, $lang['THANK_YOU_DECLINED']);
+                            return [
+                                'success' => false,
+                                'message' => $lang['THANK_YOU_DECLINED'],
+                                'class' => 'woocommerce_error'
+                            ];
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                // $errorOccurred = true;
+                $msg = "Error";
+            }
+        } else {
+            return [
+                'success' => false,
+                'message' => $lang['THANK_YOU_DECLINED'],
+                'class' => 'woocommerce_error'
+            ];
+        }
+    }
+
+    /**
+     * @param WC_Order $order
+     * @return void
+     */
+    public function order_failed($order, $message)
+    {
+        $order->update_status('failed');
+        $order->add_order_note('Failed');
+        $order->add_order_note($message);
     }
 
 }
