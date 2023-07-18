@@ -52,7 +52,7 @@ class WC_Monri extends WC_Payment_Gateway
 
         $this->monri_merchant_key = $this->get_option('monri_merchant_key');
         $this->monri_authenticity_token = $this->get_option('monri_authenticity_token');
-        $this->monri_methods = $this->get_option('monri_integration_type', array());
+        $this->integration_type = $this->get_option('monri_integration_type', array());
         $this->payment_processor = $this->get_option('payment_processor', array());
         $this->test_mode = $this->get_option('test_mode', array());
         $this->transaction_type = $this->get_option('transaction_type', array());
@@ -580,7 +580,7 @@ class WC_Monri extends WC_Payment_Gateway
             return;
         }
 
-        if ($this->monri_methods == 'components') {
+        if ($this->integration_type == 'components') {
             //Direct integration
             return $this->direct_integration($order_id);
         } else {
@@ -725,7 +725,6 @@ class WC_Monri extends WC_Payment_Gateway
         } else {
             $live_url = 'https://ipg.monri.com/v2/form';
         }
-
 
         //Convert order amount to number without decimals
         $order_total = $order->order_total * 100;
@@ -1144,7 +1143,6 @@ class WC_Monri extends WC_Payment_Gateway
 
     function monri_token_validation($monri_token)
     {
-
         if ($this->form_language == "en") {
             $lang = $this->get_en_translation();
         } elseif ($this->form_language == "ba-hr" || $this->form_language == "hr") {
@@ -1191,7 +1189,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount2 = $order_total + ($order_total * $this->price_increase_2 / 100);
                 $price_increase_message .= "<span id='price-increase-2' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_2 . "% = " . $amount2 . "</span>";
             } else {
-                $amount2 = $order_total;
                 $price_increase_message .= "<span id='price-increase-2' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1199,7 +1196,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount3 = $order_total + ($order_total * $this->price_increase_3 / 100);
                 $price_increase_message .= "<span id='price-increase-3' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_3 . "% = " . $amount3 . "</span>";
             } else {
-                $amount3 = $order_total;
                 $price_increase_message .= "<span id='price-increase-3' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1207,7 +1203,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount4 = $order_total + ($order_total * $this->price_increase_4 / 100);
                 $price_increase_message .= "<span id='price-increase-4' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_4 . "% = " . $amount4 . "</span>";
             } else {
-                $amount4 = $order_total;
                 $price_increase_message .= "<span id='price-increase-4' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1215,7 +1210,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount5 = $order_total + ($order_total * $this->price_increase_5 / 100);
                 $price_increase_message .= "<span id='price-increase-5' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_5 . "% = " . $amount5 . "</span>";
             } else {
-                $amount5 = $order_total;
                 $price_increase_message .= "<span id='price-increase-5' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1223,7 +1217,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount6 = $order_total + ($order_total * $this->price_increase_6 / 100);
                 $price_increase_message .= "<span id='price-increase-6' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_6 . "% = " . $amount6 . "</span>";
             } else {
-                $amount6 = $order_total;
                 $price_increase_message .= "<span id='price-increase-6' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1231,7 +1224,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount7 = $order_total + ($order_total * $this->price_increase_7 / 100);
                 $price_increase_message .= "<span id='price-increase-7' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_7 . "% = " . $amount7 . "</span>";
             } else {
-                $amount7 = $order_total;
                 $price_increase_message .= "<span id='price-increase-7' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1239,14 +1231,12 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount8 = $order_total + ($order_total * $this->price_increase_8 / 100);
                 $price_increase_message .= "<span id='price-increase-8' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_8 . "% = " . $amount8 . "</span>";
             } else {
-                $amount8 = $order_total;
                 $price_increase_message .= "<span id='price-increase-8' class='price-increase-message' style='display: none; color: red;'></span>";
             }
             if ($this->price_increase_9 != 0) {
                 $amount9 = $order_total + ($order_total * $this->price_increase_9 / 100);
                 $price_increase_message .= "<span id='price-increase-9' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_9 . "% = " . $amount9 . "</span>";
             } else {
-                $amount9 = $order_total;
                 $price_increase_message .= "<span id='price-increase-9' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1254,7 +1244,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount10 = $order_total + ($order_total * $this->price_increase_10 / 100);
                 $price_increase_message .= "<span id='price-increase-10' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_10 . "% = " . $amount10 . "</span>";
             } else {
-                $amount10 = $order_total;
                 $price_increase_message .= "<span id='price-increase-10' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1262,7 +1251,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount11 = $order_total + ($order_total * $this->price_increase_11 / 100);
                 $price_increase_message .= "<span id='price-increase-11' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_11 . "% = " . $amount11 . "</span>";
             } else {
-                $amount11 = $order_total;
                 $price_increase_message .= "<span id='price-increase-11' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1270,7 +1258,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount12 = $order_total + ($order_total * $this->price_increase_12 / 100);
                 $price_increase_message .= "<span id='price-increase-12' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_12 . "% = " . $amount12 . "</span>";
             } else {
-                $amount12 = $order_total;
                 $price_increase_message .= "<span id='price-increase-12' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1278,7 +1265,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount13 = $order_total + ($order_total * $this->price_increase_13 / 100);
                 $price_increase_message .= "<span id='price-increase-13' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_13 . "% = " . $amount13 . "</span>";
             } else {
-                $amount13 = $order_total;
                 $price_increase_message .= "<span id='price-increase-13' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1286,7 +1272,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount14 = $order_total + ($order_total * $this->price_increase_14 / 100);
                 $price_increase_message .= "<span id='price-increase-14' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_14 . "% = " . $amount14 . "</span>";
             } else {
-                $amount14 = $order_total;
                 $price_increase_message .= "<span id='price-increase-14' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1294,7 +1279,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount15 = $order_total + ($order_total * $this->price_increase_15 / 100);
                 $price_increase_message .= "<span id='price-increase-15' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_15 . "% = " . $amount15 . "</span>";
             } else {
-                $amount15 = $order_total;
                 $price_increase_message .= "<span id='price-increase-15' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1302,7 +1286,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount16 = $order_total + ($order_total * $this->price_increase_16 / 100);
                 $price_increase_message .= "<span id='price-increase-16' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_16 . "% = " . $amount16 . "</span>";
             } else {
-                $amount16 = $order_total;
                 $price_increase_message .= "<span id='price-increase-16' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1311,7 +1294,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount17 = $order_total + ($order_total * $this->price_increase_17 / 100);
                 $price_increase_message .= "<span id='price-increase-17' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_17 . "% = " . $amount17 . "</span>";
             } else {
-                $amount17 = $order_total;
                 $price_increase_message .= "<span id='price-increase-17' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1319,7 +1301,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount18 = $order_total + ($order_total * $this->price_increase_18 / 100);
                 $price_increase_message .= "<span id='price-increase-18' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_18 . "% = " . $amount18 . "</span>";
             } else {
-                $amount18 = $order_total;
                 $price_increase_message .= "<span id='price-increase-18' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1327,7 +1308,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount19 = $order_total + ($order_total * $this->price_increase_19 / 100);
                 $price_increase_message .= "<span id='price-increase-19' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_19 . "% = " . $amount19 . "</span>";
             } else {
-                $amount19 = $order_total;
                 $price_increase_message .= "<span id='price-increase-19' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1335,7 +1315,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount20 = $order_total + ($order_total * $this->price_increase_20 / 100);
                 $price_increase_message .= "<span id='price-increase-20' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_20 . "% = " . $amount20 . "</span>";
             } else {
-                $amount20 = $order_total;
                 $price_increase_message .= "<span id='price-increase-20' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1343,7 +1322,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount21 = $order_total + ($order_total * $this->price_increase_21 / 100);
                 $price_increase_message .= "<span id='price-increase-21' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_21 . "% = " . $amount21 . "</span>";
             } else {
-                $amount21 = $order_total;
                 $price_increase_message .= "<span id='price-increase-21' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1351,7 +1329,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount22 = $order_total + ($order_total * $this->price_increase_22 / 100);
                 $price_increase_message .= "<span id='price-increase-22' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_22 . "% = " . $amount22 . "</span>";
             } else {
-                $amount22 = $order_total;
                 $price_increase_message .= "<span id='price-increase-22' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1359,7 +1336,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount23 = $order_total + ($order_total * $this->price_increase_23 / 100);
                 $price_increase_message .= "<span id='price-increase-23' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_23 . "% = " . $amount23 . "</span>";
             } else {
-                $amount23 = $order_total;
                 $price_increase_message .= "<span id='price-increase-23' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1367,7 +1343,6 @@ class WC_Monri extends WC_Payment_Gateway
                 $amount24 = $order_total + ($order_total * $this->price_increase_24 / 100);
                 $price_increase_message .= "<span id='price-increase-24' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->price_increase_24 . "% = " . $amount24 . "</span>";
             } else {
-                $amount24 = $order_total;
                 $price_increase_message .= "<span id='price-increase-24' class='price-increase-message' style='display: none; color: red;'></span>";
             }
 
@@ -1940,7 +1915,12 @@ class WC_Monri extends WC_Payment_Gateway
 
     private function is_form_integration()
     {
-        return $this->monri_methods == 'form';
+        return $this->integration_type == 'form';
+    }
+
+    private function is_ws_pay()
+    {
+        return $this->payment_gateway_service == 'monri-ws-pay';
     }
 
     private function api_username()
