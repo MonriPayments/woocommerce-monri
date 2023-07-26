@@ -51,8 +51,12 @@ class WC_Monri extends WC_Payment_Gateway
         $this->callback_url_override = $this->get_option('callback_url_override');
 
         $this->monri_merchant_key = $this->get_option('monri_merchant_key');
+        $this->monri_ws_pay_form_shop_id = $this->get_option('monri_ws_pay_form_shop_id');
+        $this->monri_ws_pay_form_secret = $this->get_option('monri_ws_pay_form_secret');
+//        $this->monri_ws_pay_components_secret = $this->get_option('monri_ws_pay_components_secret');
+//        $this->monri_ws_pay_components_shop_id = $this->get_option('monri_ws_pay_components_shop_id');
         $this->monri_authenticity_token = $this->get_option('monri_authenticity_token');
-        $this->integration_type = $this->get_option('monri_integration_type', array());
+        $this->monri_web_pay_integration_type = $this->get_option('monri_web_pay_integration_type', array());
         $this->payment_processor = $this->get_option('payment_processor', array());
         $this->test_mode = $this->get_option('test_mode', array());
         $this->transaction_type = $this->get_option('transaction_type', array());
@@ -251,26 +255,26 @@ class WC_Monri extends WC_Payment_Gateway
                 'default' => __('', $form_id),
                 'class' => 'woocommerce-monri-dynamic-option monri-ws-pay-option'
             ),
-            'monri_ws_pay_components_shop_id' => array(
-                'title' => __('Monri WsPay Components ShopId', $form_id),
-                'type' => 'text',
-                'description' => __('', $form_id),
-                'desc_tip' => true,
-                'default' => __('', $form_id),
-                'class' => 'woocommerce-monri-dynamic-option monri-ws-pay-option'
-            ),
-            'monri_ws_pay_components_secret' => array(
-                'title' => __('Monri WsPay Components Secrets', $form_id),
-                'type' => 'text',
-                'description' => __('', $form_id),
-                'desc_tip' => true,
-                'default' => __('', $form_id),
-                'class' => 'woocommerce-monri-dynamic-option monri-ws-pay-option'
-            ),
-            'monri_integration_type' => array(
+//            'monri_ws_pay_components_shop_id' => array(
+//                'title' => __('Monri WsPay Components ShopId', $form_id),
+//                'type' => 'text',
+//                'description' => __('', $form_id),
+//                'desc_tip' => true,
+//                'default' => __('', $form_id),
+//                'class' => 'woocommerce-monri-dynamic-option monri-ws-pay-option'
+//            ),
+//            'monri_ws_pay_components_secret' => array(
+//                'title' => __('Monri WsPay Components Secrets', $form_id),
+//                'type' => 'text',
+//                'description' => __('', $form_id),
+//                'desc_tip' => true,
+//                'default' => __('', $form_id),
+//                'class' => 'woocommerce-monri-dynamic-option monri-ws-pay-option'
+//            ),
+            'monri_web_pay_integration_type' => array(
                 'title' => __('Integration type:', $form_id),
                 'type' => 'select',
-                'class' => 'chosen_select',
+                'class' => 'chosen_select woocommerce-monri-dynamic-option monri-web-pay-option',
                 'css' => 'width: 450px;',
                 'default' => true,
                 'description' => __('', $form_id),
@@ -539,7 +543,7 @@ class WC_Monri extends WC_Payment_Gateway
         if (value === "monri-ws-pay") {
             jQuery(\'.woocommerce-monri-dynamic-option.monri-web-pay-option\').parents(\'tr\').hide()
             jQuery(\'.woocommerce-monri-dynamic-option.monri-ws-pay-option\').parents(\'tr\').show()
-        } else if (e.target.value === "monri-web-pay") {
+        } else if (value === "monri-web-pay") {
             jQuery(\'.woocommerce-monri-dynamic-option.monri-web-pay-option\').parents(\'tr\').show()
             jQuery(\'.woocommerce-monri-dynamic-option.monri-ws-pay-option\').parents(\'tr\').hide()
         }
@@ -580,13 +584,20 @@ class WC_Monri extends WC_Payment_Gateway
             return;
         }
 
-        if ($this->integration_type == 'components') {
+        if ($this->is_components() && $this->is_web_pay()) {
             //Direct integration
             return $this->direct_integration($order_id);
         } else {
             return $this->form_integration($order);
         }
+    }
 
+    function is_components()
+    {
+        if ($this->is_ws_pay()) {
+            return false;
+        }
+        return $this->monri_web_pay_integration_type == 'components';
     }
 
     /**
@@ -1900,7 +1911,7 @@ class WC_Monri extends WC_Payment_Gateway
      */
     public function form_integration(WC_Order $order)
     {
-        if ($this->payment_gateway_service == 'monri-ws-pay') {
+        if ($this->is_ws_pay()) {
             return array(
                 'result' => 'success',
                 'redirect' => $this->generate_form_ws_pay($order)
@@ -1915,7 +1926,10 @@ class WC_Monri extends WC_Payment_Gateway
 
     private function is_form_integration()
     {
-        return $this->integration_type == 'form';
+        if ($this->is_ws_pay()) {
+            return true;
+        }
+        return $this->monri_web_pay_integration_type == 'form';
     }
 
     private function is_ws_pay()
@@ -1923,14 +1937,35 @@ class WC_Monri extends WC_Payment_Gateway
         return $this->payment_gateway_service == 'monri-ws-pay';
     }
 
+    private function is_web_pay()
+    {
+        return $this->payment_gateway_service == 'monri-web-pay';
+    }
+
     private function api_username()
     {
-        return $this->monri_authenticity_token;
+        if ($this->is_ws_pay()) {
+            if ($this->is_form_integration()) {
+                return $this->monri_ws_pay_form_shop_id;
+            } else {
+                return $this->monri_ws_pay_components_shop_id;
+            }
+        } else {
+            return $this->monri_authenticity_token;
+        }
     }
 
     private function api_password()
     {
-        return $this->monri_merchant_key;
+        if ($this->is_ws_pay()) {
+            if ($this->is_form_integration()) {
+                return $this->monri_ws_pay_form_secret;
+            } else {
+                return $this->monri_ws_pay_components_secret;
+            }
+        } else {
+            return $this->monri_merchant_key;
+        }
     }
 
 }
