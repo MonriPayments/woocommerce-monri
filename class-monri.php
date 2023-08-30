@@ -678,12 +678,13 @@ class WC_Monri extends WC_Payment_Gateway
         }
 
         $req = [];
-        $req["shopID"] = $this->monri_authenticity_token;
+        $req["shopID"] = $this->api_username();
         $req["shoppingCartID"] = $order->get_order_number();
         $amount = number_format($order->order_total, 2, ',', '');
         $req["totalAmount"] = $amount;
         $req["signature"] = $this->createTransactionSignature($this->api_password(), $this->api_username(), $req["shoppingCartID"], $amount);
         $req['returnURL'] = site_url() . '/ws-pay-redirect';
+        // TODO: implement this in a different way
         $req["returnErrorURL"] = WC_Order::get_cancel_endpoint();
         $req["cancelURL"] = WC_Order::get_cancel_endpoint();
         $req["version"] = "2.0";
@@ -1945,11 +1946,7 @@ class WC_Monri extends WC_Payment_Gateway
     private function api_username()
     {
         if ($this->is_ws_pay()) {
-            if ($this->is_form_integration()) {
-                return $this->monri_ws_pay_form_shop_id;
-            } else {
-                return $this->monri_ws_pay_components_shop_id;
-            }
+            return $this->monri_ws_pay_form_shop_id;
         } else {
             return $this->monri_authenticity_token;
         }
@@ -1958,11 +1955,7 @@ class WC_Monri extends WC_Payment_Gateway
     private function api_password()
     {
         if ($this->is_ws_pay()) {
-            if ($this->is_form_integration()) {
-                return $this->monri_ws_pay_form_secret;
-            } else {
-                return $this->monri_ws_pay_components_secret;
-            }
+            return $this->monri_ws_pay_form_secret;
         } else {
             return $this->monri_merchant_key;
         }

@@ -6,6 +6,12 @@ class MonriApi
     private $authenticity_token;
     private $test_mode;
     private $form_language;
+    private $payment_gateway_service;
+
+    private $monri_ws_pay_form_shop_id;
+    private $monri_authenticity_token;
+    private $monri_ws_pay_form_secret;
+    private $monri_merchant_key;
 
     public function __construct()
     {
@@ -15,6 +21,39 @@ class MonriApi
         $this->authenticity_token = $monri_settings['monri_authenticity_token'];
         $this->test_mode = $monri_settings['test_mode'];
         $this->form_language = $monri_settings['form_language'];
+        $this->payment_gateway_service = $monri_settings['monri_payment_gateway_service'];
+        $this->monri_ws_pay_form_shop_id = $monri_settings['monri_ws_pay_form_shop_id'];
+        $this->monri_authenticity_token = $monri_settings['monri_authenticity_token'];
+        $this->monri_ws_pay_form_secret = $monri_settings['monri_ws_pay_form_secret'];
+        $this->monri_merchant_key = $monri_settings['monri_merchant_key'];
+    }
+
+    private function is_ws_pay()
+    {
+        return $this->payment_gateway_service == 'monri-ws-pay';
+    }
+
+    private function is_web_pay()
+    {
+        return $this->payment_gateway_service == 'monri-web-pay';
+    }
+
+    private function api_username()
+    {
+        if ($this->is_ws_pay()) {
+            return $this->monri_ws_pay_form_shop_id;
+        } else {
+            return $this->monri_authenticity_token;
+        }
+    }
+
+    private function api_password()
+    {
+        if ($this->is_ws_pay()) {
+            return $this->monri_ws_pay_form_secret;
+        } else {
+            return $this->monri_merchant_key;
+        }
     }
 
     private static function redirect($get_return_url)
@@ -249,8 +288,8 @@ class MonriApi
                     $digest = $_REQUEST['Signature'];
                     $success = isset($_REQUEST['Success']) ? $_REQUEST['Success'] : '0';
                     $approval_code = isset($_REQUEST['ApprovalCode']) ? $_REQUEST['ApprovalCode'] : null;
-                    $shop_id = $this->authenticity_token;
-                    $secret_key = $this->merchant_key;
+                    $shop_id = $this->api_username();
+                    $secret_key = $this->api_password();
                     // ShopID
                     // SecretKey
                     // ShoppingCartID
