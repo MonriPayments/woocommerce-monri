@@ -624,7 +624,6 @@ class WC_Monri extends WC_Payment_Gateway
      **/
     function process_payment($order_id)
     {
-
         global $woocommerce;
         $order = new WC_Order($order_id);
 
@@ -750,8 +749,20 @@ class WC_Monri extends WC_Payment_Gateway
         // check if user is logged in
         // check if tokenization is enabled on settings
         // TODO: is token request should be depending on if save card for future payments is selected
-        if ($this->api->tokenization_enabled()) {
+        if (isset($_POST['ws-pay-tokenized-card'])) {
+            $tokenized_card = $_POST['ws-pay-tokenized-card'];
+        }
+
+        $payment_with_token = isset($tokenized_card) && !empty($tokenized_card) && $tokenized_card != 'not-selected';
+        
+        if ($this->api->tokenization_enabled() && !$payment_with_token) {
             $req["IsTokenRequest"] = "1";
+        }
+
+        if($payment_with_token) {
+            $decoded_card = json_decode(base64_decode($tokenized_card));
+            $req['Token'] = $decoded_card[0];
+            $req['TokenNumber'] = $decoded_card[1];
         }
         // After successful transaction WSPayForm redirects to ReturnURL as described in Parameters which
         // WSPayForm returns to web shop - ReturnURL with three additional parameters:
@@ -1272,11 +1283,22 @@ class WC_Monri extends WC_Payment_Gateway
 
         if($this->is_form_integration()) {
             ?>
-            <div class=""><p>Form integration</p></div>
+            <!-- TODO: i18n -->
+            <div class=""><p>Odaberite karticu</p></div>
             <pre><?php 
-            $user_id = get_current_user_id();
-            $tokenized_cards = get_user_meta($user_id, 'ws-pay-tokenized-cards', true);
-            var_dump($tokenized_cards);
+            // TODO: fetch for shop id
+            // TODO: fetch only non expired cards
+            $tokenized_cards = $this->api->get_tokenized_cards_for_current_user();
+            if(count($tokenized_cards) == 0) {
+                return;
+            }
+            echo "<select name='ws-pay-tokenized-card'>";
+            echo "<option value='not-selected'>Odaberite</option>";
+            foreach($tokenized_cards as $card) {
+                $base_64 = base64_encode(json_encode([$card['token'], $card['token_number']]));
+                echo "<option value='".$base_64."' data-token=number='".$card['token_number']."'>".$card['token_number']."</option>";
+            }
+            echo "</select>";
             ?></pre>
             <?php
             return;

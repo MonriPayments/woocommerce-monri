@@ -102,7 +102,7 @@ class MonriApi
         if (!is_user_logged_in()) {
             $this->__tokenization_enabled = false;
         } else if ($this->is_ws_pay()) {
-            $this->__tokenization_enabled = $this->monri_ws_pay_form_tokenization_enabled;
+            $this->__tokenization_enabled = $this->monri_ws_pay_form_tokenization_enabled == 'yes';
         } else if ($this->is_web_pay()) {
             $this->__tokenization_enabled = false;
         } else {
@@ -368,7 +368,9 @@ class MonriApi
                             $order->payment_complete();
                             $woocommerce->cart->empty_cart();
                             $tokenized = $this->save_token_details_ws_pay();
-                            $order->add_order_note('Tokenized result: '.$tokenized);
+                            if ($tokenized != null) {
+                                $order->add_order_note('Tokenized result: ' . $tokenized);
+                            }
 
                             return [
                                 'success' => true,
@@ -407,20 +409,11 @@ class MonriApi
 
         // We expect token, token number and token exp in success url for tokenized cards
         if (!isset($_REQUEST['Token']) || !isset($_REQUEST['TokenNumber']) || !isset($_REQUEST['TokenExp'])) {
-            return 'Card is not tokenized on WSPay, missing one of values: Token, TokenNumber, TokenExp';
+            return null;
         }
 
         $user_id = get_current_user_id();
-        $tokenized_cards = get_user_meta($user_id, 'ws-pay-tokenized-cards', true);
-        // mixed An array of values if $single is false.
-        // The value of meta data field if $single is true.
-        // False for an invalid $user_id (non-numeric, zero, or negative value).
-        // An empty string if a valid but non-existing user ID is passed.
-        if ($tokenized_cards == false) {
-            $tokenized_cards = [];
-            // return 'Missing metadata for user_id='.$user_id;
-        }
-        $tokenized_cards = json_decode($tokenized_cards == '' ? '[]': $tokenized_cards);
+        $tokenized_cards = $this->get_tokenized_cards($user_id);
         // We need to save:
         // - current shop id
         // - token
@@ -437,11 +430,28 @@ class MonriApi
         // true on successful update, 
         // false on failure or if the value passed to the function is the same as the one that is already in the database.
         $rv = update_metadata('user', $user_id, 'ws-pay-tokenized-cards', json_encode($tokenized_cards));
-        if($rv) {
+        if ($rv) {
             return 'Update success';
         } else {
             return 'Update failed';
         }
+    }
+
+    public function get_tokenized_cards_for_current_user()
+    {
+        if (!is_user_logged_in()) {
+            return [];
+        }
+        return $this->get_tokenized_cards(get_current_user_id());
+    }
+
+    public function get_tokenized_cards($user_id)
+    {
+        $tokenized_cards = get_user_meta($user_id, 'ws-pay-tokenized-cards', true);
+        if ($tokenized_cards == false) {
+            $tokenized_cards = '[]';
+        }
+        return json_decode($tokenized_cards == '' ? '[]' : $tokenized_cards, true);
     }
 
     /**
