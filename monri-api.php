@@ -13,6 +13,11 @@ class MonriApi
     private $monri_ws_pay_form_secret;
     private $monri_merchant_key;
 
+    private $monri_ws_pay_form_tokenization_enabled;
+    private $monri_ws_pay_form_tokenization_shop_id;
+    private $monri_ws_pay_form_tokenization_secret;
+    private $__tokenization_enabled;
+
     public function __construct()
     {
         $monri_settings = get_option('woocommerce_monri_settings');
@@ -26,6 +31,9 @@ class MonriApi
         $this->monri_authenticity_token = $monri_settings['monri_authenticity_token'];
         $this->monri_ws_pay_form_secret = $monri_settings['monri_ws_pay_form_secret'];
         $this->monri_merchant_key = $monri_settings['monri_merchant_key'];
+        $this->monri_ws_pay_form_tokenization_enabled = $monri_settings['monri_ws_pay_form_tokenization_enabled'];
+        $this->monri_ws_pay_form_tokenization_shop_id = $monri_settings['monri_ws_pay_form_tokenization_shop_id'];
+        $this->monri_ws_pay_form_tokenization_secret = $monri_settings['monri_ws_pay_form_tokenization_secret'];
     }
 
     private function is_ws_pay()
@@ -38,19 +46,27 @@ class MonriApi
         return $this->payment_gateway_service == 'monri-web-pay';
     }
 
-    private function api_username()
+    public function api_username()
     {
         if ($this->is_ws_pay()) {
-            return $this->monri_ws_pay_form_shop_id;
+            if ($this->tokenization_enabled()) {
+                return $this->monri_ws_pay_form_tokenization_shop_id;
+            } else {
+                return $this->monri_ws_pay_form_shop_id;
+            }
         } else {
             return $this->monri_authenticity_token;
         }
     }
 
-    private function api_password()
+    public function api_password()
     {
         if ($this->is_ws_pay()) {
-            return $this->monri_ws_pay_form_secret;
+            if ($this->tokenization_enabled()) {
+                return $this->monri_ws_pay_form_tokenization_secret;
+            } else {
+                return $this->monri_ws_pay_form_secret;
+            }
         } else {
             return $this->monri_merchant_key;
         }
@@ -67,7 +83,36 @@ class MonriApi
         return hash('SHA1', $this->merchant_key . $order_number);
     }
 
-    function checkIfOrderIsApproved($order_number)
+    public function tokenization_requested()
+    {
+        // It's always the case
+        return true;
+    }
+
+    // Checks if tokenization is enabled by:
+    // - checking if user is logged in
+    // - checking if integration is wspay -> in that case it checks boolean flag in options
+    // - checking if integration is webpay -> in that case ot's false since tokenization is not enabled for WebPay
+    public function tokenization_enabled()
+    {
+        if (isset($this->__tokenization_enabled)) {
+            return $this->__tokenization_enabled;
+        }
+        // Tokenization is only enabled for logged in users
+        if (!is_user_logged_in()) {
+            $this->__tokenization_enabled = false;
+        } else if ($this->is_ws_pay()) {
+            $this->__tokenization_enabled = $this->monri_ws_pay_form_tokenization_enabled;
+        } else if ($this->is_web_pay()) {
+            $this->__tokenization_enabled = false;
+        } else {
+            $this->__tokenization_enabled = false;
+        }
+
+        return $this->__tokenization_enabled;
+    }
+
+    public function checkIfOrderIsApproved($order_number)
     {
         $paResXMLPayload = "<?xml version='1.0' encoding='UTF-8'?>
                 <secure-message>              
@@ -102,7 +147,7 @@ class MonriApi
         return trim($result->status) !== 'declined';
     }
 
-    function handleWooCommerceOrder($result, $order_number)
+    public function handleWooCommerceOrder($result, $order_number)
     {
         global $woocommerce;
         $order = new WC_Order($order_number);
@@ -132,7 +177,7 @@ class MonriApi
         }
     }
 
-    function curlXml($endpoint, $payload)
+    public function curlXml($endpoint, $payload)
     {
         $url = $this->test_mode ? 'https://ipgtest.monri.com' : 'https://ipg.monri.com';
         return $this->request('POST', $url . $endpoint, [], $payload, [
@@ -141,7 +186,7 @@ class MonriApi
         ]);
     }
 
-    function parsePaymentToken($payment_token)
+    public function parsePaymentToken($payment_token)
     {
         try {
             $arr = json_decode(MonriApi::base64url_decode($payment_token), true);
@@ -322,6 +367,9 @@ class MonriApi
                             $order->add_order_note($lang["THANK_YOU_SUCCESS"]);
                             $order->payment_complete();
                             $woocommerce->cart->empty_cart();
+                            $tokenized = $this->save_token_details_ws_pay();
+                            $order->add_order_note('Tokenized result: '.$tokenized);
+
                             return [
                                 'success' => true,
                                 'message' => $lang["THANK_YOU_SUCCESS"],
@@ -347,6 +395,52 @@ class MonriApi
                 'message' => $lang['THANK_YOU_DECLINED'],
                 'class' => 'woocommerce_error'
             ];
+        }
+    }
+
+    function save_token_details_ws_pay()
+    {
+        // is_user_logged_in()
+        if (!is_user_logged_in()) {
+            return 'User not logged in';
+        }
+
+        // We expect token, token number and token exp in success url for tokenized cards
+        if (!isset($_REQUEST['Token']) || !isset($_REQUEST['TokenNumber']) || !isset($_REQUEST['TokenExp'])) {
+            return 'Card is not tokenized on WSPay, missing one of values: Token, TokenNumber, TokenExp';
+        }
+
+        $user_id = get_current_user_id();
+        $tokenized_cards = get_user_meta($user_id, 'ws-pay-tokenized-cards', true);
+        // mixed An array of values if $single is false.
+        // The value of meta data field if $single is true.
+        // False for an invalid $user_id (non-numeric, zero, or negative value).
+        // An empty string if a valid but non-existing user ID is passed.
+        if ($tokenized_cards == false) {
+            $tokenized_cards = [];
+            // return 'Missing metadata for user_id='.$user_id;
+        }
+        $tokenized_cards = json_decode($tokenized_cards == '' ? '[]': $tokenized_cards);
+        // We need to save:
+        // - current shop id
+        // - token
+        // - TokenNumber
+        // - TokenExp
+        $token_metadata = [
+            'shop_id' => $this->api_username(),
+            'token' => $_REQUEST['Token'],
+            'token_number' => $_REQUEST['TokenNumber'],
+            'token_exp' => $_REQUEST['TokenExp']
+        ];
+        array_push($tokenized_cards, $token_metadata);
+        // The new meta field ID if a field with the given key didn't exist and was therefore added, 
+        // true on successful update, 
+        // false on failure or if the value passed to the function is the same as the one that is already in the database.
+        $rv = update_metadata('user', $user_id, 'ws-pay-tokenized-cards', json_encode($tokenized_cards));
+        if($rv) {
+            return 'Update success';
+        } else {
+            return 'Update failed';
         }
     }
 

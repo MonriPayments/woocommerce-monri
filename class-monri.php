@@ -43,7 +43,7 @@ class WC_Monri extends WC_Payment_Gateway
         $this->instructions = $this->get_option('instructions');
         $this->payment_gateway_service = $this->get_option('monri_payment_gateway_service');
 
-//        $this->thankyou_page = $this->settings['thankyou_page'];
+        //        $this->thankyou_page = $this->settings['thankyou_page'];
         $this->callback_url_endpoint = $this->get_option('callback_url_endpoint');
 
         $this->success_url_override = $this->get_option('success_url_override');
@@ -53,7 +53,10 @@ class WC_Monri extends WC_Payment_Gateway
         $this->monri_merchant_key = $this->get_option('monri_merchant_key');
         $this->monri_ws_pay_form_shop_id = $this->get_option('monri_ws_pay_form_shop_id');
         $this->monri_ws_pay_form_secret = $this->get_option('monri_ws_pay_form_secret');
-//        $this->monri_ws_pay_components_secret = $this->get_option('monri_ws_pay_components_secret');
+        $this->monri_ws_pay_form_tokenization_enabled = $this->get_option('monri_ws_pay_form_tokenization_enabled');
+        $this->monri_ws_pay_form_tokenization_shop_id = $this->get_option('monri_ws_pay_form_tokenization_shop_id');
+        $this->monri_ws_pay_form_tokenization_secret = $this->get_option('monri_ws_pay_form_tokenization_secret');
+        //        $this->monri_ws_pay_components_secret = $this->get_option('monri_ws_pay_components_secret');
 //        $this->monri_ws_pay_components_shop_id = $this->get_option('monri_ws_pay_components_shop_id');
         $this->monri_authenticity_token = $this->get_option('monri_authenticity_token');
         $this->monri_web_pay_integration_type = $this->get_option('monri_web_pay_integration_type', array());
@@ -90,6 +93,7 @@ class WC_Monri extends WC_Payment_Gateway
 
         $this->msg['message'] = "";
         $this->msg['class'] = "";
+        $this->api = new MonriApi();
 
         //add_option('woocommerce_pay_page_id', $page_id);
 
@@ -105,13 +109,32 @@ class WC_Monri extends WC_Payment_Gateway
         if ($this->is_form_integration()) {
             $this->check_monri_response();
             add_action('woocommerce_receipt_monri', array(&$this, 'receipt_page'));
-            $this->has_fields = false;
+            $this->has_fields = true;
         } else {
             $this->has_fields = true;
             $this->check_3dsecure_response();
         }
 
     } // End __construct()
+
+    // public function process_admin_options()
+    // {
+    //     $this->init_settings();
+    //     if ($this->get_option('monri_ws_pay_form_tokenization_enabled')) {
+    //         if (empty($this->get_option('monri_ws_pay_form_tokenization_shop_id'))) {
+    //             update_option('monri_ws_pay_form_tokenization_enabled', false);
+    //             WC_Admin_Settings::add_error('Set monri_ws_pay_form_tokenization_shop_id for tokenization to be enabled');
+    //             return false;
+    //         }
+
+    //         if (empty($this->get_option('monri_ws_pay_form_tokenization_secret'))) {
+    //             update_option('monri_ws_pay_form_tokenization_enabled', false);
+    //             WC_Admin_Settings::add_error('Set monri_ws_pay_form_tokenization_secret for tokenization to be enabled');
+    //             return false;
+    //         }
+    //     }
+    //     return parent::process_admin_options();
+    // }
 
     function init_form_fields()
     {
@@ -197,14 +220,16 @@ class WC_Monri extends WC_Payment_Gateway
                 'type' => 'text',
                 'description' => __('Monri Callback URL endpoint koji će primati POST zahtjev sa Monri Gateway-a.', $form_id),
                 'desc_tip' => true,
-                'default' => '/monri-callback', $form_id,
+                'default' => '/monri-callback',
+                $form_id,
             ),
             'success_url_override' => array(
                 'title' => __('Success URL override', 'wcwcGpg1'),
                 'type' => 'text',
                 'description' => __('Success URL koji želite koristiti pri svakoj transakciji. (HTTPS)', $form_id),
                 'desc_tip' => true,
-                'default' => '', $form_id,
+                'default' => '',
+                $form_id,
                 'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
             ),
             'cancel_url_override' => array(
@@ -212,7 +237,8 @@ class WC_Monri extends WC_Payment_Gateway
                 'type' => 'text',
                 'description' => __('Cancel URL koji želite koristiti pri svakoj transakciji. (HTTPS)', $form_id),
                 'desc_tip' => true,
-                'default' => '', $form_id,
+                'default' => '',
+                $form_id,
                 'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
             ),
             'callback_url_override' => array(
@@ -220,7 +246,8 @@ class WC_Monri extends WC_Payment_Gateway
                 'type' => 'text',
                 'description' => __('Callback URL koji želite koristiti pri svakoj transakciji. (HTTPS)', $form_id),
                 'desc_tip' => true,
-                'default' => '', $form_id,
+                'default' => '',
+                $form_id,
                 'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
             ),
             'monri_merchant_key' => array(
@@ -248,14 +275,38 @@ class WC_Monri extends WC_Payment_Gateway
                 'class' => 'woocommerce-monri-dynamic-option monri-ws-pay-option'
             ),
             'monri_ws_pay_form_secret' => array(
-                'title' => __('Monri WsPay Form Secrets', $form_id),
+                'title' => __('Monri WsPay Form Secret', $form_id),
                 'type' => 'text',
                 'description' => __('', $form_id),
                 'desc_tip' => true,
                 'default' => __('', $form_id),
                 'class' => 'woocommerce-monri-dynamic-option monri-ws-pay-option'
             ),
-//            'monri_ws_pay_components_shop_id' => array(
+            'monri_ws_pay_form_tokenization_enabled' => array(
+                'title' => __('Monri WsPay Form Tokenization Enabled', $form_id),
+                'type' => 'checkbox',
+                'description' => __('', $form_id),
+                'desc_tip' => true,
+                'default' => 'no',
+                'class' => 'woocommerce-monri-dynamic-option monri-ws-pay-option'
+            ),
+            'monri_ws_pay_form_tokenization_shop_id' => array(
+                'title' => __('Monri WsPay Form Tokenization ShopId', $form_id),
+                'type' => 'text',
+                'description' => __('', $form_id),
+                'desc_tip' => true,
+                'default' => __('', $form_id),
+                'class' => 'woocommerce-monri-dynamic-option monri-ws-pay-option'
+            ),
+            'monri_ws_pay_form_tokenization_secret' => array(
+                'title' => __('Monri WsPay Form Tokenization Secret', $form_id),
+                'type' => 'text',
+                'description' => __('', $form_id),
+                'desc_tip' => true,
+                'default' => __('', $form_id),
+                'class' => 'woocommerce-monri-dynamic-option monri-ws-pay-option'
+            ),
+            //            'monri_ws_pay_components_shop_id' => array(
 //                'title' => __('Monri WsPay Components ShopId', $form_id),
 //                'type' => 'text',
 //                'description' => __('', $form_id),
@@ -264,7 +315,7 @@ class WC_Monri extends WC_Payment_Gateway
 //                'class' => 'woocommerce-monri-dynamic-option monri-ws-pay-option'
 //            ),
 //            'monri_ws_pay_components_secret' => array(
-//                'title' => __('Monri WsPay Components Secrets', $form_id),
+//                'title' => __('Monri WsPay Components Secret', $form_id),
 //                'type' => 'text',
 //                'description' => __('', $form_id),
 //                'desc_tip' => true,
@@ -678,11 +729,11 @@ class WC_Monri extends WC_Payment_Gateway
         }
 
         $req = [];
-        $req["shopID"] = $this->api_username();
+        $req["shopID"] = $this->api->api_username();
         $req["shoppingCartID"] = $order->get_order_number();
         $amount = number_format($order->order_total, 2, ',', '');
         $req["totalAmount"] = $amount;
-        $req["signature"] = $this->createTransactionSignature($this->api_password(), $this->api_username(), $req["shoppingCartID"], $amount);
+        $req["signature"] = $this->createTransactionSignature($this->api->api_password(), $this->api->api_username(), $req["shoppingCartID"], $amount);
         $req['returnURL'] = site_url() . '/ws-pay-redirect';
         // TODO: implement this in a different way
         $req["returnErrorURL"] = WC_Order::get_cancel_endpoint();
@@ -696,6 +747,22 @@ class WC_Monri extends WC_Payment_Gateway
         $req["customerCountry"] = $order->billing_country;
         $req["customerPhone"] = $order->billing_phone;
         $req["customerEmail"] = $order->billing_email;
+        // check if user is logged in
+        // check if tokenization is enabled on settings
+        // TODO: is token request should be depending on if save card for future payments is selected
+        if ($this->api->tokenization_enabled()) {
+            $req["IsTokenRequest"] = "1";
+        }
+        // After successful transaction WSPayForm redirects to ReturnURL as described in Parameters which
+        // WSPayForm returns to web shop - ReturnURL with three additional parameters:
+        // Token - unique identifier representing payment type for the single user of the web shop
+        // TokenNumber – number that corresponds to the last 4 digits of the credit card
+        // TokenExp – presenting expiration date of the credit card (YYMM)
+
+        // Payment using token
+        // <input type="hidden" name="Token" value="e32c9607-f77d-44d5-98e8-e58c9f279bfd">
+        // <input type="hidden" name="TokenNumber" value="0189">
+
         $response = $this->curlJSON($url . "/api/create-transaction", $req);
         if (isset($response['PaymentFormUrl'])) {
             return $response['PaymentFormUrl'];
@@ -711,7 +778,8 @@ class WC_Monri extends WC_Payment_Gateway
 
     private function createTransactionSignature($secretKey, $shopId, $shoppingCartId, $totalAmount)
     {
-        $amount = preg_replace('~\D~', '', $totalAmount);;
+        $amount = preg_replace('~\D~', '', $totalAmount);
+        ;
         return hash("sha512", $shopId . $secretKey . $shoppingCartId . $secretKey . $amount . $secretKey);
     }
 
@@ -755,7 +823,7 @@ class WC_Monri extends WC_Payment_Gateway
         }
 
         //Generate digest key
-        $digest = hash('sha512', $this->api_password() . $order->get_id() . $order_total . $currency);
+        $digest = hash('sha512', $this->api->api_password() . $order->get_id() . $order_total . $currency);
 
         //Combine first and last name in one string
         $full_name = $order->billing_first_name . " " . $order->billing_last_name;
@@ -778,7 +846,7 @@ class WC_Monri extends WC_Payment_Gateway
 
             'language' => $this->form_language,
             'transaction_type' => $transaction_type,
-            'authenticity_token' => $this->api_username(),
+            'authenticity_token' => $this->api->api_username(),
             'digest' => $digest
 
         );
@@ -874,6 +942,35 @@ class WC_Monri extends WC_Payment_Gateway
         }
     }
 
+    function tokenization_requested()
+    {
+        // It's always the case
+        return true;
+    }
+
+    // Checks if tokenization is enabled by:
+    // - checking if user is logged in
+    // - checking if integration is wspay -> in that case it checks boolean flag in options
+    // - checking if integration is webpay -> in that case ot's false since tokenization is not enabled for WebPay
+    function tokenization_enabled()
+    {
+        if (isset($this->__tokenization_enabled)) {
+            return $this->__tokenization_enabled;
+        }
+        // Tokenization is only enabled for logged in users
+        if (!is_user_logged_in()) {
+            $this->__tokenization_enabled = false;
+        } else if ($this->is_ws_pay()) {
+            $this->__tokenization_enabled = $this->monri_ws_pay_form_tokenization_enabled;
+        } else if ($this->is_web_pay()) {
+            $this->__tokenization_enabled = false;
+        } else {
+            $this->__tokenization_enabled = false;
+        }
+
+        return $this->__tokenization_enabled;
+    }
+
     /**
      * Check for valid 3dsecure response
      **/
@@ -893,7 +990,7 @@ class WC_Monri extends WC_Payment_Gateway
             if (isset($resultXml->status) && $resultXml->status == "approved") {
                 global $woocommerce;
 
-                $resultXml = (array)$resultXml;
+                $resultXml = (array) $resultXml;
                 $order = new WC_Order($resultXml["order-number"]);
 
                 // Payment has been successful
@@ -1038,7 +1135,7 @@ class WC_Monri extends WC_Payment_Gateway
         }
 
         //Generate digest key
-        $digest = hash('sha512', $this->api_password() . $order->get_id() . $amount . $currency);
+        $digest = hash('sha512', $this->api->api_password() . $order->get_id() . $amount . $currency);
 
         //Array of order information
         $order_number = $order->get_id();
@@ -1064,7 +1161,7 @@ class WC_Monri extends WC_Payment_Gateway
             'ip' => $_SERVER['REMOTE_ADDR'],
             'language' => $this->form_language,
             'transaction_type' => $transaction_type,
-            'authenticity_token' => $this->api_username(),
+            'authenticity_token' => $this->api->api_username(),
             'digest' => $digest,
             'temp_card_id' => $monri_token,
         );
@@ -1172,6 +1269,19 @@ class WC_Monri extends WC_Payment_Gateway
 
     public function payment_fields()
     {
+
+        if($this->is_form_integration()) {
+            ?>
+            <div class=""><p>Form integration</p></div>
+            <pre><?php 
+            $user_id = get_current_user_id();
+            $tokenized_cards = get_user_meta($user_id, 'ws-pay-tokenized-cards', true);
+            var_dump($tokenized_cards);
+            ?></pre>
+            <?php
+            return;
+        } 
+
         if ($this->form_language == "en") {
             $lang = $this->get_en_translation();
         } elseif ($this->form_language == "ba-hr" || $this->form_language == "hr") {
@@ -1181,7 +1291,8 @@ class WC_Monri extends WC_Payment_Gateway
         }
 
         if ($this->is_form_integration()) {
-            if ($this->description) echo wpautop(wptexturize($this->description));
+            if ($this->description)
+                echo wpautop(wptexturize($this->description));
         } else {
 
             $this->credit_card_script();
@@ -1414,7 +1525,7 @@ class WC_Monri extends WC_Payment_Gateway
                                   <label for="' . esc_attr($this->id) . '-card-installments">' . $lang['INSTALLMENTS_NUMBER'] . '</label>
                                   <select id="' . esc_attr($this->id) . '-card-installments" class="input-text wc-credit-card-form-card-cvc"  name="' . ($args['fields_have_names'] ? $this->id . '-card-installments' : '') . '">
                                     ' . $options_string
-                        . '</select>' . $price_increase_message
+                    . '</select>' . $price_increase_message
 
                 );
             } else {
@@ -1423,7 +1534,7 @@ class WC_Monri extends WC_Payment_Gateway
 
             $radnomToken = wp_generate_uuid4();
             $timestamp = (new DateTime())->format('c');
-            $digest = hash('SHA512', $this->api_password() . $radnomToken . '' . $timestamp . '');
+            $digest = hash('SHA512', $this->api->api_password() . $radnomToken . '' . $timestamp . '');
 
 
             ?>
@@ -1440,7 +1551,7 @@ class WC_Monri extends WC_Payment_Gateway
 
                 jQuery('#' + '<?php echo $this->id; ?>').ready(function () {
 
-                    var monri = Monri('<?php echo $this->api_username() ?>');
+                    var monri = Monri('<?php echo $this->api->api_username() ?>');
                     var components = monri.components("<?php echo $radnomToken ?>", "<?php echo $digest ?>", '<?php echo $timestamp ?>');
 
                     var style = {
@@ -1450,7 +1561,7 @@ class WC_Monri extends WC_Payment_Gateway
 
                     };
                     // Add an instance of the card Component into the `card-element` <div>.
-                    var card = components.create('card', {style: style});
+                    var card = components.create('card', { style: style });
                     card.mount('<?php echo $this->id; ?>');
 
 
@@ -1728,7 +1839,7 @@ class WC_Monri extends WC_Payment_Gateway
 
                 $calculated_url = preg_replace('/&digest=[^&]*/', '', $full_url);
                 //Generate digest
-                $check_digest = hash('sha512', $this->api_password() . $calculated_url);
+                $check_digest = hash('sha512', $this->api->api_password() . $calculated_url);
                 $trx_authorized = false;
                 if ($order->status !== 'completed') {
                     if ($digest == $check_digest) {
@@ -1803,8 +1914,8 @@ class WC_Monri extends WC_Payment_Gateway
                     $digest = $_REQUEST['Signature'];
                     $success = isset($_REQUEST['Success']) ? $_REQUEST['Success'] : '0';
                     $approval_code = isset($_REQUEST['ApprovalCode']) ? $_REQUEST['ApprovalCode'] : null;
-                    $shop_id = $this->api_username();
-                    $secret_key = $this->api_password();
+                    $shop_id = $this->api->api_username();
+                    $secret_key = $this->api->api_password();
                     // ShopID
                     // SecretKey
                     // ShoppingCartID
@@ -1919,8 +2030,13 @@ class WC_Monri extends WC_Payment_Gateway
             );
         } else {
             // Form integration
-            return array('result' => 'success', 'redirect' => add_query_arg('order',
-                $order->get_id(), add_query_arg('key', $order->order_key, wc_get_checkout_url()))
+            return array(
+                'result' => 'success',
+                'redirect' => add_query_arg(
+                    'order',
+                    $order->get_id(),
+                    add_query_arg('key', $order->order_key, wc_get_checkout_url())
+                )
             );
         }
     }
@@ -1942,25 +2058,6 @@ class WC_Monri extends WC_Payment_Gateway
     {
         return $this->payment_gateway_service == 'monri-web-pay';
     }
-
-    private function api_username()
-    {
-        if ($this->is_ws_pay()) {
-            return $this->monri_ws_pay_form_shop_id;
-        } else {
-            return $this->monri_authenticity_token;
-        }
-    }
-
-    private function api_password()
-    {
-        if ($this->is_ws_pay()) {
-            return $this->monri_ws_pay_form_secret;
-        } else {
-            return $this->monri_merchant_key;
-        }
-    }
-
 }
 
 ?>

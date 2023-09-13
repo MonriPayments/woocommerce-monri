@@ -4,7 +4,7 @@
     Plugin URI: http://www.monri.com
     Description: Monri - Payment gateway for woocommerce
     Version: 2.11
-    Author: Monri Paymnents d.o.o
+    Author: Monri Payments d.o.o
     Author URI: http://www.monri.com
 */
 
