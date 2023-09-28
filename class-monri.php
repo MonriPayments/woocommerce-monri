@@ -1281,7 +1281,7 @@ class WC_Monri extends WC_Payment_Gateway
     public function payment_fields()
     {
 
-        if($this->is_form_integration()) {
+        if ($this->is_form_integration() && $this->is_ws_pay()) {
             ?>
             <!-- TODO: i18n -->
             <div class=""><p>Odaberite karticu</p></div>
@@ -1899,7 +1899,7 @@ class WC_Monri extends WC_Payment_Gateway
                             $order->add_order_note($lang['THANK_YOU_DECLINED_NOTE'] . $_REQUEST['Error']);
                         }
                     } else {
-                        $this->security_error($lang);
+                        $this->msg['message'] = 'digest is' . $digest . " and check digest is " . $check_digest;
 
                     }
                     if ($trx_authorized == false) {
