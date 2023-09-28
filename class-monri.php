@@ -1899,7 +1899,7 @@ class WC_Monri extends WC_Payment_Gateway
                             $order->add_order_note($lang['THANK_YOU_DECLINED_NOTE'] . $_REQUEST['Error']);
                         }
                     } else {
-                        $this->msg['message'] = 'digest is' . $digest . " and check digest is " . $check_digest;
+                        $this->security_error($lang);
 
                     }
                     if ($trx_authorized == false) {
