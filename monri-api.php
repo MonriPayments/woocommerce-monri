@@ -429,11 +429,23 @@ class MonriApi
         // The new meta field ID if a field with the given key didn't exist and was therefore added, 
         // true on successful update, 
         // false on failure or if the value passed to the function is the same as the one that is already in the database.
-        $rv = update_metadata('user', $user_id, 'ws-pay-tokenized-cards', json_encode($tokenized_cards));
+        $rv = update_metadata('user', $user_id, $this->tokenized_cards_key(), json_encode($tokenized_cards));
         if ($rv) {
             return 'Update success';
         } else {
             return 'Update failed';
+        }
+    }
+
+    function tokenized_cards_key()
+    {
+        if ($this->is_ws_pay()) {
+            // Scope saved cards per combination of username/password
+            return 'ws-pay-tokenized-cards' . hash('SHA1', $this->api_username() . $this->api_password());
+        } else if ($this->is_web_pay()) {
+            return null;
+        } else {
+            return null;
         }
     }
 
@@ -447,7 +459,7 @@ class MonriApi
 
     public function get_tokenized_cards($user_id)
     {
-        $tokenized_cards = get_user_meta($user_id, 'ws-pay-tokenized-cards', true);
+        $tokenized_cards = get_user_meta($user_id, $this->tokenized_cards_key(), true);
         if ($tokenized_cards == false) {
             $tokenized_cards = '[]';
         }
