@@ -735,8 +735,8 @@ class WC_Monri extends WC_Payment_Gateway
         $req["signature"] = $this->createTransactionSignature($this->api->api_password(), $this->api->api_username(), $req["shoppingCartID"], $amount);
         $req['returnURL'] = site_url() . '/ws-pay-redirect';
         // TODO: implement this in a different way
-        $req["returnErrorURL"] = WC_Order::get_cancel_endpoint();
-        $req["cancelURL"] = WC_Order::get_cancel_endpoint();
+        $req["returnErrorURL"] = $order->get_cancel_endpoint();
+        $req["cancelURL"] = $order->get_cancel_endpoint();
         $req["version"] = "2.0";
         $req["customerFirstName"] = $order->billing_first_name;
         $req["customerLastName"] = $order->billing_last_name;
@@ -1281,7 +1281,7 @@ class WC_Monri extends WC_Payment_Gateway
     public function payment_fields()
     {
 
-        if ($this->is_form_integration() && $this->is_ws_pay()) {
+        if ($this->is_form_integration() && $this->is_ws_pay() && $this->monri_ws_pay_form_tokenization_enabled == 'yes') {
             ?>
             <!-- TODO: i18n -->
             <div class=""><p>Odaberite karticu</p></div>
