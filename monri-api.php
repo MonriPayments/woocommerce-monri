@@ -375,7 +375,8 @@ class MonriApi
                             return [
                                 'success' => true,
                                 'message' => $lang["THANK_YOU_SUCCESS"],
-                                'class' => 'woocommerce_message'
+                                'class' => 'woocommerce_message',
+								'order_id' => $order_id
                             ];
                         } else {
                             $this->order_failed($order, $lang['THANK_YOU_DECLINED']);
