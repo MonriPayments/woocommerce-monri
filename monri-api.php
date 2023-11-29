@@ -160,6 +160,8 @@ class MonriApi
             $lang = WC_Monri::get_ba_hr_translation();
         } elseif ($this->form_language == "sr") {
             $lang = WC_Monri::get_sr_translation();
+        } elseif ($this->form_language == "de") {
+            $lang = $this->get_de_translation();
         }
 
         if (isset($result->status) && trim($result->status) === 'approved') {

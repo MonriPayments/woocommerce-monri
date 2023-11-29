@@ -156,4 +156,57 @@ class MonriI18n
 
         return $lang;
     }
+
+        /*
+   ------------------
+   Language: German
+   ------------------
+   */
+  public static function get_de_translation()
+{
+    $lang = array();
+
+    //Credit card
+    $lang['CARD_NUMBER'] = 'Kartennummer';
+    $lang['EXPIRY'] = 'Ablaufdatum';
+    $lang['CARD_CODE'] = 'CVV-Code';
+    $lang['INSTALLMENTS_NUMBER'] = 'Anzahl der Raten';
+
+    // Validation messages
+    $lang['FIRST_NAME_ERROR'] = 'Der Vorname muss zwischen 3 und 11 Zeichen haben';
+    $lang['LAST_NAME_ERROR'] = 'Der Nachname muss zwischen 3 und 28 Zeichen haben';
+    $lang['ADDRESS_ERROR'] = 'Die Adresse muss zwischen 3 und 300 Zeichen haben';
+    $lang['CITY_ERROR'] = 'Die Stadt muss zwischen 3 und 30 Zeichen haben';
+    $lang['ZIP_ERROR'] = 'Die Postleitzahl muss zwischen 3 und 30 Zeichen haben';
+    $lang['PHONE_ERROR'] = 'Die Telefonnummer muss zwischen 3 und 30 Zeichen haben';
+    $lang['EMAIL_ERROR'] = 'Die E-Mail-Adresse muss zwischen 3 und 30 Zeichen haben';
+    $lang['INVALID_CARD_NUMBER'] = 'Ungültige Kreditkartennummer';
+
+    $lang['CARD_NUMBER_ERROR'] = 'Das Feld Kartennummer ist leer';
+    $lang['CARD_EXPIRY_ERROR'] = 'Das Feld Ablaufdatum ist leer';
+    $lang['CARD_EXPIRY_ERROR_PAST'] = 'Das Ablaufdatum liegt in der Vergangenheit';
+    $lang['CARD_CODE_ERROR'] = 'Das Feld CVV-Code ist leer';
+
+    //Receipt page messages
+    $lang['RECEIPT_PAGE'] = 'Vielen Dank für Ihre Bestellung. Klicken Sie auf die Schaltfläche unten, um über Monri zu bezahlen.';
+
+    //Thank you page messages
+    $lang['THANK_YOU_SUCCESS'] = 'Vielen Dank für Ihren Einkauf bei uns. Ihre Rechnung wurde bezahlt, und die Transaktion war erfolgreich. Wir werden Ihre Bestellung bald versenden.';
+    $lang['MONRI_SUCCESS'] = 'Monri-Zahlung erfolgreich <br/>Genehmigungscode: ';
+    $lang['THANK_YOU_PENDING'] = 'Vielen Dank für Ihren Einkauf bei uns. Derzeit ist Ihr Zahlungsstatus ausstehend.';
+    $lang['MONRI_PENDING'] = 'Monri-Zahlung ausstehend<br/>Genehmigungscode: ';
+    $lang['SECURITY_ERROR'] = 'Sicherheitsfehler. Unberechtigter Zugriff erkannt.';
+    $lang['THANK_YOU_DECLINED'] = 'Vielen Dank für Ihren Einkauf bei uns. Leider wurde die Transaktion abgelehnt.';
+    $lang['THANK_YOU_DECLINED_NOTE'] = 'Transaktion abgelehnt: ';
+
+    //Payment notes
+    $lang['PAYMENT_COMPLETED'] = 'Monri-Zahlung erfolgreich.';
+    $lang['TRANSACTION_FAILED'] = 'Transaktion fehlgeschlagen.';
+
+    $lang['PAYMENT_INCREASE'] = 'Basierend auf der ausgewählten Anzahl von Raten wird der Preis um erhöht';
+
+    $lang['NUMBER_OF_INSTALLMENTS'] = 'Anzahl der Raten';
+    $lang['MONRI_ORDER_AMOUNT'] = 'Monri - Bestellbetrag mit Gebühr';
+
+    return $lang;
 }

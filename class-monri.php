@@ -161,6 +161,7 @@ class WC_Monri extends WC_Payment_Gateway
 
         $form_language = array(
             "en" => "English",
+            "de" => "German",
             "ba-hr" => "Bosanski",
             "hr" => "Hrvatski",
             "sr" => "Srpski"
@@ -661,6 +662,8 @@ class WC_Monri extends WC_Payment_Gateway
             $lang = $this->get_ba_hr_translation();
         } elseif ($this->form_language == "sr") {
             $lang = $this->get_sr_translation();
+        } elseif ($this->form_language == "de") {
+            $lang = $this->get_de_translation();
         }
 
 
@@ -713,6 +716,8 @@ class WC_Monri extends WC_Payment_Gateway
             $lang = $this->get_ba_hr_translation();
         } elseif ($this->form_language == "sr") {
             $lang = $this->get_sr_translation();
+        } elseif ($this->form_language == "de") {
+            $lang = $this->get_de_translation();
         }
         echo '<p>' . __($lang['RECIEPT_PAGE'], 'Monri') . '</p>';
         echo $this->generate_form($order);
@@ -940,7 +945,10 @@ class WC_Monri extends WC_Payment_Gateway
             $lang = $this->get_ba_hr_translation();
         } elseif ($this->form_language == "sr") {
             $lang = $this->get_sr_translation();
-        } else {
+        } elseif ($this->form_language == "de") {
+            $lang = $this->get_de_translation();
+        } 
+        else {
             $lang = $this->get_en_translation();
         }
 
@@ -993,6 +1001,8 @@ class WC_Monri extends WC_Payment_Gateway
             $lang = $this->get_ba_hr_translation();
         } elseif ($this->form_language == "sr") {
             $lang = $this->get_sr_translation();
+        } elseif ($this->form_language == "de") {
+            $lang = $this->get_de_translation();
         }
 
         if (isset($_POST['PaRes'])) {
@@ -1193,6 +1203,8 @@ class WC_Monri extends WC_Payment_Gateway
             $lang = $this->get_ba_hr_translation();
         } elseif ($this->form_language == "sr") {
             $lang = $this->get_sr_translation();
+        } elseif ($this->form_language == "de") {
+            $lang = $this->get_de_translation();
         }
 
         //check if cc have 3Dsecure validation
@@ -1269,6 +1281,8 @@ class WC_Monri extends WC_Payment_Gateway
             $lang = $this->get_ba_hr_translation();
         } elseif ($this->form_language == "sr") {
             $lang = $this->get_sr_translation();
+        } elseif ($this->form_language == "de") {
+            $lang = $this->get_de_translation();
         }
 
         if (empty($monri_token)) {
@@ -1310,6 +1324,8 @@ class WC_Monri extends WC_Payment_Gateway
             $lang = $this->get_ba_hr_translation();
         } elseif ($this->form_language == "sr") {
             $lang = $this->get_sr_translation();
+        } elseif ($this->form_language == "de") {
+            $lang = $this->get_de_translation();
         }
 
         if ($this->is_form_integration()) {
@@ -2038,6 +2054,16 @@ class WC_Monri extends WC_Payment_Gateway
     {
         return MonriI18n::get_sr_translation();
     }
+
+        /*
+   ------------------
+   Language: German
+   ------------------
+   */
+  public static function get_de_translation()
+  {
+      return MonriI18n::get_de_translation();
+  }
 
     /**
      * @param WC_Order $order
