@@ -1,7 +1,16 @@
 <?php
 
-class MonriI18n
-{
+class Monri_WC_i18n {
+
+
+	public static function get_translation($key)
+	{
+		// Monri_WC_Settings::instance()->get_option('language');
+		// get WC/WP language?
+
+		return call_user_func([self, 'get_' . $lang . 'translation'], $key);
+	}
+
 	public static function get_en_translation()
 	{
 		$lang = array();
@@ -53,7 +62,6 @@ class MonriI18n
 
 	public static function get_ba_hr_translation()
 	{
-
 		$lang = array();
 
 		//Credit card
@@ -109,7 +117,6 @@ class MonriI18n
    */
 	public static function get_sr_translation()
 	{
-
 		$lang = array();
 
 		//Credit card
@@ -210,5 +217,6 @@ Language: German
 
 		return $lang;
 	}
+
 
 }

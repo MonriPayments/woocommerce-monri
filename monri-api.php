@@ -22,6 +22,8 @@ class MonriApi
     {
         $monri_settings = get_option('woocommerce_monri_settings');
 
+		if (!$monri_settings) return;
+
         $this->merchant_key = $monri_settings['monri_merchant_key'];
         $this->authenticity_token = $monri_settings['monri_authenticity_token'];
         $this->test_mode = $monri_settings['test_mode'];
