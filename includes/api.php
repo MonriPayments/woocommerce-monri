@@ -1,6 +1,6 @@
 <?php
 
-class Monri_Api
+class Monri_WC_Api
 {
 
 	public function sign()
@@ -12,4 +12,5 @@ class Monri_Api
 	{
 
 	}
+
 }

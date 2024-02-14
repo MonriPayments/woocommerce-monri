@@ -1,94 +1,86 @@
 <?php
 
-require_once __DIR__ . '/gateway-abstract.php';
-class Monri_WC_Gateway_Webpay_Form extends Monri_WC_Gateway //WC_Payment_Gateway
+class Monri_WC_Gateway_Adapter_Webpay_Form
 {
-	// Setup our Gateway's id, description and other values
-	function __construct()
+	public const ADAPTER_ID = 'monri_webpay_form';
+
+	public const ENDPOINT_TEST =  'https://ipgtest.monri.com/v2/form';
+	public const ENDPOINT = 'https://ipg.monri.com/v2/form';
+
+	/**
+	 * @var Monri_WC_Settings
+	 */
+	private $settings;
+
+	public $has_fields = false;
+
+	/**
+	 * @var Monri_WC_Gateway
+	 */
+	private $payment;
+
+	public function __construct()
 	{
-		// The global ID for this Payment method
-		$this->id = 'monri'; //monri_webpay_form
+		//$this->id = 'monri';
 
-		// The Title shown on the top of the Payment Gateways Page next to all the other Payment Gateways
-		$this->method_title = __('Monri', 'monri');
+		// treba settingse/optione, treba id
 
-		// The description for this Payment Gateway, shown on the actual Payment options page on the backend
-		$this->method_description = __("Monri Payment Gateway Plug-in for WooCommerce", 'monri');
-
-		//$this->title = ;
-
-		// If you want to show an image next to the gateway's name on the frontend, enter a URL to an image.
-		//$this->icon = null;
-
-		// This basically defines your settings which are then loaded with init_settings()
-		$this->init_form_fields();
-
-		// After init_settings() is called, you can get the settings and load them into variables, e.g:
-		// $this->title = $this->get_option( 'title' );
-		$this->init_settings();
-
-		//$this->init_options();
-
-		/*
-		foreach ($this->settings as $setting_key => $value) {
-			$this->$setting_key = $value;
-		}
-		*/
-
-		// Define user set variables.
-		// The title to be used for the vertical tabs that can be ordered top to bottom
-
-		$this->title = $this->settings['title'] ?? __('Monri', 'monri');
-		$this->description = $this->settings['description'];
-		$this->instructions = $this->get_option('instructions');
-
-		//add_option('woocommerce_pay_page_id', $page_id);
-
-		// Lets check for SSL
-		//add_action('admin_notices', array($this, 'do_ssl_check'));
-
-		add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
-
-		//$this->check_monri_response();
-		add_action('woocommerce_thankyou_' . $this->id, [$this, 'payment_callback']);
-		add_action('woocommerce_receipt_' . $this->id, [$this, 'process_redirect']);
-
-		$this->has_fields = true;
+		$this->settings = Monri_WC_Settings::instance();
 	}
 
-	public function init_form_fields() {
-		$this->form_fields =  Monri_WC_Settings::instance()->get_form_fields();
+	public function init($payment) {
+		$this->payment = $payment;
+		//$this->payment->id
+
+		//$this->check_monri_response();
+		add_action('woocommerce_receipt_monri', [$this, 'process_redirect']);
+		add_action('woocommerce_thankyou_monri', [$this, 'process_return']);
 	}
 
 	/**
-	 * Process the payment and return the result
+	 * Process the payment and redirect to
 	 **/
-	function process_payment($order_id)
-	{
+	public function process_payment($order_id) {
 		$order = wc_get_order($order_id);
 
+		//@todo validate in validate_fields() ?? prevents order creation
 		$validation = $this->validate_form_fields($order);
 
 		if (!empty($validation)) {
 			wc_add_notice($validation[0], 'error');
 			return;
 		}
+		//
 
+		return [
+			'result' => 'success',
+			'redirect' => $order->get_checkout_payment_url(true)
+		];
+
+		/*
 		return array(
 			'result' => 'success',
 			'redirect' => add_query_arg(
 				'order',
 				$order->get_id(),
-				add_query_arg('key', $order->order_key, wc_get_checkout_url())
+				add_query_arg('key', $order->get_order_key(), wc_get_checkout_url())
 			)
 		);
+		*/
+	}
+
+	public function validate_fields() {
+		return false;
+		//$post_data = wc()->checkout()->get_posted_data(); // use this or $_POST
+		throw new Exception('lol');
+		return;
 	}
 
 	/**
 	 * Validate WooCommerce Form fields
+	 * @todo refactor to validate_fields()
 	 **/
-	function validate_form_fields($order)
-	{
+	public function validate_form_fields($order) {
 		$lang = Monri_WC_i18n::get_translation();
 		$validation = [];
 
@@ -119,22 +111,14 @@ class Monri_WC_Gateway_Webpay_Form extends Monri_WC_Gateway //WC_Payment_Gateway
 	/**
 	 *Form integration
 	 **/
-	function process_redirect($order_id)
-	{
+	function process_redirect($order_id) {
 		$order = wc_get_order($order_id);
-		$order_info = $order_id . '_' . date("dmy");
 
-		$transaction_type = $this->transaction_type ? 'authorize' : 'purchase';
-
-		// Check test mode
-		if ($this->test_mode) {
-			$url = 'https://ipgtest.monri.com/v2/form';
-		} else {
-			$url = 'https://ipg.monri.com/v2/form';
-		}
+		$key = $this->settings->get_option('monri_authenticity_key');
+		$token = $this->settings->get_option('monri_authenticity_token');
 
 		//Convert order amount to number without decimals
-		$order_total = $order->order_total * 100;
+		$order_total = $order->get_total() * 100;
 
 		$currency = $order->get_currency();
 		if ($currency === 'KM') {
@@ -142,36 +126,38 @@ class Monri_WC_Gateway_Webpay_Form extends Monri_WC_Gateway //WC_Payment_Gateway
 		}
 
 		//Generate digest key
-		$digest = hash('sha512', $this->api->api_password() . $order->get_id() . $order_total . $currency);
+		$digest = hash('sha512', $key . $order_id . $order_total . $currency);
 
 		//Combine first and last name in one string
-		$full_name = $order->billing_first_name . " " . $order->billing_last_name;
+		$full_name = $order->get_billing_first_name() . " " . $order->get_billing_last_name();
 
 		//Array of order information
 		$args = array(
 			'ch_full_name' => $full_name,
-			'ch_address' => $order->billing_address_1,
-			'ch_city' => $order->billing_city,
-			'ch_zip' => $order->billing_postcode,
-			'ch_country' => $order->billing_country,
-			'ch_phone' => $order->billing_phone,
-			'ch_email' => $order->billing_email,
+			'ch_address' => $order->get_billing_address_1(),
+			'ch_city' => $order->get_billing_city(),
+			'ch_zip' => $order->get_billing_postcode(),
+			'ch_country' => $order->get_billing_country(),
+			'ch_phone' => $order->get_billing_phone(),
+			'ch_email' => $order->get_billing_email(),
 
-			'order_info' => $order_info,
-			'order_number' => $order->get_order_number(),
+			'order_info' => $order_id . '_' . date('dmy'),
+			'order_number' => $order_id,
 			'amount' => $order_total,
 			'currency' => $currency,
-			'original_amount' => $order->order_total,
+			'original_amount' => $order->get_total(),
 
-			'language' => $this->form_language,
-			'transaction_type' => $transaction_type,
-			'authenticity_token' => $this->api->api_username(),
-			'digest' => $digest
-
+			'language' => $this->settings->get_option('form_language'),
+			'transaction_type' => $this->settings->get_option_bool('transaction_type') ? 'authorize' : 'purchase',
+			'authenticity_token' => $token,
+			'digest' => $digest,
+			'success_url_override' => $this->payment->get_return_url() . '&status=success',
+			'cancel_url_override' => $this->payment->get_return_url() . '&status=cancel',
 		);
 
+		/*
 		if ($success_url_override = $this->get_option('success_url_override')) {
-			$args['success_url_override'] = $success_url_override;
+			$
 		}
 
 		if ($cancel_url_override = $this->get_option('cancel_url_override')) {
@@ -181,19 +167,20 @@ class Monri_WC_Gateway_Webpay_Form extends Monri_WC_Gateway //WC_Payment_Gateway
 		if ($callback_url_override = $this->get_option('callback_url_override')) {
 			$args['callback_url_override'] = $callback_url_override;
 		}
+		*/
 
-		wc_get_template('templates/redirect-form.php', [
-			'action' => $url,
-			'options' => $args
-		], 'woocommerce-monri' );
+		wc_get_template('redirect-form.php', [
+			'action' => $this->settings->get_option_bool('test_mode') ? self::ENDPOINT_TEST : self::ENDPOINT,
+			'options' => $args,
+			'order' => $order
+		], basename(MONRI_WC_PLUGIN_PATH), MONRI_WC_PLUGIN_PATH . 'templates/' );
 	}
 
 	/**
 	 * In some cases page url is rewritten and it contains page path and query string.
 	 * @return string
 	 */
-	private function get_query_string()
-	{
+	private function get_query_string() {
 		$arr = explode('?', $_SERVER['REQUEST_URI']);
 		// If there's more than one '?' shift and join with ?, it's special case of having '?' in success url
 		// eg http://testiranjeintegracija.net/?page_id=6order-recieved?
@@ -209,9 +196,10 @@ class Monri_WC_Gateway_Webpay_Form extends Monri_WC_Gateway //WC_Payment_Gateway
 	/**
 	 * Check for valid monri server callback
 	 **/
-	public function check_monri_response() //process_response
-	{
+	public function process_return() {
 		global $woocommerce;
+
+		$lang = Monri_WC_i18n::get_translation();
 
 		if (isset($_REQUEST['approval_code']) && isset($_REQUEST['digest'])) {
 
@@ -239,7 +227,8 @@ class Monri_WC_Gateway_Webpay_Form extends Monri_WC_Gateway //WC_Payment_Gateway
 
 			$calculated_url = preg_replace('/&digest=[^&]*/', '', $full_url);
 			//Generate digest
-			$check_digest = hash('sha512', $this->api->api_password() . $calculated_url);
+			$check_digest = hash('sha512', $this->settings->get_option('monri_authenticity_token') . $calculated_url);
+
 			$trx_authorized = false;
 			if ($order->status !== 'completed') {
 				if ($digest == $check_digest) {
@@ -295,8 +284,7 @@ class Monri_WC_Gateway_Webpay_Form extends Monri_WC_Gateway //WC_Payment_Gateway
 
 	}
 
-	function showMessage($content)
-	{
+	function showMessage($content) {
 		return '<div class="box ' . $this->msg['class'] . '-box">' . $this->msg['message'] . '</div>' . $content;
 	}
 
@@ -304,8 +292,7 @@ class Monri_WC_Gateway_Webpay_Form extends Monri_WC_Gateway //WC_Payment_Gateway
 	 * @param $lang
 	 * @return void
 	 */
-	public function security_error($lang)
-	{
+	public function security_error($lang) {
 		$this->msg['class'] = 'error';
 		$this->msg['message'] = $lang['SECURITY_ERROR'];
 	}

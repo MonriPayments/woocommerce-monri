@@ -63,7 +63,8 @@ class Monri_WC_Settings
 			"monri-ws-pay" => "Monri WSPay"
 		);
 
-		$form_id = 'wcwcCpg1';
+		$form_id = 'monri';
+
 		$form_fields = array(
 			'enabled' => array(
 				'title' => __('Enable/Disable', $form_id),
@@ -281,190 +282,6 @@ class Monri_WC_Settings
 				'desc_tip' => true,
 				'default' => __('0', $form_id),
 				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_2' => array(
-				'title' => __('Price increase when paying in 2 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_3' => array(
-				'title' => __('Price increase when paying in 3 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_4' => array(
-				'title' => __('Price increase when paying in 4 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_5' => array(
-				'title' => __('Price increase when paying in 5 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_6' => array(
-				'title' => __('Price increase when paying in 6 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_7' => array(
-				'title' => __('Price increase when paying in 7 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_8' => array(
-				'title' => __('Price increase when paying in 8 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_9' => array(
-				'title' => __('Price increase when paying in 9 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_10' => array(
-				'title' => __('Price increase when paying in 10 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_11' => array(
-				'title' => __('Price increase when paying in 11 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_12' => array(
-				'title' => __('Price increase when paying in 12 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_13' => array(
-				'title' => __('Price increase when paying in 13 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_14' => array(
-				'title' => __('Price increase when paying in 14 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_15' => array(
-				'title' => __('Price increase when paying in 15 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_16' => array(
-				'title' => __('Price increase when paying in 16 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_17' => array(
-				'title' => __('Price increase when paying in 17 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_18' => array(
-				'title' => __('Price increase when paying in 18 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_19' => array(
-				'title' => __('Price increase when paying in 19 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_20' => array(
-				'title' => __('Price increase when paying in 20 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_21' => array(
-				'title' => __('Price increase when paying in 21 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_22' => array(
-				'title' => __('Price increase when paying in 22 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_23' => array(
-				'title' => __('Price increase when paying in 23 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'price_increase_24' => array(
-				'title' => __('Price increase when paying in 24 installments:', $form_id),
-				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
-				'desc_tip' => true,
-				'default' => __('0', $form_id),
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
 			)
 		);
 
@@ -489,10 +306,10 @@ class Monri_WC_Settings
 	 */
 	public function get_option( $key, $default = null )
 	{
-		$quadpay_settings = get_option( self::SETTINGS_KEY, [] );
+		$settings = get_option( self::SETTINGS_KEY, [] );
 
-		if ( isset( $quadpay_settings[$key] ) ) {
-			return $quadpay_settings[$key];
+		if ( isset( $settings[$key] ) ) {
+			return $settings[$key];
 		}
 
 		if ( isset( $this->get_form_fields()[$key]['default'] ) ) {
@@ -508,10 +325,10 @@ class Monri_WC_Settings
 	 */
 	public function update_options( $options )
 	{
-		$quadpay_settings = get_option( self::SETTINGS_KEY, [] );
-		$quadpay_settings = array_merge( $quadpay_settings, $options );
+		$settings = get_option( self::SETTINGS_KEY, [] );
+		$settings = array_merge( $settings, $options );
 
-		return update_option( 'woocommerce_quadpay_settings', $quadpay_settings );
+		return update_option( self::SETTINGS_KEY, $settings );
 	}
 
 	/**
@@ -520,7 +337,7 @@ class Monri_WC_Settings
 	 */
 	public function get_option_bool( $key )
 	{
-		return $this->get_option( $key ) === 'yes' || $this->get_option( $key ) === true;
+		return in_array( $this->get_option( $key ),  array( 'yes', '1', true ), true );
 	}
 
 	/**

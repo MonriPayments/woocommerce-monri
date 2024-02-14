@@ -2,13 +2,14 @@
 
 class Monri_WC_i18n {
 
-
-	public static function get_translation($key)
+	public static function get_translation($key = null)
 	{
 		// Monri_WC_Settings::instance()->get_option('language');
 		// get WC/WP language?
 
-		return call_user_func([self, 'get_' . $lang . 'translation'], $key);
+		$lang = 'en';
+
+		return call_user_func([self::class, "get_{$lang}_translation"], $key);
 	}
 
 	public static function get_en_translation()
