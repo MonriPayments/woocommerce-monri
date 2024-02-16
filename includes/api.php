@@ -11,6 +11,11 @@ class Monri_WC_Api
 	private static $instance;
 
 	/**
+	 * @var bool
+	 */
+	public $test_mode = true;
+
+	/**
 	 * @return Monri_WC_Api
 	 */
 	public static function instance() {
@@ -23,7 +28,7 @@ class Monri_WC_Api
 	}
 
 	public function __construct() {
-		$this->test_mode = true;
+		$this->test_mode = Monri_WC_Settings::instance()->get_option_bool('test_mode');
 	}
 
 	/**
@@ -82,13 +87,14 @@ class Monri_WC_Api
 	 */
 	public function orders_show($order_number) {
 
+		$authenticity_token = Monri_WC_Settings::instance()->get_option_bool('authenticity_token');
+
 		$payload = '<?xml version="1.0" encoding="UTF-8"?>
               <order>
                 <order-number>' . $order_number . '</order-number>
-                <authenticity-token>' . $this->authenticity_token . '</authenticity-token>
+                <authenticity-token>' . $authenticity_token . '</authenticity-token>
                 <digest>' . $this->digest($order_number) . '</digest>
             </order>';
-
 
 		return $this->request('/orders/show', $payload);
 
@@ -123,7 +129,9 @@ class Monri_WC_Api
 	 * @return string
 	 */
 	private function digest($order_number) {
-		return hash('SHA1', $this->merchant_key . $order_number);
+
+		$merchant_key = Monri_WC_Settings::instance()->get_option_bool('merchant_key');
+		return hash('SHA1', $merchant_key . $order_number);
 	}
 
 }

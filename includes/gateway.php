@@ -4,41 +4,19 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 
 	protected $adapter;
 
-	function __construct()
-	{
-		$this->id = 'monri';
+	public $id = 'monri';
+
+	public function __construct() {
 
 		$this->method_title = __('Monri', 'monri');
 		$this->method_description = __('Monri Payment Gateway Plug-in for WooCommerce', 'monri');
 
-		//$this->title = ;
-
-		// If you want to show an image next to the gateway's name on the frontend, enter a URL to an image.
-		//$this->icon = null;
-
-		// This basically defines your settings which are then loaded with init_settings()
 		$this->init_form_fields();
-
-		// After init_settings() is called, you can get the settings and load them into variables, e.g:
-		//$this->title = $this->get_option( 'title' );
 		$this->init_settings();
-
-		//$this->init_options();
-
-		/*
-		foreach ($this->settings as $setting_key => $value) {
-			$this->$setting_key = $value;
-		}
-		*/
-
-		// Define user set variables.
-		// The title to be used for the vertical tabs that can be ordered top to bottom
 
 		$this->title = $this->settings['title'] ?? __('Monri', 'monri');
 		$this->description = $this->settings['description'];
 		//$this->instructions = $this->get_option('instructions');
-
-		//add_option('woocommerce_pay_page_id', $page_id);
 
 		// Lets check for SSL
 		//add_action('admin_notices', array($this, 'do_ssl_check'));
@@ -61,6 +39,8 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 
 		// adapter can change this, inherit from adapter
 		//$this->has_fields = $this->adapter->has_fields ?? false;
+
+		add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
 	}
 
 	public function process_payment( $order_id ) {
@@ -86,13 +66,12 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 
 	public function payment_fields() {
 		if(method_exists($this->adapter, 'payment_fields')) {
-			return $this->adapter->payment_fields();
+			$this->adapter->payment_fields();
 		}
-		return parent::payment_fields();
+		parent::payment_fields();
 	}
 
-	function init_form_fields()
-	{
+	public function init_form_fields() {
 		$yes_or_no = array(
 			"0" => 'No',
 			"1" => 'Yes'
@@ -127,214 +106,170 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 			"monri-ws-pay" => "Monri WSPay"
 		);
 
-		$form_id = 'monri';
+		$domain = 'monri';
 
 		$this->form_fields = array(
 			'enabled' => array(
-				'title' => __('Enable/Disable', $form_id),
+				'title' => __('Enable/Disable', $domain),
 				'type' => 'checkbox',
-				'label' => __('Enable Monri', $form_id),
+				'label' => __('Enable Monri', $domain),
 				'default' => 'no'
 			),
 			'monri_payment_gateway_service' => array(
-				'title' => __('Payment Gateway Service:', $form_id),
+				'title' => __('Payment Gateway Service:', $domain),
 				'type' => 'select',
 				'class' => 'wc-enhanced-select',
 				'default' => 'monri-web-pay',
-				'description' => __('', $form_id),
+				'description' => __('', $domain),
 				'options' => $payment_gateway_services,
 				'desc_tip' => true,
 			),
 			'title' => array(
-				'title' => __('Title', $form_id),
+				'title' => __('Title', $domain),
 				'type' => 'text',
-				'description' => __('This controls the title which the user sees during checkout.', $form_id),
+				'description' => __('Title which the customer sees during checkout.', $domain),
 				'desc_tip' => true,
-				'default' => __('Monri', $form_id)
+				'default' => __('Monri', $domain)
 			),
 			'description' => array(
-				'title' => __('Description', $form_id),
+				'title' => __('Description', $domain),
 				'type' => 'textarea',
-				'description' => __('This controls the description which the user sees during checkout.', $form_id),
-				'default' => __('Description for Monri', $form_id)
+				'description' => __('Description which the customer sees during checkout.', $domain),
+				'default' => __('Description for Monri', $domain)
 			),
 			'instructions' => array(
-				'title' => __('Instructions', $form_id),
+				'title' => __('Instructions', $domain),
 				'type' => 'textarea',
-				'description' => __('Instructions that will be added to the thank you page.', $form_id),
-				'default' => __('Instructions for Monri.', $form_id)
+				'description' => __('Instructions that will be added to the thank you page.', $domain),
+				'default' => __('Instructions for Monri.', $domain)
 			),
-			/*
-			'thankyou_page' => array(
-				'title' => __('Success page', $form_id),
-				'type' => 'text',
-				'description' => __('Success URL potrebno je kopirati u Monri Account na predviđeno mjesto! ', $form_id),
-				'desc_tip' => true,
-				'default' => __(wc_get_checkout_url() . get_option('woocommerce_checkout_order_received_endpoint', 'order-received'), $form_id)
-			),
-			'callback_url_endpoint' => array(
-				'title' => __('Callback URL endpoint', 'wcwcGpg1'),
-				'type' => 'text',
-				'description' => __('Monri Callback URL endpoint koji će primati POST zahtjev sa Monri Gateway-a.', $form_id),
-				'desc_tip' => true,
-				'default' => '/monri-callback',
-				$form_id,
-			),
-			'success_url_override' => array(
-				'title' => __('Success URL override', 'wcwcGpg1'),
-				'type' => 'text',
-				'description' => __('Success URL koji želite koristiti pri svakoj transakciji. (HTTPS)', $form_id),
-				'desc_tip' => true,
-				'default' => '',
-				$form_id,
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'cancel_url_override' => array(
-				'title' => __('Cancel URL override', 'wcwcGpg1'),
-				'type' => 'text',
-				'description' => __('Cancel URL koji želite koristiti pri svakoj transakciji. (HTTPS)', $form_id),
-				'desc_tip' => true,
-				'default' => '',
-				$form_id,
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			'callback_url_override' => array(
-				'title' => __('Callback URL override', 'wcwcGpg1'),
-				'type' => 'text',
-				'description' => __('Callback URL koji želite koristiti pri svakoj transakciji. (HTTPS)', $form_id),
-				'desc_tip' => true,
-				'default' => '',
-				$form_id,
-				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
-			),
-			*/
 			'monri_merchant_key' => array(
-				'title' => __('Monri Key', $form_id),
+				'title' => __('Monri Key', $domain),
 				'type' => 'text',
-				'description' => __('', $form_id),
+				'description' => __('', $domain),
 				'desc_tip' => true,
-				'default' => __('', $form_id),
+				'default' => __('', $domain),
 				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
 			),
 			'monri_authenticity_token' => array(
-				'title' => __('Monri authenticity token', $form_id),
+				'title' => __('Monri authenticity token', $domain),
 				'type' => 'text',
-				'description' => __('', $form_id),
+				'description' => __('', $domain),
 				'desc_tip' => true,
-				'default' => __('', $form_id),
+				'default' => __('', $domain),
 				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
 			),
 			'monri_ws_pay_form_shop_id' => array(
-				'title' => __('Monri WsPay Form ShopId', $form_id),
+				'title' => __('Monri WsPay Form ShopId', $domain),
 				'type' => 'text',
-				'description' => __('', $form_id),
+				'description' => __('', $domain),
 				'desc_tip' => true,
-				'default' => __('', $form_id),
+				'default' => __('', $domain),
 				'class' => 'woocommerce-monri-dynamic-option monri-ws-pay-option'
 			),
 			'monri_ws_pay_form_secret' => array(
-				'title' => __('Monri WsPay Form Secret', $form_id),
+				'title' => __('Monri WsPay Form Secret', $domain),
 				'type' => 'text',
-				'description' => __('', $form_id),
+				'description' => __('', $domain),
 				'desc_tip' => true,
-				'default' => __('', $form_id),
+				'default' => __('', $domain),
 				'class' => 'woocommerce-monri-dynamic-option monri-ws-pay-option'
 			),
 			'monri_ws_pay_form_tokenization_enabled' => array(
-				'title' => __('Monri WsPay Form Tokenization Enabled', $form_id),
+				'title' => __('Monri WsPay Form Tokenization Enabled', $domain),
 				'type' => 'checkbox',
-				'description' => __('', $form_id),
+				'description' => __('', $domain),
 				'desc_tip' => true,
 				'default' => 'no',
 				'class' => 'woocommerce-monri-dynamic-option monri-ws-pay-option'
 			),
 			'monri_ws_pay_form_tokenization_shop_id' => array(
-				'title' => __('Monri WsPay Form Tokenization ShopId', $form_id),
+				'title' => __('Monri WsPay Form Tokenization ShopId', $domain),
 				'type' => 'text',
-				'description' => __('', $form_id),
+				'description' => __('', $domain),
 				'desc_tip' => true,
-				'default' => __('', $form_id),
+				'default' => __('', $domain),
 				'class' => 'woocommerce-monri-dynamic-option monri-ws-pay-option'
 			),
 			'monri_ws_pay_form_tokenization_secret' => array(
-				'title' => __('Monri WsPay Form Tokenization Secret', $form_id),
+				'title' => __('Monri WsPay Form Tokenization Secret', $domain),
 				'type' => 'text',
-				'description' => __('', $form_id),
+				'description' => __('', $domain),
 				'desc_tip' => true,
-				'default' => __('', $form_id),
+				'default' => __('', $domain),
 				'class' => 'woocommerce-monri-dynamic-option monri-ws-pay-option'
 			),
 			'monri_web_pay_integration_type' => array(
-				'title' => __('Integration type', $form_id),
+				'title' => __('Integration type', $domain),
 				'type' => 'select',
 				'class' => 'wc-enhanced-select woocommerce-monri-dynamic-option monri-web-pay-option',
 				'default' => true,
-				'description' => __('', $form_id),
+				'description' => __('', $domain),
 				'options' => $integration_types,
 				'desc_tip' => true,
 			),
 			'test_mode' => array(
-				'title' => __('Test mode', $form_id),
+				'title' => __('Test mode', $domain),
 				'type' => 'select',
 				'class'    => 'wc-enhanced-select',
 				'default' => 0,
-				'description' => __('', $form_id),
+				'description' => __('', $domain),
 				'options' => $yes_or_no,
 				'desc_tip' => true,
 			),
 			'transaction_type' => array(
-				'title' => __('Transaction type', $form_id),
+				'title' => __('Transaction type', $domain),
 				'type' => 'select',
 				'class'    => 'wc-enhanced-select',
 				'default' => 0,
-				'description' => __('', $form_id),
+				'description' => __('', $domain),
 				'options' => $transaction_type,
 				'desc_tip' => true
 			),
 			'form_language' => array(
-				'title' => __('Form language', $form_id),
+				'title' => __('Form language', $domain),
 				'type' => 'select',
 				'class'    => 'wc-enhanced-select',
 				'default' => 'EN',
-				'description' => __('', $form_id),
+				'description' => __('', $domain),
 				'options' => $form_language,
 				'desc_tip' => true,
 			),
 			'paying_in_installments' => array(
-				'title' => __('Allow paying in installments', $form_id),
+				'title' => __('Allow paying in installments', $domain),
 				'type' => 'select',
 				'class' => 'wc-enhanced-select woocommerce-monri-dynamic-option monri-web-pay-option',
 				'default' => 0,
-				'description' => __('', $form_id),
+				'description' => __('', $domain),
 				'options' => $yes_or_no,
 				'desc_tip' => true,
 			),
 			'number_of_allowed_installments' => array(
-				'title' => __('Number of allowed installments', $form_id),
+				'title' => __('Number of allowed installments', $domain),
 				'type' => 'select',
 				'class' => 'wc-enhanced-select woocommerce-monri-dynamic-option monri-web-pay-option',
 				'default' => 0,
-				'description' => __('', $form_id),
+				'description' => __('', $domain),
 				'options' => $number_of_allowed_installments,
 				'desc_tip' => true,
 			),
 			'bottom_limit' => array(
-				'title' => __('Price limit for paying in installments:', $form_id),
+				'title' => __('Price limit for paying in installments:', $domain),
 				'type' => 'text',
-				'description' => __('This controls the bottom price limit on which the installments can be used.', $form_id),
+				'description' => __('This controls the bottom price limit on which the installments can be used.', $domain),
 				'desc_tip' => true,
-				'default' => __('0', $form_id),
+				'default' => __('0', $domain),
 				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
 			)
 		);
 
-		for ($i=2; $i <= 24; $i++) {
+		for ($i = 2; $i <= 24; $i++) {
 			$this->form_fields["price_increase_$i"] = array(
-				'title' => __("Price increase when paying in $i installments", $form_id),
+				'title' => __("Price increase when paying in $i installments", $domain),
 				'type' => 'text',
-				'description' => __('This controls the price increase when paying with installments.', $form_id),
+				'description' => __('This controls the price increase when paying with installments.', $domain),
 				'desc_tip' => true,
-				'default' => __('0', $form_id),
+				'default' => __('0', $domain),
 				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
 			);
 		}
@@ -344,7 +279,8 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 	{
 		parent::admin_options();
 
-		echo '<script>
+		echo <<<JS
+<script>
     (function () {
         updateOptions(jQuery("#woocommerce_monri_monri_payment_gateway_service").val())
     })()
@@ -352,21 +288,26 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
     function updateOptions(value) {
         jQuery(".woocommerce-monri-dynamic-option").parents("tr").hide()
         if (value === "monri-ws-pay") {
-            jQuery(\'.woocommerce-monri-dynamic-option.monri-web-pay-option\').parents(\'tr\').hide()
-            jQuery(\'.woocommerce-monri-dynamic-option.monri-ws-pay-option\').parents(\'tr\').show()
+            jQuery('.woocommerce-monri-dynamic-option.monri-web-pay-option').parents('tr').hide()
+            jQuery('.woocommerce-monri-dynamic-option.monri-ws-pay-option').parents('tr').show()
         } else if (value === "monri-web-pay") {
-            jQuery(\'.woocommerce-monri-dynamic-option.monri-web-pay-option\').parents(\'tr\').show()
-            jQuery(\'.woocommerce-monri-dynamic-option.monri-ws-pay-option\').parents(\'tr\').hide()
+            jQuery('.woocommerce-monri-dynamic-option.monri-web-pay-option').parents('tr').show()
+            jQuery('.woocommerce-monri-dynamic-option.monri-ws-pay-option').parents('tr').hide()
         }
     }
     
     jQuery("#woocommerce_monri_monri_payment_gateway_service").on("change", function (e) {
         updateOptions(e.target.value)
     })
-</script>';
-
+</script>
+JS;
 	}
 
+	/**
+	 * @param string $key
+	 *
+	 * @return bool
+	 */
 	public function get_option_bool( $key ) {
 		return in_array( $this->get_option( $key ),  array( 'yes', '1', true ), true );
 	}

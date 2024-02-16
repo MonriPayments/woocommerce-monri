@@ -19,6 +19,11 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 		require_once __DIR__ . '/api.php';
 	}
 
+	/**
+	 * @param Monri_WC_Gateway $payment
+	 *
+	 * @return void
+	 */
 	public function init($payment) {
 		$this->payment = $payment;
 		$this->payment->has_fields = true;
@@ -28,8 +33,11 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 		add_action('woocommerce_thankyou_' . $this->payment->id, [$this, 'check_3dsecure_response']);
 	}
 
-	public function payment_fields()
-	{
+	/**
+	 * @return void
+	 */
+	public function payment_fields() {
+
 		$script_url = $this->payment->get_option_bool('test_mode') ? self::SCRIPT_ENDPOINT_TEST : self::SCRIPT_ENDPOINT;
 
 		wp_enqueue_script('monri-components', $script_url, array('jquery'), MONRI_WC_VERSION);
@@ -77,8 +85,13 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 		), basename(MONRI_WC_PLUGIN_PATH), MONRI_WC_PLUGIN_PATH . 'templates/' );
 	}
 
-	public function process_payment($order_id)
-	{
+	/**
+	 * @param int $order_id
+	 *
+	 * @return array
+	 */
+	public function process_payment($order_id) {
+
 		$monri_token = $_POST['monri-token'] ?? '';
 
 		if (empty($monri_token)) {
@@ -283,7 +296,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 					'Accept' =>  'application/json',
 					'Content-Type' => 'application/json'
 				],
-				'method' => 'POST',
 				'timeout' => 15,
 				'sslverify' => false
 			]
