@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/api.php';
+
 class Monri_WC_Gateway_Adapter_Webpay_Components
 {
 	public const ADAPTER_ID = 'webpay_components';
@@ -16,7 +18,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 	private $payment;
 
 	public function __construct() {
-		require_once __DIR__ . '/api.php';
 	}
 
 	/**

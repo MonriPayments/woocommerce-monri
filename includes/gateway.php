@@ -18,26 +18,23 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 		$this->description = $this->settings['description'];
 		//$this->instructions = $this->get_option('instructions');
 
-		// Lets check for SSL
-		//add_action('admin_notices', array($this, 'do_ssl_check'));
-
-		require_once __DIR__ . '/gateway-adapter-webpay-form.php';
-		require_once __DIR__ . '/gateway-adapter-webpay-components.php';
-
 		// resolve adapter based on settings
 		if ($this->get_option('monri_payment_gateway_service') === 'monri-ws-pay') {
+			require_once __DIR__ . '/gateway-adapter-wspay.php';
 			$this->adapter = new Monri_WC_Gateway_Adapter_Wspay();
 		} elseif ($this->get_option('monri_payment_gateway_service') === 'monri-web-pay' &&
 		          $this->get_option('monri_web_pay_integration_type') === 'components'
 		) {
+			require_once __DIR__ . '/gateway-adapter-webpay-components.php';
 			$this->adapter = new Monri_WC_Gateway_Adapter_Webpay_Components();
 		} else {
+			require_once __DIR__ . '/gateway-adapter-webpay-form.php';
 			$this->adapter = new Monri_WC_Gateway_Adapter_Webpay_Form();
 		}
 
 		$this->adapter->init($this);
 
-		// adapter can change this, inherit from adapter
+		// adapter can change this, or inherit from adapter?
 		//$this->has_fields = $this->adapter->has_fields ?? false;
 
 		add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
