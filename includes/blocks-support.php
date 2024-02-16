@@ -44,8 +44,8 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 	 * @return array
 	 */
 	public function get_payment_method_script_handles() {
-		$script_path       = '/assets/js/blocks/blocks.js';
-		$script_asset_path = MONRI_WC_PLUGIN_PATH . 'assets/js/blocks/blocks.asset.php';
+		$script_path       = '/assets/js/blocks/index.js';
+		$script_asset_path = MONRI_WC_PLUGIN_PATH . 'assets/js/blocks/index.asset.php';
 		$script_asset      = file_exists( $script_asset_path )
 			? require( $script_asset_path )
 			: array(
