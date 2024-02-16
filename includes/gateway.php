@@ -43,20 +43,24 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 		// Lets check for SSL
 		//add_action('admin_notices', array($this, 'do_ssl_check'));
 
-		require __DIR__ . '/gateway-adapter-webpay-form.php';
+		require_once __DIR__ . '/gateway-adapter-webpay-form.php';
+		require_once __DIR__ . '/gateway-adapter-webpay-components.php';
 
 		// resolve adapter based on settings
-		$this->adapter = new Monri_WC_Gateway_Adapter_Webpay_Form();
+		if ($this->get_option('monri_payment_gateway_service') === 'monri-ws-pay') {
+			$this->adapter = new Monri_WC_Gateway_Adapter_Wspay();
+		} elseif ($this->get_option('monri_payment_gateway_service') === 'monri-web-pay' &&
+		          $this->get_option('monri_web_pay_integration_type') === 'components'
+		) {
+			$this->adapter = new Monri_WC_Gateway_Adapter_Webpay_Components();
+		} else {
+			$this->adapter = new Monri_WC_Gateway_Adapter_Webpay_Form();
+		}
+
 		$this->adapter->init($this);
 
 		// adapter can change this, inherit from adapter
-		$this->has_fields = $this->adapter->has_fields ?? false;
-
-		//add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
-
-		//$this->check_monri_response();
-		//add_action('woocommerce_thankyou_' . $this->id, [$this, 'payment_callback']);
-		//add_action('woocommerce_receipt_' . $this->id, [$this, 'process_redirect']);
+		//$this->has_fields = $this->adapter->has_fields ?? false;
 	}
 
 	public function process_payment( $order_id ) {
@@ -78,6 +82,13 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 			return $this->adapter->validate_fields();
 		}
 		return parent::validate_fields();
+	}
+
+	public function payment_fields() {
+		if(method_exists($this->adapter, 'payment_fields')) {
+			return $this->adapter->payment_fields();
+		}
+		return parent::payment_fields();
 	}
 
 	function init_form_fields()
@@ -128,8 +139,7 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 			'monri_payment_gateway_service' => array(
 				'title' => __('Payment Gateway Service:', $form_id),
 				'type' => 'select',
-				'class' => 'chosen_select',
-				'css' => 'width: 450px;',
+				'class' => 'wc-enhanced-select',
 				'default' => 'monri-web-pay',
 				'description' => __('', $form_id),
 				'options' => $payment_gateway_services,
@@ -154,6 +164,7 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 				'description' => __('Instructions that will be added to the thank you page.', $form_id),
 				'default' => __('Instructions for Monri.', $form_id)
 			),
+			/*
 			'thankyou_page' => array(
 				'title' => __('Success page', $form_id),
 				'type' => 'text',
@@ -196,6 +207,7 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 				$form_id,
 				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
 			),
+			*/
 			'monri_merchant_key' => array(
 				'title' => __('Monri Key', $form_id),
 				'type' => 'text',
@@ -252,57 +264,37 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 				'default' => __('', $form_id),
 				'class' => 'woocommerce-monri-dynamic-option monri-ws-pay-option'
 			),
-			//            'monri_ws_pay_components_shop_id' => array(
-//                'title' => __('Monri WsPay Components ShopId', $form_id),
-//                'type' => 'text',
-//                'description' => __('', $form_id),
-//                'desc_tip' => true,
-//                'default' => __('', $form_id),
-//                'class' => 'woocommerce-monri-dynamic-option monri-ws-pay-option'
-//            ),
-//            'monri_ws_pay_components_secret' => array(
-//                'title' => __('Monri WsPay Components Secret', $form_id),
-//                'type' => 'text',
-//                'description' => __('', $form_id),
-//                'desc_tip' => true,
-//                'default' => __('', $form_id),
-//                'class' => 'woocommerce-monri-dynamic-option monri-ws-pay-option'
-//            ),
 			'monri_web_pay_integration_type' => array(
-				'title' => __('Integration type:', $form_id),
+				'title' => __('Integration type', $form_id),
 				'type' => 'select',
-				'class' => 'chosen_select woocommerce-monri-dynamic-option monri-web-pay-option',
-				'css' => 'width: 450px;',
+				'class' => 'wc-enhanced-select woocommerce-monri-dynamic-option monri-web-pay-option',
 				'default' => true,
 				'description' => __('', $form_id),
 				'options' => $integration_types,
 				'desc_tip' => true,
 			),
 			'test_mode' => array(
-				'title' => __('Test mode enabled:', $form_id),
+				'title' => __('Test mode', $form_id),
 				'type' => 'select',
-				'class' => 'chosen_select',
-				'css' => 'width: 450px;',
+				'class'    => 'wc-enhanced-select',
 				'default' => 0,
 				'description' => __('', $form_id),
 				'options' => $yes_or_no,
 				'desc_tip' => true,
 			),
 			'transaction_type' => array(
-				'title' => __('Transaction type:', $form_id),
+				'title' => __('Transaction type', $form_id),
 				'type' => 'select',
-				'class' => 'chosen_select woocommerce-monri-dynamic-option monri-web-pay-option',
-				'css' => 'width: 450px;',
+				'class'    => 'wc-enhanced-select',
 				'default' => 0,
 				'description' => __('', $form_id),
 				'options' => $transaction_type,
 				'desc_tip' => true
 			),
 			'form_language' => array(
-				'title' => __('Form language:', $form_id),
+				'title' => __('Form language', $form_id),
 				'type' => 'select',
-				'class' => 'chosen_select',
-				'css' => 'width: 450px;',
+				'class'    => 'wc-enhanced-select',
 				'default' => 'EN',
 				'description' => __('', $form_id),
 				'options' => $form_language,
@@ -311,8 +303,7 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 			'paying_in_installments' => array(
 				'title' => __('Allow paying in installments', $form_id),
 				'type' => 'select',
-				'class' => 'chosen_select woocommerce-monri-dynamic-option monri-web-pay-option',
-				'css' => 'width: 450px;',
+				'class' => 'wc-enhanced-select woocommerce-monri-dynamic-option monri-web-pay-option',
 				'default' => 0,
 				'description' => __('', $form_id),
 				'options' => $yes_or_no,
@@ -321,8 +312,7 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 			'number_of_allowed_installments' => array(
 				'title' => __('Number of allowed installments', $form_id),
 				'type' => 'select',
-				'class' => 'chosen_select woocommerce-monri-dynamic-option monri-web-pay-option',
-				'css' => 'width: 450px;',
+				'class' => 'wc-enhanced-select woocommerce-monri-dynamic-option monri-web-pay-option',
 				'default' => 0,
 				'description' => __('', $form_id),
 				'options' => $number_of_allowed_installments,
@@ -340,7 +330,7 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 
 		for ($i=2; $i <= 24; $i++) {
 			$this->form_fields["price_increase_$i"] = array(
-				'title' => __("Price increase when paying in $i installments:", $form_id),
+				'title' => __("Price increase when paying in $i installments", $form_id),
 				'type' => 'text',
 				'description' => __('This controls the price increase when paying with installments.', $form_id),
 				'desc_tip' => true,

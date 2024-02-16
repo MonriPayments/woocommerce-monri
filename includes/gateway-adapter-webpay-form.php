@@ -2,7 +2,7 @@
 
 class Monri_WC_Gateway_Adapter_Webpay_Form
 {
-	public const ADAPTER_ID = 'monri_webpay_form';
+	public const ADAPTER_ID = 'webpay_form';
 
 	public const ENDPOINT_TEST =  'https://ipgtest.monri.com/v2/form';
 	public const ENDPOINT = 'https://ipg.monri.com/v2/form';
@@ -72,7 +72,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form
 	public function validate_fields() {
 		return false;
 		//$post_data = wc()->checkout()->get_posted_data(); // use this or $_POST
-		throw new Exception('lol');
+		throw new Exception('lol'); // throw on error
 		return;
 	}
 
@@ -114,7 +114,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form
 	function process_redirect($order_id) {
 		$order = wc_get_order($order_id);
 
-		$key = $this->settings->get_option('monri_authenticity_key');
+		$key = $this->settings->get_option('monri_merchant_key');
 		$token = $this->settings->get_option('monri_authenticity_token');
 
 		//Convert order amount to number without decimals
@@ -151,7 +151,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form
 			'transaction_type' => $this->settings->get_option_bool('transaction_type') ? 'authorize' : 'purchase',
 			'authenticity_token' => $token,
 			'digest' => $digest,
-			'success_url_override' => $this->payment->get_return_url() . '&status=success',
+			'success_url_override' => $this->payment->get_return_url() . '&status=success', // from
 			'cancel_url_override' => $this->payment->get_return_url() . '&status=cancel',
 		);
 
