@@ -16,6 +16,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 	private $payment;
 
 	public function __construct() {
+		require_once __DIR__ . '/api.php';
 	}
 
 	public function init($payment) {
@@ -224,38 +225,50 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 
 	/**
 	 * Check for valid 3dsecure response
+	 *
+	 * @return void
 	 **/
-	function check_3dsecure_response()
+	public function check_3dsecure_response()
 	{
 		$lang = Monri_WC_i18n::get_translation();
 
-		if (isset($_POST['PaRes'])) {
-			$resultXml = $this->handle3dsReturn($_POST);
+		// @todo what if not isset?
 
-			if (isset($resultXml->status) && $resultXml->status == 'approved') {
+		if (!isset($_POST['PaRes'])) {
+			return;
+		}
 
-				$resultXml = (array) $resultXml;
-				$order = new WC_Order($resultXml['order-number']);
+		/** @var SimpleXMLElement $resultXml */
+		$resultXml = Monri_WC_Api::instance()->pares($_POST);
+		if ( is_wp_error($resultXml) ) {
+			return; //??
+		}
 
-				// Payment has been successful
-				$order->add_order_note(__($lang['PAYMENT_COMPLETED'], 'monri'));
+		if (isset($resultXml->status) && $resultXml->status == 'approved') {
 
-				// Mark order as Paid
-				$order->payment_complete();
+			$resultXml = (array) $resultXml;
+			$order = new WC_Order($resultXml['order-number']);
 
-				// Empty the cart (Very important step)
-				WC()->cart->empty_cart();
+			// Payment has been successful
+			$order->add_order_note(__($lang['PAYMENT_COMPLETED'], 'monri'));
 
-			} else {
-				$order = new WC_Order($resultXml['order-number']);
-				$this->order_failed($order);
-			}
+			// Mark order as Paid
+			$order->payment_complete();
 
+			// Empty the cart (Very important step)
+			WC()->cart->empty_cart();
+
+		} else {
+			$resultXml = (array) $resultXml;
+			$order = new WC_Order($resultXml['order-number']);
+
+			$order->update_status('failed');
+			$order->add_order_note('Failed');
+			//$order->add_order_note($this->msg['message']);
 		}
 	}
 
 	/**
-	 * Send POST request to $url with $params as a field
 	 *
 	 * @param array $params
 	 * @return array
