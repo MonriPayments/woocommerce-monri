@@ -30,8 +30,74 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 		$this->payment->has_fields = true;
 
 		//$this->check_monri_response();
-		add_action('woocommerce_receipt_' . $this->payment->id, [$this, 'process_redirect']);
-		add_action('woocommerce_thankyou_' . $this->payment->id, [$this, 'check_3dsecure_response']);
+		//add_action('woocommerce_receipt_' . $this->payment->id, [$this, 'process_redirect']);
+		//add_action('woocommerce_thankyou_' . $this->payment->id, [$this, 'check_3dsecure_response']);
+
+		// $this->check_3dsecure_response() // when this happens?
+
+		// @todo: check if we can use parse_request here in older Woo? Are gateways loaded?
+		add_action('parse_request', [$this, 'parse_request']);
+	}
+
+	// @todo why we have this? Can't we go back to thankyou page right away and regulate there?
+	public function parse_request() {
+
+		$uri = parse_url(site_url() . $_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+		if ($uri !== '/monri-3ds-payment-result') {
+			return;
+		}
+
+		$payment_token = isset($_GET['payment_token']) ? $_GET['payment_token'] : null;
+
+		if (!$payment_token) {
+			return;
+		}
+
+		// @todo regulate error below (empty return), redirect to cart/cancel?
+
+		try {
+			$arr = json_decode(MonriApi::base64url_decode($payment_token), true);
+			$parsed = [
+				'authenticity_token' => $arr[0],
+				'order_number' => $arr[1],
+				'return_url' => $arr[2]
+			];
+		} catch (Exception $exception) {
+			//error_log("Error while parsing payment token: " . $exception->getMessage());
+			return;
+		}
+
+		$order_number = $parsed['order_number'];
+
+		/** @var SimpleXmlElement $result */
+		$result = Monri_WC_Api::instance()->orders_show($order_number);
+
+		if (is_wp_error($result)) {
+			return;
+		}
+
+		$order = new WC_Order($order_number);
+
+        if (isset($result->status) && trim($result->status) === 'approved') {
+	        // Payment has been successful
+	        $order->update_status('wc-completed', __(Monri_WC_i18n::get_translation('PAYMENT_COMPLETED'), 'monri'));
+
+	        // Empty the cart (Very important step)
+	        WC()->cart->empty_cart();
+
+			//wp_safe_redirect() ??
+	        wp_redirect( $parsed['return_url'] );
+
+        } else {
+	        $order->update_status('failed');
+	        $order->add_order_note('Failed');
+	        //$order->add_order_note('Thank you for shopping with us. However, the transaction has been declined.');
+
+	        wp_redirect(wc_get_cart_url());
+        }
+
+		exit;
 	}
 
 	/**
@@ -93,6 +159,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 	 */
 	public function process_payment($order_id) {
 
+		// @todo regulate errors like commented below
+
 		$monri_token = $_POST['monri-token'] ?? '';
 
 		if (empty($monri_token)) {
@@ -106,7 +174,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 			);
 			*/
 
-			return;
+			return; //??
 		}
 
 		$number_of_installments = isset($_POST['monri-card-installments']) ? (int)$_POST['monri-card-installments'] : 1;
@@ -176,7 +244,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 		$lang = Monri_WC_i18n::get_translation();
 
 		//check if cc have 3Dsecure validation
-		if (isset($result['secure_message'])) {
+		if ( isset($result['secure_message']) ) {
 			//this is 3dsecure card
 			//show user 3d secure form the
 			$result = $result['secure_message'];
@@ -195,13 +263,16 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 				'token' => $result['authenticity_token']
 			);
 
+			// we can use payment page + template here, but it will be refactored anyway
 			$redirect = MONRI_WC_PLUGIN_URL . '3dsecure.php?' . http_build_query($urlEncode);
 			return array(
 				'result' => 'success',
 				'redirect' => $redirect,
 			);
 
-		} elseif (isset($result['transaction']) && $result['transaction']['status'] === 'approved') {
+		}
+
+		if ( isset($result['transaction']) && $result['transaction']['status'] === 'approved' ) {
 
 			$transactionResult = $result['transaction'];
 
@@ -229,12 +300,11 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 				'result' => 'success',
 				'redirect' => $this->payment->get_return_url($order),
 			);
-		} else {
-			//nope
-			wc_add_notice($lang['TRANSACTION_FAILED'], 'error');
-			return false;
 		}
 
+		//nope
+		wc_add_notice($lang['TRANSACTION_FAILED'], 'error');
+		return false; //??
 	}
 
 	/**
@@ -313,6 +383,11 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 	private function base64url_encode($data)
 	{
 		return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+	}
+
+	private function base64url_decode($data)
+	{
+		return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '='));
 	}
 
 }

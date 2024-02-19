@@ -7,7 +7,9 @@ class Monri_WC_i18n {
 		// Monri_WC_Settings::instance()->get_option('language');
 		// get WC/WP language?
 
-		$lang = 'en';
+		// @todo !!
+
+		$lang = Monri_WC_Settings::instance()->get_option('language', 'en');
 
 		return call_user_func([self::class, "get_{$lang}_translation"], $key);
 	}

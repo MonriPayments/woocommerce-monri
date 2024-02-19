@@ -107,6 +107,22 @@ class Monri_WC_Api
 		*/
 	}
 
+	public function refund($order_number, $amount, $currency) {
+
+		$authenticity_token = Monri_WC_Settings::instance()->get_option_bool('authenticity_token');
+
+		$payload = '<?xml version="1.0" encoding="UTF-8"?>
+              <transaction>
+                <amount>' . $amount . '</amount>
+                <currency>' . $currency . '</currency>
+                <order-number>' . $order_number . '</order-number>
+                <authenticity-token>' . $authenticity_token . '</authenticity-token>
+                <digest>' . $this->digest($order_number) . '</digest>
+            </transaction>';
+
+		return $this->request("/transactions/$order_number/refund.xml", $payload);
+	}
+
 	/**
 	 * @param array $post
 	 *
