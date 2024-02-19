@@ -1,6 +1,5 @@
 <?php
 /** @var $config */
-$a;
 ?>
 <div id="monri_components"></div>
 <div id="card-errors" class="" role="alert"></div>

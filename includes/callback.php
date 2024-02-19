@@ -5,9 +5,33 @@ class Monri_WC_Callback
 	public function __construct()
 	{
 	}
+	
+	public function init() {
+		
+	}
 
-	public function process() {
+	public function _parse_request() {
+		$monri_settings = get_option('woocommerce_monri_settings');
 
+
+		if (!is_array($monri_settings) || !isset($monri_settings['callback_url_endpoint'])) {
+			return;
+		}
+
+		$monri_callback_url_endpoint = isset($monri_settings['callback_url_endpoint']) ?
+			$monri_settings['callback_url_endpoint'] : '/monri-callback';
+
+		$merchant_key = null;
+
+		if ($_SERVER['REQUEST_METHOD'] === 'POST' && str_ends_with($_SERVER['REQUEST_URI'], $monri_callback_url_endpoint)) {
+			if (!isset($monri_settings['monri_merchant_key'])) {
+				$this->error('Monri key is not defined or does not exist.', array(404, 'Not Found'));
+			}
+
+			$merchant_key = $monri_settings['monri_merchant_key'];
+		}
+
+		$this->handle_callback();
 	}
 
 	/**
@@ -28,8 +52,7 @@ class Monri_WC_Callback
 	 * @param $message
 	 * @param array $status
 	 */
-	private function error($message, array $status = array())
-	{
+	private function error($message, array $status = array()) {
 		monri_http_status($status);
 		header('Content-Type: text/plain');
 
@@ -40,15 +63,13 @@ class Monri_WC_Callback
 	/**
 	 * Completes the request with Status: 200 OK.
 	 */
-	function monri_done()
-	{
-		echo '';
+	private function done() {
 		monri_http_status(array(200, 'OK'));
 		exit(0);
 	}
 
 	private function redirect($url) {
-		header("Location: ".$url);
+		header("Location: " . $url);
 		exit(0);
 	}
 
@@ -57,11 +78,8 @@ class Monri_WC_Callback
 	 * This endpoint accepts only POST requests which have their payload in the PHP Input Stream.
 	 * The payload must be a valid JSON.
 	 *
-	 * @param $pathname
-	 * @param $merchant_key
-	 * @param $callback
 	 */
-	function monri_handle_callback($pathname, $merchant_key, $callback) {
+	public function handle_callback() {
 
 		if (!str_ends_with($_SERVER['REQUEST_URI'], $pathname)) {
 			return;
@@ -73,14 +91,14 @@ class Monri_WC_Callback
 
 		if ($request_method !== 'POST') {
 			$message = sprintf('Invalid request. Expected POST, received: %s.', $request_method);
-			monri_error($message, $bad_request_header);
+			$this->error($message, $bad_request_header);
 		}
 
 		// Grabbing read-only stream from the request body.
 		$json = file_get_contents('php://input');
 
 		if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
-			monri_error('Authorization header missing.', $bad_request_header);
+			$this->error('Authorization header missing.', $bad_request_header);
 		}
 
 		// Strip-out the 'WP3-callback' part from the Authorization header.
@@ -92,7 +110,7 @@ class Monri_WC_Callback
 
 		// ... and comparing it with one from the headers.
 		if ($digest !== $authorization) {
-			monri_error('Authorization header missing.', $bad_request_header);
+			$this->error('Authorization header missing.', $bad_request_header);
 		}
 
 		$payload = null;
@@ -103,24 +121,46 @@ class Monri_WC_Callback
 			try {
 				$payload = json_decode($json, true);
 			} catch (\JsonException $e) {
-				monri_error($json_malformed, $bad_request_header);
+				$this->error($json_malformed, $bad_request_header);
 			}
 		} // ... and for PHP <= 7.2.
 		else {
 			$payload = json_decode($json, true);
 
 			if ($payload === null && json_last_error() !== JSON_ERROR_NONE) {
-				monri_error($json_malformed, $bad_request_header);
+				$this->error($json_malformed, $bad_request_header);
 			}
 		}
 
 		if (!isset($payload['order_number']) || !isset($payload['status'])) {
-			monri_error('Order information not found in response.', array(404, 'Not Found'));
+			$this->error('Order information not found in response.', array(404, 'Not Found'));
 		}
 
-		call_user_func($callback($payload));
+		$order_number = $payload['order_number'];
+
+		try {
+			$order = new WC_Order($order_number);
+
+			$skip_statuses = array('cancelled', 'failed', 'refunded');
+
+			if (in_array($order->get_status(), $skip_statuses)) {
+				monri_done();
+			}
+
+			if ($payload['status'] === 'approved') {
+				$note = sprintf(
+					'Order #%s-%s is successfully processed, ref. num. %s: %s.',
+					$payload['id'], $order_number, $payload['reference_number'], $payload['response_message']
+				);
+
+				$order->update_status('wc-completed', $note);
+				$order->add_order_note($note);
+			}
+		} catch (\Exception $e) {
+			$message = sprintf('Order ID: %s not found or does not exist.', $order_number);
+			$this->error($message, array(404, 'Not Found'));
+		}
+
 		monri_done();
 	}
-
-
 }

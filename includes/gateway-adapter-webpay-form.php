@@ -43,8 +43,17 @@ class Monri_WC_Gateway_Adapter_Webpay_Form
 	public function process_payment($order_id) {
 		$order = wc_get_order($order_id);
 
-		//@todo validate in validate_fields() ?? prevents order creation
+		//@todo validate in validate_fields() ??
 		$validation = $this->validate_form_fields($order);
+
+		// @todo regulate error, empty return !!
+		/*
+		return array(
+			'result'   => 'failure',
+			'redirect' => $order->get_checkout_payment_url( true ),
+			'message'  => $e->getMessage(),
+		);
+		*/
 
 		if (!empty($validation)) {
 			wc_add_notice($validation[0], 'error');

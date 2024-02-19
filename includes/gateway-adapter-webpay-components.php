@@ -33,7 +33,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 		//add_action('woocommerce_receipt_' . $this->payment->id, [$this, 'process_redirect']);
 		//add_action('woocommerce_thankyou_' . $this->payment->id, [$this, 'check_3dsecure_response']);
 
-		// $this->check_3dsecure_response() // when this happens?
+		//$this->check_3dsecure_response(); // when this happens?
 
 		// @todo: check if we can use parse_request here in older Woo? Are gateways loaded?
 		add_action('parse_request', [$this, 'parse_request']);

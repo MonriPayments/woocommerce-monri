@@ -46,19 +46,6 @@ function monri_wc_action_links($links) {
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'monri_wc_action_links');
 
 
-// Registers Blocks integration.
-function monri_wc_block_support() {
-	if ( class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
-		require_once __DIR__ . '/includes/blocks-support.php';
-		add_action(
-			'woocommerce_blocks_payment_method_type_registration',
-			function( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
-				$payment_method_registry->register( new Monri_WC_Blocks_Support() );
-			}
-		);
-	}
-}
-add_action( 'woocommerce_blocks_loaded', 'monri_wc_block_support');
 
 
 // controllers here? call what's needed

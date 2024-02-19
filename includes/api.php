@@ -97,16 +97,15 @@ class Monri_WC_Api
             </order>';
 
 		return $this->request('/orders/show', $payload);
-
-		/*
-		if (!$result !== false) {
-			return false;
-		}
-
-		return trim($result->status) !== 'declined';
-		*/
 	}
 
+	/**
+	 * @param string $order_number
+	 * @param float|string $amount
+	 * @param string $currency
+	 *
+	 * @return SimpleXmlElement|WP_Error
+	 */
 	public function refund($order_number, $amount, $currency) {
 
 		$authenticity_token = Monri_WC_Settings::instance()->get_option_bool('authenticity_token');
