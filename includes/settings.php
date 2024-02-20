@@ -339,15 +339,4 @@ class Monri_WC_Settings
 	{
 		return in_array( $this->get_option( $key ),  array( 'yes', '1', true ), true );
 	}
-
-	/**
-	 * @return bool
-	 */
-	public function is_enabled()
-	{
-		return $this->get_option_bool('enabled') &&
-			$this->get_option('client_id') &&
-			$this->get_option('client_secret');
-	}
-
 }

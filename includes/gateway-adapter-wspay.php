@@ -35,17 +35,6 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$this->payment = $payment;
 
 		$this->shop_id = $this->payment->get_option(
-			$this->tokenization_enabled() ?
-				'monri_ws_pay_form_tokenization_shop_id' :
-				'monri_ws_pay_form_shop_id'
-		);
-		$this->secret  = $this->payment->get_option(
-			$this->tokenization_enabled() ?
-				'monri_ws_pay_form_tokenization_secret' :
-				'monri_ws_pay_form_secret'
-		);
-
-		$this->shop_id = $this->payment->get_option(
 			'monri_ws_pay_form_shop_id'
 		);
 		$this->secret  = $this->payment->get_option(
@@ -74,8 +63,19 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return '121212';
 		}, 10, 2 );
 		*/
+	}
 
-
+	public function use_tokenization_credentials() {
+		$this->shop_id = $this->payment->get_option(
+			$this->tokenization_enabled() ?
+				'monri_ws_pay_form_tokenization_shop_id' :
+				'monri_ws_pay_form_shop_id'
+		);
+		$this->secret  = $this->payment->get_option(
+			$this->tokenization_enabled() ?
+				'monri_ws_pay_form_tokenization_secret' :
+				'monri_ws_pay_form_secret'
+		);
 	}
 
 	/**
@@ -104,12 +104,56 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	 */
 	public function process_payment( $order_id ) {
 
-		$order        = wc_get_order( $order_id );
-		$order_number = (string) $order->get_id();
+		$order = wc_get_order( $order_id );
 
+		$order_number = (string) $order->get_id();
 		$order_number .= '-test' . time();
 
-		$req                   = [];
+		$req = [];
+
+		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in() ) {
+
+			$use_token = null;
+			if ( isset( $_POST['wc-monri-payment-token'] ) &&
+			     ! in_array($_POST['wc-monri-payment-token'], ['not-selected', 'new', ''], true)
+			) {
+				$token_id = $_POST['wc-monri-payment-token'];
+				$tokens = $this->payment->get_tokens();
+
+				if (!isset($tokens[$token_id])) {
+					return [
+						'result'  => 'failure',
+						'message' => __( 'Token does not exist.' ),
+					];
+				}
+
+				/** @var Monri_WC_Payment_Token_Wspay $use_token */
+				$use_token = $tokens[$token_id];
+			}
+
+			$new_token = isset( $_POST['wc-monri-new-payment-method'] ) &&
+			             $_POST['wc-monri-new-payment-method'] === 'true';
+
+			// paying with tokenized card
+			if ( $use_token ) {
+
+				//$this->shop_id = 'FAVICODEM';
+				//$this->secret  = '4c43116cccfe4Q';
+
+				// different shop_id/secret here ?!!
+				//$decoded_card       = json_decode( base64_decode( $tokenized_card ) );
+				$req['Token']       = $use_token->get_token();
+				$req['TokenNumber'] = $use_token->get_last4();
+
+				update_post_meta( $order_id, '_monri_order_token_used', 1 );
+				$this->use_tokenization_credentials();
+
+				// tokenize/save new card
+			} elseif ( $new_token ) {
+				$req['IsTokenRequest'] = '1';
+			}
+		}
+
 		$req['shopID']         = $this->shop_id;
 		$req['shoppingCartID'] = $order_number;
 
@@ -138,45 +182,6 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$req['customerCountry']   = $order->get_billing_country();
 		$req['customerPhone']     = $order->get_billing_phone();
 		$req['customerEmail']     = $order->get_billing_email();
-
-		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in() ) {
-
-			// After successful transaction WSPayForm redirects to ReturnURL as described in Parameters which
-			// WSPayForm returns to web shop - ReturnURL with three additional parameters:
-			// Token - unique identifier representing payment type for the single user of the web shop
-			// TokenNumber – number that corresponds to the last 4 digits of the credit card
-			// TokenExp – presenting expiration date of the credit card (YYMM)
-
-			// Payment using token
-			// <input type="hidden" name="Token" value="e32c9607-f77d-44d5-98e8-e58c9f279bfd">
-			// <input type="hidden" name="TokenNumber" value="0189">
-
-			$use_token = null;
-			if ( isset( $_POST['wc-monri-payment-token'] ) &&
-			     ! in_array($_POST['wc-monri-payment-token'], ['not-selected', 'new', ''], true)
-			) {
-				$token_id = $_POST['wc-monri-payment-token'];
-				$tokens = $this->payment->get_tokens();
-				$use_token = $tokens[$token_id];
-			}
-
-			$new_token = isset( $_POST['wc-monri-new-payment-method'] ) &&
-			                  $_POST['wc-monri-new-payment-method'] === 'true';
-
-			// paying with tokenized card
-			if ( $use_token ) {
-
-				// different shop_id/secret here ?!!
-
-				$decoded_card       = json_decode( base64_decode( $tokenized_card ) );
-				$req['Token']       = $decoded_card[0];
-				$req['TokenNumber'] = $decoded_card[1];
-
-			// tokenize/save new card
-			} elseif ( $new_token ) {
-				$req['IsTokenRequest'] = '1';
-			}
-		}
 
 		$response = $this->api( '/api/create-transaction', $req );
 
@@ -211,8 +216,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		//return;
 
 		$order_id = $_REQUEST['ShoppingCartID']; // is there wp param?
-
 		$order_id = strstr( $order_id, '-test', true );
+		//$order_id = wc_get_order_id_by_order_key($_REQUEST['key']); // load by wp key?
 
 		$order = wc_get_order( $order_id );
 
@@ -220,7 +225,10 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return;
 		}
 
-		//$order_id = wc_get_order_id_by_order_key($_REQUEST['key']); // load by wp key?
+		$is_tokenization = get_post_meta( $order_id, '_monri_order_token_used', true );
+		if ($is_tokenization) {
+			$this->use_tokenization_credentials();
+		}
 
 		if ( ! $this->validate_return( $_REQUEST ) ) {
 			// throw error? redirect to error?
