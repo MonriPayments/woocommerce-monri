@@ -17,6 +17,7 @@ define( 'MONRI_WC_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 require_once __DIR__ . '/includes/settings.php';
 require_once __DIR__ . '/includes/logger.php';
 require_once __DIR__ . '/includes/i18n.php';
+require_once __DIR__ . '/util.php';
 
 function monri_wc_init() {
     if (!class_exists('WC_Payment_Gateway')) {
@@ -35,6 +36,7 @@ function monri_wc_init() {
 }
 add_action('plugins_loaded', 'monri_wc_init', 0);
 
+
 function monri_wc_action_links($links) {
 	$links[] = sprintf(
 		'<a href="%s">%s</a>',
@@ -46,20 +48,20 @@ function monri_wc_action_links($links) {
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'monri_wc_action_links');
 
 
+// Registers Blocks integration.
+function monri_wc_block_support() {
+	if ( class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
+		require_once __DIR__ . '/includes/blocks-support.php';
+		add_action(
+			'woocommerce_blocks_payment_method_type_registration',
+			function( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
+				$payment_method_registry->register( new Monri_WC_Blocks_Support() );
+			}
+		);
+	}
+}
+add_action( 'woocommerce_blocks_loaded', 'monri_wc_block_support');
 
 
 // controllers here? call what's needed
 // install/uninstall here
-
-/*
-require_once __DIR__ . '/util.php';
-require_once __DIR__ . '/monri-i18n.php';
-
-define('MONRI_CALLBACK_IMPL', true);
-require_once __DIR__ . '/callback-url.php';
-
-define('MONRI_WS_PAY_REDIRECT', true);
-require_once __DIR__ . '/ws-pay-redirect.php';
-
-require_once __DIR__ . '/monri-api.php';
-*/
