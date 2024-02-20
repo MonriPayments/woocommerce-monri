@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @todo: popravit thankyou poruke + vidit kako je bolje
+ * switchanje tokenizacijskih kljuceva - kako je u magentu? mislim da njihovo nije dobro
+ */
 class Monri_WC_Gateway_Adapter_Wspay {
 
 	public const ADAPTER_ID = 'wspay';
