@@ -29,11 +29,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 		$this->payment = $payment;
 		$this->payment->has_fields = true;
 
-		//$this->check_monri_response();
 		//add_action('woocommerce_receipt_' . $this->payment->id, [$this, 'process_redirect']);
-		//add_action('woocommerce_thankyou_' . $this->payment->id, [$this, 'check_3dsecure_response']);
-
-		//$this->check_3dsecure_response(); // when this happens?
 
 		// @todo: check if we can use parse_request here in older Woo? Are gateways loaded?
 		add_action('parse_request', [$this, 'parse_request']);
@@ -77,7 +73,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 			return;
 		}
 
-		$order = new WC_Order($order_number);
+		$order = wc_get_order($order_number);
 
         if (isset($result->status) && trim($result->status) === 'approved') {
 	        // Payment has been successful
@@ -178,7 +174,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 		$number_of_installments = isset($_POST['monri-card-installments']) ? (int)$_POST['monri-card-installments'] : 1;
 		$number_of_installments = min(max($number_of_installments, 1), 24);
 
-		$order = new WC_Order($order_id);
+		$order = wc_get_order($order_id);
 		$amount = $order->get_total();
 
 		//Check transaction type
@@ -275,7 +271,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 
 			$transactionResult = $result['transaction'];
 
-			$order = new WC_Order($transactionResult['order_number']);
+			$order = wc_get_order($transactionResult['order_number']);
 
 			//Payment has been successful
 			$order->add_order_note(__($lang['PAYMENT_COMPLETED'], 'monri'));
@@ -310,53 +306,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 		//nope
 		wc_add_notice($lang['TRANSACTION_FAILED'], 'error');
 		return false; //??
-	}
-
-	/**
-	 * Check for valid 3dsecure response
-	 *
-	 * @return void
-	 **/
-	public function check_3dsecure_response()
-	{
-		$lang = Monri_WC_i18n::get_translation();
-
-        Monri_WC_Logger::log("3D secure response: " . print_r($_POST, true), __METHOD__);
-
-		// @todo what if not isset?
-
-		if (!isset($_POST['PaRes'])) {
-			return;
-		}
-
-		/** @var SimpleXMLElement $resultXml */
-		$resultXml = Monri_WC_Api::instance()->pares($_POST);
-		if ( is_wp_error($resultXml) ) {
-			return; //??
-		}
-
-		if (isset($resultXml->status) && $resultXml->status == 'approved') {
-
-			$resultXml = (array) $resultXml;
-			$order = new WC_Order($resultXml['order-number']);
-
-			// Payment has been successful
-			$order->add_order_note(__($lang['PAYMENT_COMPLETED'], 'monri'));
-
-			// Mark order as Paid
-			$order->payment_complete();
-
-			// Empty the cart (Very important step)
-			WC()->cart->empty_cart();
-
-		} else {
-			$resultXml = (array) $resultXml;
-			$order = new WC_Order($resultXml['order-number']);
-
-			$order->update_status('failed');
-			$order->add_order_note('Failed');
-			//$order->add_order_note($this->msg['message']);
-		}
 	}
 
 	/**

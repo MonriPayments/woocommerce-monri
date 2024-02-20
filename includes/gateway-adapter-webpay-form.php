@@ -43,31 +43,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Form
 	public function process_payment($order_id) {
 		$order = wc_get_order($order_id);
 
-		// @todo regulate error, empty return !!
-		/*
-		return array(
-			'result'   => 'failure',
-			'redirect' => $order->get_checkout_payment_url( true ),
-			'message'  => $e->getMessage(),
-		);
-		*/
-		//
-
 		return [
 			'result' => 'success',
 			'redirect' => $order->get_checkout_payment_url(true)
 		];
-
-		/*
-		return array(
-			'result' => 'success',
-			'redirect' => add_query_arg(
-				'order',
-				$order->get_id(),
-				add_query_arg('key', $order->get_order_key(), wc_get_checkout_url())
-			)
-		);
-		*/
 	}
 
 	public function validate_fields() {

@@ -13,7 +13,7 @@ function monri_ws_pay_handle_redirect()
     $rv = $monri->monri_ws_pay_handle_redirect(MonriI18n::get_en_translation());
     if ($rv['success']) {
         // Thankyou page
-		$order = new WC_Order($rv['order_id']);
+		$order = wc_get_order($rv['order_id']);
 		$url = wc_get_endpoint_url( 'order-received', $order->get_id(), wc_get_checkout_url() );
 		$url = add_query_arg( 'key', $order->get_order_key(), $url );
     } else {

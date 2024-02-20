@@ -87,7 +87,7 @@ class Monri_WC_Api
 	 */
 	public function orders_show($order_number) {
 
-		$authenticity_token = Monri_WC_Settings::instance()->get_option_bool('authenticity_token');
+		$authenticity_token = Monri_WC_Settings::instance()->get_option('monri_authenticity_token');
 
 		$payload = '<?xml version="1.0" encoding="UTF-8"?>
               <order>
@@ -108,7 +108,7 @@ class Monri_WC_Api
 	 */
 	public function refund($order_number, $amount, $currency) {
 
-		$authenticity_token = Monri_WC_Settings::instance()->get_option_bool('authenticity_token');
+		$authenticity_token = Monri_WC_Settings::instance()->get_option('monri_authenticity_token');
 
 		$payload = '<?xml version="1.0" encoding="UTF-8"?>
               <transaction>
@@ -145,7 +145,7 @@ class Monri_WC_Api
 	 */
 	private function digest($order_number) {
 
-		$merchant_key = Monri_WC_Settings::instance()->get_option_bool('merchant_key');
+		$merchant_key = Monri_WC_Settings::instance()->get_option('monri_merchant_key');
 		return hash('SHA1', $merchant_key . $order_number);
 	}
 

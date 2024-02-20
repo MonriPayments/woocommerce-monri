@@ -139,7 +139,7 @@ class Monri_WC_Callback
 		$order_number = $payload['order_number'];
 
 		try {
-			$order = new WC_Order($order_number);
+			$order = wc_get_order($order_number);
 
 			$skip_statuses = array('cancelled', 'failed', 'refunded');
 
