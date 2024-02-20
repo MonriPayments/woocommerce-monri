@@ -1,6 +1,7 @@
 <?php
 
 class Monri_WC_Gateway_Adapter_Wspay {
+
 	public const ADAPTER_ID = 'wspay';
 
 	public const ENDPOINT_TEST = 'https://formtest.wspay.biz';
@@ -45,7 +46,14 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			$this->payment->supports[] = 'tokenization';
 		}
 
-		add_action( 'woocommerce_thankyou_monri', [ $this, 'process_return' ] );
+		add_action( 'woocommerce_thankyou_monri', [ $this, 'thankyou_page' ] );
+		//add_action( 'woocommerce_thankyou', [ $this, 'process_return' ] );
+
+		/*
+		add_filter( 'woocommerce_thankyou_order_received_text', function() {
+			return '121212';
+		}, 10, 2 );
+		*/
 	}
 
 	/**
@@ -59,11 +67,6 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	 * @return void
 	 */
 	public function payment_fields() {
-
-		$description = $this->payment->get_description();
-		if ( $description ) {
-			echo wpautop( wptexturize( $description ) );
-		}
 
 		if ( $this->tokenization_enabled() && is_checkout() ) {
 			$this->payment->tokenization_script();
@@ -81,11 +84,13 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$order        = wc_get_order( $order_id );
 		$order_number = (string) $order->get_id();
 
+		$order_number .= '-test' . time();
+
 		$req                   = [];
 		$req['shopID']         = $this->shop_id;
 		$req['shoppingCartID'] = $order_number;
 
-		$amount             = number_format( $order->get_total(), 2, ',', '' );
+		$amount = number_format( $order->get_total(), 2, ',', '' );
 		$req['totalAmount'] = $amount;
 
 		$req['signature'] = $this->sign_transaction( $order_number, $amount );
@@ -94,10 +99,14 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$req['returnURL'] = $order->get_checkout_order_received_url();
 
 		// TODO: implement this in a different way
-		$req['returnErrorURL'] = $order->get_cancel_endpoint();
-		$req['cancelURL']      = $order->get_cancel_endpoint();
+		//$req['returnErrorURL'] = $order->get_cancel_endpoint();
+		//$req['cancelURL']      = $order->get_cancel_endpoint();
 
-		$req['version']           = "2.0";
+		$cancel_url            = str_replace( '&amp;', '&', $order->get_cancel_order_url() );
+		$req['returnErrorURL'] = $cancel_url;
+		$req['cancelURL']      = $cancel_url;
+
+		$req['version']           = '2.0';
 		$req['customerFirstName'] = $order->get_billing_first_name();
 		$req['customerLastName']  = $order->get_billing_last_name();
 		$req['customerAddress']   = $order->get_billing_address_1();
@@ -154,21 +163,34 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		}
 	}
 
+
+	public function show_message($message, $class = '') {
+		return '<div class="box ' . $class . '-box">' . $message . '</div>';
+	}
+
 	/**
 	 * @return void
 	 */
-	public function process_return() {
+	public function thankyou_page() {
+
+		//echo $this->show_message('wqewqeqe', 'woocommerce_message woocommerce_error');
+		//echo 12345;
+		//return;
 
 		$order_id = $_REQUEST['ShoppingCartID']; // is there wp param?
 
-		$order = new WC_Order( $order_id );
+		$order_id = strstr($order_id, '-test', true);
 
-		if ( $order->get_payment_method() !== $this->payment->id ) {
+		$order = wc_get_order( $order_id );
+
+		if ( ! $order || $order->get_payment_method() !== $this->payment->id ) {
 			return;
 		}
 
+		//$order_id = wc_get_order_id_by_order_key($_REQUEST['key']); // load by wp key?
+
 		if ( ! $this->validate_return( $_REQUEST ) ) {
-			// throw error?
+			// throw error? redirect to error?
 			return;
 		}
 
@@ -192,7 +214,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 				$this->msg['class']   = 'woocommerce_message';
 
 				$order->payment_complete();
-				$order->add_order_note( $lang['MONRI_SUCCESS'] . $_REQUEST['approval_code'] );
+				$order->add_order_note( $lang['MONRI_SUCCESS'] . $approval_code );
 				//$order->add_order_note($this->msg['message']);
 				WC()->cart->empty_cart();
 
@@ -230,14 +252,14 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	 */
 	private function validate_return( $request ) {
 
-		if ( ! isset( $request['ShoppingCartID'] ) ) {
+		if ( ! isset( $request['ShoppingCartID'], $request['Signature'] ) ) {
 			return false;
 		}
 
 		$order_id      = $request['ShoppingCartID'];
 		$digest        = $request['Signature'];
 		$success       = $request['Success'] ?? '0';
-		$approval_code = $request['ApprovalCode'] ?? null;
+		$approval_code = $request['ApprovalCode'] ?? '';
 
 		$shop_id    = $this->shop_id;
 		$secret_key = $this->secret;
