@@ -34,7 +34,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form
 
 		//$this->check_monri_response();
 		add_action('woocommerce_receipt_monri', [$this, 'process_redirect']);
-		add_action('woocommerce_thankyou_monri', [$this, 'process_return']);
+        add_action('woocommerce_thankyou', [$this, 'process_return']);
 	}
 
 	/**
@@ -42,9 +42,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Form
 	 **/
 	public function process_payment($order_id) {
 		$order = wc_get_order($order_id);
-
-		//@todo validate in validate_fields() ??
-		$validation = $this->validate_form_fields($order);
 
 		// @todo regulate error, empty return !!
 		/*
@@ -54,11 +51,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Form
 			'message'  => $e->getMessage(),
 		);
 		*/
-
-		if (!empty($validation)) {
-			wc_add_notice($validation[0], 'error');
-			return;
-		}
 		//
 
 		return [
@@ -79,42 +71,33 @@ class Monri_WC_Gateway_Adapter_Webpay_Form
 	}
 
 	public function validate_fields() {
-		return false;
-		//$post_data = wc()->checkout()->get_posted_data(); // use this or $_POST
-		throw new Exception('lol'); // throw on error
-		return;
-	}
 
-	/**
-	 * Validate WooCommerce Form fields
-	 * @todo refactor to validate_fields()
-	 **/
-	public function validate_form_fields($order) {
-		$lang = Monri_WC_i18n::get_translation();
-		$validation = [];
+        $lang = Monri_WC_i18n::get_translation();
+        $post_data = wc()->checkout()->get_posted_data();
 
-		if (strlen($order->billing_first_name) < 3 || strlen($order->billing_first_name) > 11) {
-			$validation[] = $lang['FIRST_NAME_ERROR'];
-		}
-		if (strlen($order->billing_last_name) < 3 || strlen($order->billing_last_name) > 18) {
-			$validation[] = $lang['LAST_NAME_ERROR'];
-		}
-		if (strlen($order->billing_address_1) < 3 || strlen($order->billing_address_1) > 300) {
-			$validation[] = $lang['ADDRESS_ERROR'];
-		}
-		if (strlen($order->billing_city) < 3 || strlen($order->billing_city) > 30) {
-			$validation[] = $lang['CITY_ERROR'];
-		}
-		if (strlen($order->billing_postcode) < 3 || strlen($order->billing_postcode) > 9) {
-			$validation[] = $lang['ZIP_ERROR'];
-		}
-		if (strlen($order->billing_phone) < 3 || strlen($order->billing_phone) > 30) {
-			$validation[] = $lang['PHONE_ERROR'];
-		}
-		if (strlen($order->billing_email) < 3 || strlen($order->billing_email) > 100) {
-			$validation[] = $lang['EMAIL_ERROR'];
-		}
-		return $validation;
+        if (empty($post_data['billing_first_name']) || strlen($post_data['billing_first_name']) < 3 || strlen($post_data['billing_first_name']) > 11) {
+            throw new Exception($lang['FIRST_NAME_ERROR']);
+        }
+        if (empty($post_data['billing_last_name']) || strlen($post_data['billing_last_name']) < 3 || strlen($post_data['billing_last_name']) > 18) {
+            throw new Exception($lang['LAST_NAME_ERROR']);
+        }
+        if (empty($post_data['billing_address_1']) || strlen($post_data['billing_address_1']) < 3 || strlen($post_data['billing_address_1']) > 300) {
+            throw new Exception($lang['ADDRESS_ERROR']);
+        }
+        if (empty($post_data['billing_city']) || strlen($post_data['billing_city']) < 3 || strlen($post_data['billing_city']) > 30) {
+            throw new Exception($lang['CITY_ERROR']);
+        }
+        if (empty($post_data['billing_postcode']) || strlen($post_data['billing_postcode']) < 3 || strlen($post_data['billing_postcode']) > 9) {
+            throw new Exception($lang['ZIP_ERROR']);
+        }
+        if (empty($post_data['billing_phone']) || strlen($post_data['billing_phone']) < 3 || strlen($post_data['billing_phone']) > 30) {
+            throw new Exception($lang['PHONE_ERROR']);
+        }
+        if (empty($post_data['billing_email']) || strlen($post_data['billing_email']) < 3 || strlen($post_data['billing_email']) > 100) {
+            throw new Exception($lang['EMAIL_ERROR']);
+        }
+
+		return true;
 	}
 
 	/**
@@ -160,8 +143,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Form
 			'transaction_type' => $this->settings->get_option_bool('transaction_type') ? 'authorize' : 'purchase',
 			'authenticity_token' => $token,
 			'digest' => $digest,
-			'success_url_override' => $this->payment->get_return_url() . '&status=success', // from
-			'cancel_url_override' => $this->payment->get_return_url() . '&status=cancel',
+			'success_url_override' => $this->payment->get_return_url($order), // from
+			'cancel_url_override' => $order->get_cancel_order_url(),
 		);
 
 		/*
@@ -177,6 +160,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Form
 			$args['callback_url_override'] = $callback_url_override;
 		}
 		*/
+
+        Monri_WC_Logger::log("Request data: " . print_r($args, true), __METHOD__);
 
 		wc_get_template('redirect-form.php', [
 			'action' => $this->settings->get_option_bool('test_mode') ? self::ENDPOINT_TEST : self::ENDPOINT,
@@ -206,29 +191,38 @@ class Monri_WC_Gateway_Adapter_Webpay_Form
 	 * Check for valid monri server callback
 	 **/
 	public function process_return() {
-		global $woocommerce;
-
 		$lang = Monri_WC_i18n::get_translation();
 
-		if (isset($_REQUEST['approval_code']) && isset($_REQUEST['digest'])) {
+        Monri_WC_Logger::log("Response data: " . print_r($_REQUEST, true), __METHOD__);
+        $order_id = $_REQUEST['order_number'];
 
+        if (!$order_id) {
+            return;
+        }
+
+        $order = wc_get_order($order_id);
+
+        if ($order->get_payment_method() !== $this->payment->id) {
+            return;
+        }
+
+        if ($order->get_status() === 'completed') {
+            return;
+        }
+
+        if (empty($_REQUEST['approval_code']) || empty($_REQUEST['digest'])) {
+            $order->update_status('failed');
+            return;
 		}
 
-		wp_enqueue_style('thankyou-page', plugins_url() . '/woocommerce-monri/assets/style/thankyou-page.css');
-
-		$order_id = $_REQUEST['order_number'];
-
-		if (!$order_id) {
-			return;
-		}
+		//wp_enqueue_style('thankyou-page', plugins_url() . '/woocommerce-monri/assets/style/thankyou-page.css');
 
 		try {
-			$order = new WC_Order($order_id);
 
 			$digest = $_REQUEST['digest'];
 			$response_code = $_REQUEST['response_code'];
 
-			$thankyou_page = wc_get_checkout_url() . get_option('woocommerce_checkout_order_received_endpoint', 'order-received');
+            $thankyou_page = $this->payment->get_return_url($order);
 			$url = strtok($thankyou_page, '?');
 
 			$query_string = $this->get_query_string();
@@ -236,74 +230,52 @@ class Monri_WC_Gateway_Adapter_Webpay_Form
 
 			$calculated_url = preg_replace('/&digest=[^&]*/', '', $full_url);
 			//Generate digest
-			$check_digest = hash('sha512', $this->settings->get_option('monri_authenticity_token') . $calculated_url);
+			$check_digest = hash('sha512', $this->settings->get_option('monri_merchant_key') . $calculated_url);
 
-			$trx_authorized = false;
-			if ($order->status !== 'completed') {
-				if ($digest == $check_digest) {
-					if ($response_code == "0000") {
-						$trx_authorized = true;
-						$this->msg['message'] = $lang["THANK_YOU_SUCCESS"];
-						$this->msg['class'] = 'woocommerce_message';
+            if ($digest !== $check_digest) {
+                $order->update_status('failed', 'Mismatch between digest and calculated digest');
+                return;
+            }
 
-						if ($order->status == 'processing') {
+            if ($response_code == "0000") {
 
-						} else {
-							$order->payment_complete();
-							$order->add_order_note($lang["MONRI_SUCCESS"] . $_REQUEST['approval_code']);
-							$order->add_order_note($this->msg['message']);
-							$order->add_order_note("Issuer: " . $_REQUEST['issuer']);
-							if ($_REQUEST['number_of_installments'] > 1) {
-								$order->add_order_note($lang['NUMBER_OF_INSTALLMENTS'] . ": " . $_REQUEST['number_of_installments']);
-							}
-							$woocommerce->cart->empty_cart();
-						}
-					} else if ($response_code == "pending") {
-						$this->msg['message'] = $lang["THANK_YOU_PENDING"];
-						$this->msg['class'] = 'woocommerce_message woocommerce_message_info';
-						$order->add_order_note($lang['MONRI_PENDING'] . $_REQUEST['approval_code']);
-						$order->add_order_note($this->msg['message']);
-						$order->add_order_note("Issuer: " . $_REQUEST['issuer']);
-						if ($_REQUEST['number_of_installments'] > 1) {
-							$order->add_order_note($lang['NUMBER_OF_INSTALLMENTS'] . ": " . $_REQUEST['number_of_installments']);
-						}
-						$order->update_status('on-hold');
-						$woocommerce->cart->empty_cart();
-					} else {
-						$this->msg['class'] = 'woocommerce_error';
-						$this->msg['message'] = $lang['THANK_YOU_DECLINED'];
-						$order->add_order_note($lang['THANK_YOU_DECLINED_NOTE'] . $_REQUEST['Error']);
-					}
-				} else {
-					$this->security_error($lang);
+                if ($order->get_status() !== 'processing') {
+                    $order->payment_complete();
+                    $order->add_order_note($lang["MONRI_SUCCESS"] . $_REQUEST['approval_code']);
+                    $order->add_order_note($lang["THANK_YOU_SUCCESS"]);
+                    $order->add_order_note("Issuer: " . $_REQUEST['issuer']);
 
-				}
-				if ($trx_authorized == false) {
-					$order->update_status('failed');
-					$order->add_order_note('Failed');
-					$order->add_order_note($this->msg['message']);
-				}
+                    if ($_REQUEST['number_of_installments'] > 1) {
+                        $order->add_order_note($lang['NUMBER_OF_INSTALLMENTS'] . ": " . $_REQUEST['number_of_installments']);
+                    }
 
-				add_action('the_content', array(&$this, 'showMessage'));
-			}
+                    WC()->cart->empty_cart();
+                }
+
+            } else if ($response_code == "pending") {
+                $order->add_order_note($lang['MONRI_PENDING'] . $_REQUEST['approval_code']);
+                $order->add_order_note($lang["THANK_YOU_PENDING"]);
+                $order->add_order_note("Issuer: " . $_REQUEST['issuer']);
+
+                if ($_REQUEST['number_of_installments'] > 1) {
+                    $order->add_order_note($lang['NUMBER_OF_INSTALLMENTS'] . ": " . $_REQUEST['number_of_installments']);
+                }
+
+                $order->update_status('on-hold');
+                WC()->cart->empty_cart();
+
+            } else {
+                $order->update_status('failed', 'Response not authorized');
+                $order->add_order_note($lang['THANK_YOU_DECLINED_NOTE'] . $_REQUEST['Error']);
+            }
+
 		} catch (Exception $e) {
-			// $errorOccurred = true;
-			$msg = "Error";
+            Monri_WC_Logger::log("Error while processing response for order $order_id: " . $e->getMessage(),
+                __METHOD__
+            );
+
+            $order->update_status('failed', 'Error while checking form response');
 		}
 
 	}
-
-	function showMessage($content) {
-		return '<div class="box ' . $this->msg['class'] . '-box">' . $this->msg['message'] . '</div>' . $content;
-	}
-
-	/**
-	 * @param $lang
-	 * @return void
-	 */
-	public function security_error($lang) {
-		$this->msg['class'] = 'error';
-		$this->msg['message'] = $lang['SECURITY_ERROR'];
-	}
-
 }

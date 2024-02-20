@@ -6,10 +6,10 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title><?php esc_html_e('Monri 3D Secure Verification') ?></title>
+        <title><?php echo 'Monri 3D Secure Verification' ?></title>
 	</head>
 	<body style="display:none">
-		<p><?php esc_html_e('Invoking 3-D secure form, please wait ...' ) ?></p>
+        <p><?php echo 'Invoking 3-D secure form, please wait ...'; ?></p>
 		<form id="3ds-redirect" name="form" action="<?php echo $_GET['acsUrl'] ?>" method="post">
 			<input  class="form-control" type="hidden" name="PaReq" value="<?php echo $_GET['pareq'] ?>">
 			<input  class="form-control" type="hidden" name="TermUrl" value="<?php echo $_GET['returnUrl'] ?>">

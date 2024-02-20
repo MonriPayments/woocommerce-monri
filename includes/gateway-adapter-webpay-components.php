@@ -57,7 +57,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 		// @todo regulate error below (empty return), redirect to cart/cancel?
 
 		try {
-			$arr = json_decode(MonriApi::base64url_decode($payment_token), true);
+			$arr = json_decode($this->base64url_decode($payment_token), true);
 			$parsed = [
 				'authenticity_token' => $arr[0],
 				'order_number' => $arr[1],
@@ -161,20 +161,18 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 
 		// @todo regulate errors like commented below
 
+        $order = wc_get_order($order_id);
+
 		$monri_token = $_POST['monri-token'] ?? '';
 
 		if (empty($monri_token)) {
 			wc_add_notice(Monri_WC_i18n::get_translation('TRANSACTION_FAILED'), 'error');
 
-			/*
 			return array(
 				'result'   => 'failure',
 				'redirect' => $order->get_checkout_payment_url( true ),
-				'message'  => $e->getMessage(),
+				'message'  => __('Token is not provided'),
 			);
-			*/
-
-			return; //??
 		}
 
 		$number_of_installments = isset($_POST['monri-card-installments']) ? (int)$_POST['monri-card-installments'] : 1;
@@ -238,8 +236,9 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 			$params['number_of_installments'] = $number_of_installments;
 		}
 
+        Monri_WC_Logger::log("Request data: " . print_r($params, true), __METHOD__);
+
 		$result = $this->request($params);
-		//@todo log repsonse (resultJSON) here?
 
 		$lang = Monri_WC_i18n::get_translation();
 
@@ -302,6 +301,12 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 			);
 		}
 
+        return array(
+            'result'   => 'failure',
+            'redirect' => $order->get_checkout_payment_url( true ),
+            'message'  => $lang['TRANSACTION_FAILED'],
+        );
+
 		//nope
 		wc_add_notice($lang['TRANSACTION_FAILED'], 'error');
 		return false; //??
@@ -315,6 +320,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 	public function check_3dsecure_response()
 	{
 		$lang = Monri_WC_i18n::get_translation();
+
+        Monri_WC_Logger::log("3D secure response: " . print_r($_POST, true), __METHOD__);
 
 		// @todo what if not isset?
 
@@ -360,9 +367,9 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 	protected function request($params)
 	{
 		$url = $this->payment->get_option_bool('test_mode') ? self::TRANSACTION_ENDPOINT_TEST : self::TRANSACTION_ENDPOINT;
-
+        $requestParams['transaction'] = $params;
 		$result = wp_remote_post($url, [
-				'body' => json_encode($params),
+				'body' => json_encode($requestParams),
 				'headers' => [
 					'Accept' =>  'application/json',
 					'Content-Type' => 'application/json'
@@ -371,6 +378,19 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 				'sslverify' => false
 			]
 		);
+
+        if (is_array($result)) {
+            if (isset($result['body'])) {
+
+                $body_response = json_decode($result['body'], true);
+
+                Monri_WC_Logger::log("Response body : " . print_r($body_response, true),__METHOD__);
+            }
+
+            if (isset($result['response'])) {
+                Monri_WC_Logger::log("Response data : " . print_r($result['response'], true),__METHOD__);
+            }
+        }
 
 		return json_decode($result['body'], true);
 	}
