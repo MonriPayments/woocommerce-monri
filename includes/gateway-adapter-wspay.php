@@ -42,16 +42,24 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		);
 
 		$this->shop_id = $this->payment->get_option(
-				'monri_ws_pay_form_shop_id'
+			'monri_ws_pay_form_shop_id'
 		);
 		$this->secret  = $this->payment->get_option(
-				'monri_ws_pay_form_secret'
+			'monri_ws_pay_form_secret'
 		);
 
 		// add tokenization support
 		if ( $this->tokenization_enabled() ) {
 			$this->payment->supports[] = 'tokenization';
+
 			require_once __DIR__ . '/payment-token-wspay.php';
+
+			add_filter( 'woocommerce_payment_token_class', function ($value, $type) {
+				if ($type === 'Monri_Wspay') {
+					return Monri_WC_Payment_Token_Wspay::class;
+				}
+				return $value;
+			}, 0, 2 );
 		}
 
 		add_action( 'woocommerce_thankyou_monri', [ $this, 'thankyou_page' ] );
@@ -62,6 +70,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return '121212';
 		}, 10, 2 );
 		*/
+
+
 	}
 
 	/**
@@ -99,7 +109,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$req['shopID']         = $this->shop_id;
 		$req['shoppingCartID'] = $order_number;
 
-		$amount = number_format( $order->get_total(), 2, ',', '' );
+		$amount             = number_format( $order->get_total(), 2, ',', '' );
 		$req['totalAmount'] = $amount;
 
 		$req['signature'] = $this->sign_transaction( $order_number, $amount );
@@ -125,7 +135,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$req['customerPhone']     = $order->get_billing_phone();
 		$req['customerEmail']     = $order->get_billing_email();
 
-		if ($this->tokenization_enabled() && is_checkout() && is_user_logged_in()) {
+		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in() ) {
 
 			// After successful transaction WSPayForm redirects to ReturnURL as described in Parameters which
 			// WSPayForm returns to web shop - ReturnURL with three additional parameters:
@@ -137,27 +147,29 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			// <input type="hidden" name="Token" value="e32c9607-f77d-44d5-98e8-e58c9f279bfd">
 			// <input type="hidden" name="TokenNumber" value="0189">
 
-			//$tokenized_card = $_POST['ws-pay-tokenized-card'] ?? null;
-
-			$tokenized_card = '';
-			if ( isset($_POST['ws-pay-tokenized-card']) &&
-			     !empty($_POST['ws-pay-tokenized-card']) &&
-			     $_POST['ws-pay-tokenized-card'] !== 'not-selected'
+			$use_token = null;
+			if ( isset( $_POST['wc-monri-payment-token'] ) &&
+			     ! in_array($_POST['wc-monri-payment-token'], ['not-selected', 'new', ''], true)
 			) {
-				$tokenized_card = $_POST['ws-pay-tokenized-card'];
+				$token_id = $_POST['wc-monri-payment-token'];
+				$tokens = $this->payment->get_tokens();
+				$use_token = $tokens[$token_id];
 			}
 
-			$pay_with_token = isset($_POST['wc-monri-new-payment-method']) &&
-			                      $_POST['wc-monri-new-payment-method'] === 'true';
+			$new_token = isset( $_POST['wc-monri-new-payment-method'] ) &&
+			                  $_POST['wc-monri-new-payment-method'] === 'true';
 
 			// paying with tokenized card
-			if ( $tokenized_card ) {
+			if ( $use_token ) {
+
+				// different shop_id/secret here ?!!
+
 				$decoded_card       = json_decode( base64_decode( $tokenized_card ) );
 				$req['Token']       = $decoded_card[0];
 				$req['TokenNumber'] = $decoded_card[1];
 
 			// tokenize/save new card
-			} elseif ( $pay_with_token ) {
+			} elseif ( $new_token ) {
 				$req['IsTokenRequest'] = '1';
 			}
 		}
@@ -181,7 +193,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	}
 
 
-	public function show_message($message, $class = '') {
+	public function show_message( $message, $class = '' ) {
 		return '<div class="box ' . $class . '-box">' . $message . '</div>';
 	}
 
@@ -196,7 +208,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 		$order_id = $_REQUEST['ShoppingCartID']; // is there wp param?
 
-		$order_id = strstr($order_id, '-test', true);
+		$order_id = strstr( $order_id, '-test', true );
 
 		$order = wc_get_order( $order_id );
 
@@ -237,7 +249,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 				//$tokenized = $this->save_token_details_ws_pay();
 
-				if ($this->tokenization_enabled() && $order->get_user_id() ) {
+				if ( $this->tokenization_enabled() && $order->get_user_id() ) {
 					$this->save_user_token( $order->get_user_id(), $_REQUEST );
 				}
 
@@ -338,7 +350,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	 * @param int $user_id
 	 * @param array $data
 	 *
-	 * @return void|null
+	 * @return void
 	 */
 	private function save_user_token( $user_id, $data ) {
 
@@ -346,59 +358,19 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return null;
 		}
 
-		$wc_token = new WC_Payment_Token_Monri_Wspay();
+		$wc_token = new Monri_WC_Payment_Token_Wspay();
 
 		$wc_token->set_gateway_id( $this->payment->id );
 		$wc_token->set_token( $data['Token'] );
 		$wc_token->set_user_id( $user_id );
 
-		$wc_token->set_number( $data['TokenNumber'] );
-
-		//PaymentType
-
-		/*
-		$wc_token->set_number( $eway_customer->CardDetails->Number );
-		$wc_token->set_expiry_year( $eway_customer->CardDetails->ExpiryYear );
-		$wc_token->set_expiry_month( $eway_customer->CardDetails->ExpiryMonth );
-		*/
+		$wc_token->set_last4( $data['TokenNumber'] );
+		$ccType = $data['PaymentType'] ?? ($data['CreditCardName'] ?? '');
+		$wc_token->set_card_type($ccType);
+		$wc_token->set_expiry_year( substr( $data['TokenExp'] , 0, 2) );
+		$wc_token->set_expiry_month( substr( $data['TokenExp'] , 2, 2) );
 
 		$wc_token->save();
-	}
-
-	function save_token_details_ws_pay() {
-
-		if (!is_user_logged_in()) {
-			return 'User not logged in';
-		}
-
-		// We expect token, token number and token exp in success url for tokenized cards
-		if ( ! isset( $_REQUEST['Token'], $_REQUEST['TokenNumber'], $_REQUEST['TokenExp'] ) ) {
-			return null;
-		}
-
-		$user_id = get_current_user_id();
-		$tokenized_cards = $this->get_tokenized_cards($user_id);
-		// We need to save:
-		// - current shop id
-		// - token
-		// - TokenNumber
-		// - TokenExp
-		$token_metadata = [
-			'shop_id' => $this->shop_id,
-			'token' => $_REQUEST['Token'],
-			'token_number' => $_REQUEST['TokenNumber'],
-			'token_exp' => $_REQUEST['TokenExp']
-		];
-		$tokenized_cards[] = $token_metadata;
-		// The new meta field ID if a field with the given key didn't exist and was therefore added,
-		// true on successful update,
-		// false on failure or if the value passed to the function is the same as the one that is already in the database.
-		$rv = update_metadata('user', $user_id, $this->tokenized_cards_key(), json_encode($tokenized_cards));
-		if ($rv) {
-			return 'Update success';
-		} else {
-			return 'Update failed';
-		}
 	}
 
 }
