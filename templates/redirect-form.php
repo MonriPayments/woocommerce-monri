@@ -16,6 +16,7 @@
 	</a>
 	<script type="text/javascript">
 	(function(){
+        /*
 		jQuery("body").block(
 			{
 				message:
@@ -37,6 +38,7 @@
 					lineHeight: "32px"
 				}
 			});
+			*/
 		jQuery("#monri_payment_form").submit();
 	})();
 	</script>
