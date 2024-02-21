@@ -7,7 +7,7 @@ const settings = window.wc.wcSettings.getSetting( 'monri_data', {} );
 const label = window.wp.htmlEntities.decodeEntities( settings.title ) || window.wp.i18n.__( 'Monri', 'monri' );
 
 const Content = () => {
-    return '';
+    return decodeEntities(settings.description || '');
 };
 
 registerPaymentMethod({
