@@ -3,14 +3,13 @@ import {
 } from '@woocommerce/blocks-registry';
 import { __ } from '@wordpress/i18n';
 import { decodeEntities } from '@wordpress/html-entities';
-import { getMonriSettings } from "./settings";
+import { getMonriData } from "./data";
+import {useIntegration} from "./integration";
 
-const settings = getMonriSettings();
+const settings = getMonriData();
 const label = decodeEntities( settings.title ) || __( 'Monri', 'monri' );
 
-const Content = () => {
-    return decodeEntities(settings.description || '');
-};
+const Content = useIntegration();
 
 registerPaymentMethod({
     name: 'monri',
