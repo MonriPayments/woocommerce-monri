@@ -34,6 +34,10 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 
 		$this->adapter->init($this);
 
+        require_once __DIR__ . '/callback.php';
+        $callback = new Monri_WC_Callback();
+        $callback->init();
+
 		// adapter can change this, or inherit from adapter?
 		//$this->has_fields = $this->adapter->has_fields ?? false;
 

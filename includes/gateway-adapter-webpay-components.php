@@ -226,6 +226,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 			'authenticity_token' => $this->payment->get_option('monri_authenticity_token'),
 			'digest' => $digest,
 			'temp_card_id' => $monri_token,
+            'callback_url_override' => add_query_arg('wc-api', 'monri_callback', get_home_url())
 		);
 
 		if ($number_of_installments > 1) {

@@ -7,31 +7,26 @@ class Monri_WC_Callback
 	}
 	
 	public function init() {
-		
+        add_action( 'woocommerce_api_monri_callback', [$this, '_parse_request'] );
 	}
 
 	public function _parse_request() {
-		$monri_settings = get_option('woocommerce_monri_settings');
 
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->error('Invalid request method.', [400, 'Bad Request']);
+        }
 
-		if (!is_array($monri_settings) || !isset($monri_settings['callback_url_endpoint'])) {
-			return;
-		}
+        if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
+            $this->error('Authorization header missing.', [400, 'Bad Request']);
+        }
 
-		$monri_callback_url_endpoint = isset($monri_settings['callback_url_endpoint']) ?
-			$monri_settings['callback_url_endpoint'] : '/monri-callback';
+        $merchant_key = Monri_WC_Settings::instance()->get_option('monri_merchant_key');
 
-		$merchant_key = null;
+        if (empty($merchant_key)) {
+            $this->error('Merchant key not provided.', [404, 'Not found']);
+        }
 
-		if ($_SERVER['REQUEST_METHOD'] === 'POST' && str_ends_with($_SERVER['REQUEST_URI'], $monri_callback_url_endpoint)) {
-			if (!isset($monri_settings['monri_merchant_key'])) {
-				$this->error('Monri key is not defined or does not exist.', array(404, 'Not Found'));
-			}
-
-			$merchant_key = $monri_settings['monri_merchant_key'];
-		}
-
-		$this->handle_callback();
+		$this->handle_callback($merchant_key);
 	}
 
 	/**
@@ -53,24 +48,11 @@ class Monri_WC_Callback
 	 * @param array $status
 	 */
 	private function error($message, array $status = array()) {
-		monri_http_status($status);
+		$this->http_status($status);
 		header('Content-Type: text/plain');
 
 		echo $message;
 		exit((int)$status[0]);
-	}
-
-	/**
-	 * Completes the request with Status: 200 OK.
-	 */
-	private function done() {
-		monri_http_status(array(200, 'OK'));
-		exit(0);
-	}
-
-	private function redirect($url) {
-		header("Location: " . $url);
-		exit(0);
 	}
 
 	/**
@@ -79,27 +61,14 @@ class Monri_WC_Callback
 	 * The payload must be a valid JSON.
 	 *
 	 */
-	public function handle_callback() {
+	public function handle_callback(string $merchant_key) {
 
-		if (!str_ends_with($_SERVER['REQUEST_URI'], $pathname)) {
-			return;
-		}
-
-		$request_method = $_SERVER['REQUEST_METHOD'];
-
-		$bad_request_header = array(400, 'Bad Request');
-
-		if ($request_method !== 'POST') {
-			$message = sprintf('Invalid request. Expected POST, received: %s.', $request_method);
-			$this->error($message, $bad_request_header);
-		}
+		$bad_request_header = [400, 'Bad Request'];
 
 		// Grabbing read-only stream from the request body.
 		$json = file_get_contents('php://input');
 
-		if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
-			$this->error('Authorization header missing.', $bad_request_header);
-		}
+        Monri_WC_Logger::log("Request data: " . $json, __METHOD__);
 
 		// Strip-out the 'WP3-callback' part from the Authorization header.
 		$authorization = trim(
@@ -110,30 +79,17 @@ class Monri_WC_Callback
 
 		// ... and comparing it with one from the headers.
 		if ($digest !== $authorization) {
-			$this->error('Authorization header missing.', $bad_request_header);
+			$this->error('Invalid Authorization header', $bad_request_header);
 		}
 
-		$payload = null;
-		$json_malformed = 'JSON payload is malformed.';
-
-		// Handling JSON parsing for PHP >= 7.3...
-		if (class_exists('JsonException')) {
-			try {
-				$payload = json_decode($json, true);
-			} catch (\JsonException $e) {
-				$this->error($json_malformed, $bad_request_header);
-			}
-		} // ... and for PHP <= 7.2.
-		else {
-			$payload = json_decode($json, true);
-
-			if ($payload === null && json_last_error() !== JSON_ERROR_NONE) {
-				$this->error($json_malformed, $bad_request_header);
-			}
-		}
+        try {
+            $payload = json_decode($json, true);
+        } catch (\Throwable $e) {
+            $this->error('Invalid request content', $bad_request_header);;
+        }
 
 		if (!isset($payload['order_number']) || !isset($payload['status'])) {
-			$this->error('Order information not found in response.', array(404, 'Not Found'));
+			$this->error('Order information not found in request content.', $bad_request_header);
 		}
 
 		$order_number = $payload['order_number'];
@@ -141,26 +97,20 @@ class Monri_WC_Callback
 		try {
 			$order = wc_get_order($order_number);
 
-			$skip_statuses = array('cancelled', 'failed', 'refunded');
-
-			if (in_array($order->get_status(), $skip_statuses)) {
-				monri_done();
-			}
+            if ($order->get_status() !== 'pending') {
+                return;
+            }
 
 			if ($payload['status'] === 'approved') {
-				$note = sprintf(
-					'Order #%s-%s is successfully processed, ref. num. %s: %s.',
-					$payload['id'], $order_number, $payload['reference_number'], $payload['response_message']
-				);
+				$order->payment_complete();
+			} else {
+                $order->update_status('cancelled');
+            }
 
-				$order->update_status('wc-completed', $note);
-				$order->add_order_note($note);
-			}
 		} catch (\Exception $e) {
 			$message = sprintf('Order ID: %s not found or does not exist.', $order_number);
 			$this->error($message, array(404, 'Not Found'));
 		}
 
-		monri_done();
 	}
 }
