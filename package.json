@@ -1,0 +1,21 @@
+{
+  "name": "woocommerce-monri",
+  "version": "3.0.0",
+  "description": "Monri WooCommerce Plugin",
+  "main": "index.js",
+  "scripts": {
+    "build:webpack": "wp-scripts build blocks/index.js",
+    "start:webpack": "wp-scripts start blocks/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/favicode/woocommerce-monri/issues"
+  },
+  "homepage": "https://github.com/favicode/woocommerce-monri#readme",
+  "devDependencies": {
+    "@woocommerce/dependency-extraction-webpack-plugin": "^2.3.0",
+    "@wordpress/scripts": "^27.2.0",
+    "webpack": "^5.90.3"
+  }
+}
