@@ -22,8 +22,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		add_action( 'woocommerce_thankyou', [ $this, 'process_return' ] );
 
 		//@todo check if enabled?
-		//require_once __DIR__ . '/installments-fee.php';
-		//( new Monri_WC_Installments_Fee() )->init();
+		require_once __DIR__ . '/installments-fee.php';
+		( new Monri_WC_Installments_Fee() )->init();
 	}
 
 	/**

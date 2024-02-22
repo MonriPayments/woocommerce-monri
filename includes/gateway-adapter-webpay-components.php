@@ -40,6 +40,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 
             wp_enqueue_script('monri-components', $script_url, array(), MONRI_WC_VERSION);
 //        }
+
+		//@todo check if enabled?
+		require_once __DIR__ . '/installments-fee.php';
+		( new Monri_WC_Installments_Fee() )->init();
 	}
 
 	// @todo why we have this? Can't we go back to thankyou page right away and regulate there?

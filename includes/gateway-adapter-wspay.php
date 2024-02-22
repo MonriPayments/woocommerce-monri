@@ -111,6 +111,11 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 		$req = [];
 
+		if ( $order->get_meta( '_monri_order_token_used' ) ) {
+			$order->delete_meta_data( '_monri_order_token_used' );
+			$order->save_meta_data();
+		}
+
 		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in() ) {
 
 			$use_token = null;
@@ -145,7 +150,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
 				$req['Token']       = $use_token->get_token();
 				$req['TokenNumber'] = $use_token->get_last4();
 
-				update_post_meta( $order_id, '_monri_order_token_used', 1 );
+				$order->update_meta_data('_monri_order_token_used', 1);
+				$order->save_meta_data();
 				$this->use_tokenization_credentials();
 
 				// tokenize/save new card
@@ -225,7 +231,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return;
 		}
 
-		$is_tokenization = get_post_meta( $order_id, '_monri_order_token_used', true );
+		$is_tokenization = $order->get_meta( '_monri_order_token_used', true );
 		if ($is_tokenization) {
 			$this->use_tokenization_credentials();
 		}
