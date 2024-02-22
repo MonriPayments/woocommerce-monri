@@ -1,6 +1,10 @@
 <?php
 
 class Monri_WC_Gateway_Adapter_Webpay_Form {
+
+	/**
+	 * Adapter ID
+	 */
 	public const ADAPTER_ID = 'webpay_form';
 
 	public const ENDPOINT_TEST = 'https://ipgtest.monri.com/v2/form';
@@ -11,9 +15,11 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	 */
 	private $payment;
 
-	public function __construct() {
-	}
-
+	/**
+	 * @param Monri_WC_Gateway $payment
+	 *
+	 * @return void
+	 */
 	public function init( $payment ) {
 		$this->payment = $payment;
 
@@ -21,14 +27,21 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		add_action( 'woocommerce_receipt_' . $this->payment->id, [ $this, 'process_redirect' ] );
 		add_action( 'woocommerce_thankyou', [ $this, 'process_return' ] );
 
-		//@todo check if enabled?
-		require_once __DIR__ . '/installments-fee.php';
-		( new Monri_WC_Installments_Fee() )->init();
+		// load installments fee calculations if installments enabled
+		if ( $this->payment->get_option( 'paying_in_installments' ) ) {
+			require_once __DIR__ . '/installments-fee.php';
+			( new Monri_WC_Installments_Fee() )->init();
+		}
+
 	}
 
 	/**
 	 * Redirect to receipt page
-	 **/
+	 *
+	 * @param $order_id
+	 *
+	 * @return array
+	 */
 	public function process_payment( $order_id ) {
 		$order = wc_get_order( $order_id );
 
@@ -138,6 +151,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 	/**
 	 * In some cases page url is rewritten and it contains page path and query string.
+	 *
 	 * @return string
 	 */
 	private function get_query_string() {
@@ -156,7 +170,9 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 	/**
 	 * Monri server callback on thankyou page
-	 **/
+	 *
+	 * @return void
+	 */
 	public function process_return() {
 		$lang = Monri_WC_i18n::get_translation();
 

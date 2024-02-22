@@ -111,11 +111,6 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 		$req = [];
 
-		if ( $order->get_meta( '_monri_order_token_used' ) ) {
-			$order->delete_meta_data( '_monri_order_token_used' );
-			$order->save_meta_data();
-		}
-
 		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in() ) {
 
 			$use_token = null;
@@ -142,22 +137,29 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			// paying with tokenized card
 			if ( $use_token ) {
 
-				//$this->shop_id = 'FAVICODEM';
-				//$this->secret  = '4c43116cccfe4Q';
-
-				// different shop_id/secret here ?!!
 				//$decoded_card       = json_decode( base64_decode( $tokenized_card ) );
 				$req['Token']       = $use_token->get_token();
 				$req['TokenNumber'] = $use_token->get_last4();
 
 				$order->update_meta_data('_monri_order_token_used', 1);
 				$order->save_meta_data();
+
+				// use different shop_id/secret for tokenization
 				$this->use_tokenization_credentials();
 
+			} else {
+
 				// tokenize/save new card
-			} elseif ( $new_token ) {
-				$req['IsTokenRequest'] = '1';
+				if ( $new_token ) {
+					$req['IsTokenRequest'] = '1';
+				}
+
+				if ( $order->get_meta( '_monri_order_token_used' ) ) {
+					$order->delete_meta_data( '_monri_order_token_used' );
+					$order->save_meta_data();
+				}
 			}
+
 		}
 
 		$req['shopID']         = $this->shop_id;
@@ -167,8 +169,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$req['totalAmount'] = $amount;
 
 		$req['signature'] = $this->sign_transaction( $order_number, $amount );
-		//$req['returnURL'] = site_url() . '/ws-pay-redirect'; // directly to success
 
+		//$req['returnURL'] = site_url() . '/ws-pay-redirect'; // directly to success
 		$req['returnURL'] = $order->get_checkout_order_received_url();
 
 		// TODO: implement this in a different way
