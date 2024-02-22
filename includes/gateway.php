@@ -274,6 +274,7 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
 			);
 		}
+		$this->form_fields =  Monri_WC_Settings::instance()->get_form_fields();
 	}
 
 	public function admin_options()

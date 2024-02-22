@@ -7,7 +7,7 @@ Version: 3.0.0
 Author: Monri Payments d.o.o.
 Author URI: http://www.monri.com
 WC requires at least: 3.1.0
-WC tested up to: 8.5
+WC tested up to: 8.6
 */
 
 define( 'MONRI_WC_VERSION', '3.0.0' );
@@ -36,6 +36,18 @@ function monri_wc_init() {
 }
 add_action('plugins_loaded', 'monri_wc_init', 0);
 add_action('plugins_loaded', 'load_language');
+
+
+/**
+ * Declares support for WooCommerce features, HPOS.
+ * Coming soon
+ */
+function monri_declare_woo_feature_compatibility() {
+	if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
+		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+	}
+}
+//add_action( 'before_woocommerce_init', 'monri_declare_woo_feature_compatibility' );
 
 
 function monri_wc_action_links($links) {

@@ -75,10 +75,39 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 	 * @return array
 	 */
 	public function get_payment_method_data() {
-		return [
+		$data =  [
 			'title'       => $this->get_setting( 'title' ),
 			'description' => $this->get_setting( 'description' ),
-			'supports'    => array_filter( $this->gateway->supports, [ $this->gateway, 'supports' ] )
+			'supports'    => array_filter( $this->gateway->supports, [ $this->gateway, 'supports' ] ),
+            'service'     => $this->get_setting('monri_payment_gateway_service'),
 		];
-	}
+
+        if ($data['service'] === 'monri-web-pay') {
+            $data['integration_type'] = $this->get_setting('monri_web_pay_integration_type');
+
+            if ($data['integration_type'] === 'components') {
+                $data['components'] = $this->prepare_components_data();
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * @return array
+     */
+    private function prepare_components_data()
+    {
+        // @see Monri_WC_Gateway_Adapter_Webpay_Components::payment_fields
+        $randomToken = wp_generate_uuid4();
+        $timestamp = (new DateTime())->format('c');
+        $digest = hash('SHA512', $this->get_setting('monri_merchant_key') . $randomToken . $timestamp);
+
+        return array(
+            'authenticity_token' => $this->get_setting('monri_authenticity_token'),
+            'random_token' => $randomToken,
+            'digest' => $digest,
+            'timestamp' => $timestamp
+        );
+    }
 }

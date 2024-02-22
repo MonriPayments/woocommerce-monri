@@ -33,6 +33,17 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 
 		// @todo: check if we can use parse_request here in older Woo? Are gateways loaded?
 		add_action('parse_request', [$this, 'parse_request']);
+
+//        if (is_checkout()) {
+            // @todo: bbutkovic
+            $script_url = $this->payment->get_option_bool('test_mode') ? self::SCRIPT_ENDPOINT_TEST : self::SCRIPT_ENDPOINT;
+
+            wp_enqueue_script('monri-components', $script_url, array(), MONRI_WC_VERSION);
+//        }
+
+		//@todo check if enabled?
+		require_once __DIR__ . '/installments-fee.php';
+		( new Monri_WC_Installments_Fee() )->init();
 	}
 
 	// @todo why we have this? Can't we go back to thankyou page right away and regulate there?
