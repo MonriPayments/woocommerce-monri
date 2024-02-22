@@ -7,36 +7,23 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	public const ENDPOINT = 'https://ipg.monri.com/v2/form';
 
 	/**
-	 * @var Monri_WC_Settings
-	 */
-	private $settings;
-
-	public $has_fields = false;
-
-	/**
 	 * @var Monri_WC_Gateway
 	 */
 	private $payment;
 
 	public function __construct() {
-		//$this->id = 'monri';
-
-		// treba settingse/optione, treba id
-
-		$this->settings = Monri_WC_Settings::instance();
 	}
 
 	public function init( $payment ) {
 		$this->payment = $payment;
-		//
 
-		//$this->check_monri_response();
+		//$this->check_response();
 		add_action( 'woocommerce_receipt_' . $this->payment->id, [ $this, 'process_redirect' ] );
 		add_action( 'woocommerce_thankyou', [ $this, 'process_return' ] );
 
 		//@todo check if enabled?
-		require_once __DIR__ . '/installments-fee.php';
-		( new Monri_WC_Installments_Fee() )->init();
+		//require_once __DIR__ . '/installments-fee.php';
+		//( new Monri_WC_Installments_Fee() )->init();
 	}
 
 	/**
@@ -92,8 +79,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 		$order = wc_get_order( $order_id );
 
-		$key   = $this->settings->get_option( 'monri_merchant_key' );
-		$token = $this->settings->get_option( 'monri_authenticity_token' );
+		$key   = $this->payment->get_option( 'monri_merchant_key' );
+		$token = $this->payment->get_option( 'monri_authenticity_token' );
 
 		//Convert order amount to number without decimals
 		$order_total = $order->get_total() * 100;
@@ -125,8 +112,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			'currency'        => $currency,
 			'original_amount' => $order->get_total(),
 
-			'language'              => $this->settings->get_option( 'form_language' ),
-			'transaction_type'      => $this->settings->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
+			'language'              => $this->payment->get_option( 'form_language' ),
+			'transaction_type'      => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
 			'authenticity_token'    => $token,
 			'digest'                => $digest,
 			'success_url_override'  => $this->payment->get_return_url( $order ), // from
@@ -137,7 +124,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		Monri_WC_Logger::log( "Request data: " . print_r( $args, true ), __METHOD__ );
 
 		wc_get_template( 'redirect-form.php', [
-			'action'  => $this->settings->get_option_bool( 'test_mode' ) ? self::ENDPOINT_TEST : self::ENDPOINT,
+			'action'  => $this->payment->get_option_bool( 'test_mode' ) ? self::ENDPOINT_TEST : self::ENDPOINT,
 			'options' => $args,
 			'order'   => $order
 		], basename( MONRI_WC_PLUGIN_PATH ), MONRI_WC_PLUGIN_PATH . 'templates/' );
@@ -205,7 +192,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 			$calculated_url = preg_replace( '/&digest=[^&]*/', '', $full_url );
 			//Generate digest
-			$check_digest = hash( 'sha512', $this->settings->get_option( 'monri_merchant_key' ) . $calculated_url );
+			$check_digest = hash( 'sha512', $this->payment->get_option( 'monri_merchant_key' ) . $calculated_url );
 
 			if ( $digest !== $check_digest ) {
 				$order->update_status( 'failed', 'Mismatch between digest and calculated digest' );
@@ -213,7 +200,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 				return;
 			}
 
-			if ( $response_code == "0000" ) {
+			if ( $response_code === "0000" ) {
 
 				if ( $order->get_status() !== 'processing' ) {
 					$order->payment_complete();
@@ -228,7 +215,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 					WC()->cart->empty_cart();
 				}
 
-			} else if ( $response_code == "pending" ) {
+			} else if ( $response_code === "pending" ) {
 				$order->add_order_note( $lang['MONRI_PENDING'] . $_REQUEST['approval_code'] );
 				$order->add_order_note( $lang["THANK_YOU_PENDING"] );
 				$order->add_order_note( "Issuer: " . $_REQUEST['issuer'] );
