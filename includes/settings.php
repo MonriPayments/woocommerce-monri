@@ -104,14 +104,14 @@ class Monri_WC_Settings
 			'thankyou_page' => array(
 				'title' => __('Success page', $form_id),
 				'type' => 'text',
-				'description' => __('Success URL potrebno je kopirati u Monri Account na predviđeno mjesto! ', $form_id),
+				'description' => __('Suceess URL must be copied to Monri Account in responding field!', $form_id),
 				'desc_tip' => true,
 				'default' => __(wc_get_checkout_url() . get_option('woocommerce_checkout_order_received_endpoint', 'order-received'), $form_id)
 			),
 			'callback_url_endpoint' => array(
-				'title' => __('Callback URL endpoint', 'wcwcGpg1'),
+				'title' => __('Callback URL endpoint', $form_id),
 				'type' => 'text',
-				'description' => __('Monri Callback URL endpoint koji će primati POST zahtjev sa Monri Gateway-a.', $form_id),
+				'description' => __('Callback URL endpoint which receives POST request from Monri Gateway.', $form_id),
 				'desc_tip' => true,
 				'default' => '/monri-callback',
 				$form_id,
@@ -119,7 +119,7 @@ class Monri_WC_Settings
 			'success_url_override' => array(
 				'title' => __('Success URL override', 'wcwcGpg1'),
 				'type' => 'text',
-				'description' => __('Success URL koji želite koristiti pri svakoj transakciji. (HTTPS)', $form_id),
+				'description' => __('Success URL you would like to use for transaction. (HTTPS)', $form_id),
 				'desc_tip' => true,
 				'default' => '',
 				$form_id,
@@ -128,7 +128,7 @@ class Monri_WC_Settings
 			'cancel_url_override' => array(
 				'title' => __('Cancel URL override', 'wcwcGpg1'),
 				'type' => 'text',
-				'description' => __('Cancel URL koji želite koristiti pri svakoj transakciji. (HTTPS)', $form_id),
+				'description' => __('Cancel URL you would like to use for transaction. (HTTPS)', $form_id),
 				'desc_tip' => true,
 				'default' => '',
 				$form_id,
@@ -137,7 +137,7 @@ class Monri_WC_Settings
 			'callback_url_override' => array(
 				'title' => __('Callback URL override', 'wcwcGpg1'),
 				'type' => 'text',
-				'description' => __('Callback URL koji želite koristiti pri svakoj transakciji. (HTTPS)', $form_id),
+				'description' => __('Callback URL you would like to use for transaction. (HTTPS)', $form_id),
 				'desc_tip' => true,
 				'default' => '',
 				$form_id,
@@ -280,7 +280,7 @@ class Monri_WC_Settings
 				'type' => 'text',
 				'description' => __('This controls the bottom price limit on which the installments can be used.', $form_id),
 				'desc_tip' => true,
-				'default' => __('0', $form_id),
+				'default' => '0',
 				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
 			)
 		);
@@ -291,7 +291,7 @@ class Monri_WC_Settings
 				'type' => 'text',
 				'description' => __('This controls the price increase when paying with installments.', $form_id),
 				'desc_tip' => true,
-				'default' => __('0', $form_id),
+				'default' => '0',
 				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
 			);
 		}

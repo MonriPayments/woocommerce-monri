@@ -259,7 +259,7 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 				'type' => 'text',
 				'description' => __('This controls the bottom price limit on which the installments can be used.', $domain),
 				'desc_tip' => true,
-				'default' => __('0', $domain),
+				'default' => '0',
 				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
 			)
 		);
@@ -270,7 +270,7 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 				'type' => 'text',
 				'description' => __('This controls the price increase when paying with installments.', $domain),
 				'desc_tip' => true,
-				'default' => __('0', $domain),
+				'default' => '0',
 				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
 			);
 		}
