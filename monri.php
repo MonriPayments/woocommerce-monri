@@ -16,7 +16,6 @@ define( 'MONRI_WC_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 
 require_once __DIR__ . '/includes/settings.php';
 require_once __DIR__ . '/includes/logger.php';
-require_once __DIR__ . '/includes/i18n.php';
 require_once __DIR__ . '/util.php';
 
 function monri_wc_init() {
