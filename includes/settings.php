@@ -91,6 +91,49 @@ class Monri_WC_Settings {
 				'description' => __( 'Instructions that will be added to the thank you page.', $domain ),
 				'default'     => __( 'Instructions for Monri.', $domain )
 			),
+			'thankyou_page' => array(
+				'title' => __('Success page', $domain ),
+				'type' => 'text',
+				'description' => __('Suceess URL must be copied to Monri Account in responding field!', $domain ),
+				'desc_tip' => true,
+				'default' => __(wc_get_checkout_url() . get_option('woocommerce_checkout_order_received_endpoint', 'order-received'), $domain)
+			),
+			'callback_url_endpoint' => array(
+				'title' => __('Callback URL endpoint', $domain),
+				'type' => 'text',
+				'description' => __('Callback URL endpoint which receives POST request from Monri Gateway.', $domain),
+				'desc_tip' => true,
+				'default' => '/monri-callback',
+                $domain,
+			),
+			'success_url_override' => array(
+				'title' => __('Success URL override', 'wcwcGpg1'),
+				'type' => 'text',
+				'description' => __('Success URL you would like to use for transaction. (HTTPS)', $domain),
+				'desc_tip' => true,
+				'default' => '',
+                $domain,
+				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
+			),
+			'cancel_url_override' => array(
+				'title' => __('Cancel URL override', 'wcwcGpg1'),
+				'type' => 'text',
+				'description' => __('Cancel URL you would like to use for transaction. (HTTPS)', $domain),
+				'desc_tip' => true,
+				'default' => '',
+                $domain,
+				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
+			),
+			'callback_url_override' => array(
+				'title' => __('Callback URL override', 'wcwcGpg1'),
+				'type' => 'text',
+				'description' => __('Callback URL you would like to use for transaction. (HTTPS)', $domain),
+				'desc_tip' => true,
+				'default' => '',
+                $domain,
+				'class' => 'woocommerce-monri-dynamic-option monri-web-pay-option'
+            ),
+
 			'monri_payment_gateway_service' => array(
 				'title'       => __( 'Payment gateway service:', $domain ),
 				'type'        => 'select',
@@ -208,7 +251,7 @@ class Monri_WC_Settings {
 				'type'        => 'text',
 				'description' => __( 'This controls the bottom price limit on which the installments can be used.', $domain ),
 				'desc_tip'    => true,
-				'default'     => __( '0', $domain ),
+				'default' => '0',
 				'class'       => 'woocommerce-monri-dynamic-option monri-web-pay-option'
 			)
 		);

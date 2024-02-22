@@ -35,6 +35,7 @@ function monri_wc_init() {
 	// woocommerce actions/filters here?!
 }
 add_action('plugins_loaded', 'monri_wc_init', 0);
+add_action('plugins_loaded', 'load_language');
 
 
 /**
@@ -53,12 +54,15 @@ function monri_wc_action_links($links) {
 	$links[] = sprintf(
 		'<a href="%s">%s</a>',
 		admin_url('admin.php?page=wc-settings&tab=checkout&section=monri'),
-		__('Settings', 'monri_wc')
+		__('Settings', 'monri')
 	);
     return $links;
 }
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'monri_wc_action_links');
 
+function load_language() {
+    load_plugin_textdomain( 'monri', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+}
 
 // Registers Blocks integration.
 function monri_wc_block_support() {

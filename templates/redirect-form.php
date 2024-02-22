@@ -10,9 +10,9 @@
 		<input type='hidden' name="<?php echo esc_attr($key) ?>" value="<?php echo esc_attr($value) ?>"/>
 	<?php endforeach; ?>
 
-	<input type="submit" class="button-alt" id="monri_payment_form_submit" value="<?php echo __('Pay via Monri', 'Monri') ?>"/>
+	<input type="submit" class="button-alt" id="monri_payment_form_submit" value="<?php echo __('Pay via Monri', 'monri') ?>"/>
 	<a class="button cancel" href="<?php echo $order->get_cancel_order_url() ?>">
-		<?php echo __('Cancel order &amp; restore cart', 'monri_wc') ?>
+		<?php echo __('Cancel order &amp; restore cart', 'monri') ?>
 	</a>
 	<script type="text/javascript">
 	(function(){
@@ -23,7 +23,7 @@
 					'<img src="<?php echo MONRI_WC_PLUGIN_URL ?>/assets/images/ajax-loader.gif"' +
 					' alt="Redirecting…"'+
 					' style="float:left; margin-right: 10px; width:50px"/>' +
-					'<?php echo __('Hvala na narudžbi. Sada Vas preusmjeravamo na Monri kako bi završili plaćanje.', 'Monri') ?>',
+					'<?php echo __('Thank you for your order. You are being redirected to Monri so you can complete payment.', 'Monri') ?>',
 				overlayCSS: {
 					background: "#fff",
 					opacity: 0.6

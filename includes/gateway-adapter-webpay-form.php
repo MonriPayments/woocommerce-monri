@@ -59,29 +59,29 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	 */
 	public function validate_fields() {
 
-		$lang      = Monri_WC_i18n::get_translation();
-		$post_data = wc()->checkout()->get_posted_data();
+        $post_data = wc()->checkout()->get_posted_data();
+        $domain = "monri";
 
 		if ( empty( $post_data['billing_first_name'] ) || strlen( $post_data['billing_first_name'] ) < 3 || strlen( $post_data['billing_first_name'] ) > 11 ) {
-			throw new Exception( $lang['FIRST_NAME_ERROR'] );
+			throw new Exception( __('First name must have between 3 and 11 characters', $domain) );
 		}
 		if ( empty( $post_data['billing_last_name'] ) || strlen( $post_data['billing_last_name'] ) < 3 || strlen( $post_data['billing_last_name'] ) > 18 ) {
-			throw new Exception( $lang['LAST_NAME_ERROR'] );
+			throw new Exception( __("Last name must have between 3 and 28 characters", $domain) );
 		}
 		if ( empty( $post_data['billing_address_1'] ) || strlen( $post_data['billing_address_1'] ) < 3 || strlen( $post_data['billing_address_1'] ) > 300 ) {
-			throw new Exception( $lang['ADDRESS_ERROR'] );
+			throw new Exception( __('Address must have between 3 and 300 characters', $domain) );
 		}
 		if ( empty( $post_data['billing_city'] ) || strlen( $post_data['billing_city'] ) < 3 || strlen( $post_data['billing_city'] ) > 30 ) {
-			throw new Exception( $lang['CITY_ERROR'] );
+			throw new Exception( __('City must have between 3 and 30 characters', $domain) );
 		}
 		if ( empty( $post_data['billing_postcode'] ) || strlen( $post_data['billing_postcode'] ) < 3 || strlen( $post_data['billing_postcode'] ) > 9 ) {
-			throw new Exception( $lang['ZIP_ERROR'] );
+			throw new Exception( __('ZIP must have between 3 and 30 characters', $domain) );
 		}
 		if ( empty( $post_data['billing_phone'] ) || strlen( $post_data['billing_phone'] ) < 3 || strlen( $post_data['billing_phone'] ) > 30 ) {
-			throw new Exception( $lang['PHONE_ERROR'] );
+			throw new Exception( __('Phone must have between 3 and 30 characters', $domain) );
 		}
 		if ( empty( $post_data['billing_email'] ) || strlen( $post_data['billing_email'] ) < 3 || strlen( $post_data['billing_email'] ) > 100 ) {
-			throw new Exception( $lang['EMAIL_ERROR'] );
+			throw new Exception( __('Email must have between 3 and 30 characters', $domain) );
 		}
 
 		return true;
@@ -174,10 +174,11 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	 * @return void
 	 */
 	public function process_return() {
-		$lang = Monri_WC_i18n::get_translation();
 
 		Monri_WC_Logger::log( "Response data: " . print_r( $_REQUEST, true ), __METHOD__ );
 		$order_id = $_REQUEST['order_number'];
+
+        $domain = 'monri';
 
 		if ( ! $order_id ) {
 			return;
@@ -226,32 +227,32 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 				if ( $order->get_status() !== 'processing' ) {
 					$order->payment_complete();
-					$order->add_order_note( $lang["MONRI_SUCCESS"] . $_REQUEST['approval_code'] );
-					$order->add_order_note( $lang["THANK_YOU_SUCCESS"] );
+					$order->add_order_note( __("Monri payment successful<br/>Approval code: ", $domain) . $_REQUEST['approval_code'] );
+					$order->add_order_note( __('Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.', $domain) );
 					$order->add_order_note( "Issuer: " . $_REQUEST['issuer'] );
 
 					if ( $_REQUEST['number_of_installments'] > 1 ) {
-						$order->add_order_note( $lang['NUMBER_OF_INSTALLMENTS'] . ": " . $_REQUEST['number_of_installments'] );
+						$order->add_order_note( __('Number of installments: ') . $_REQUEST['number_of_installments'] );
 					}
 
-					WC()->cart->empty_cart();
-				}
+                    WC()->cart->empty_cart();
+                }
 
-			} else if ( $response_code === "pending" ) {
-				$order->add_order_note( $lang['MONRI_PENDING'] . $_REQUEST['approval_code'] );
-				$order->add_order_note( $lang["THANK_YOU_PENDING"] );
-				$order->add_order_note( "Issuer: " . $_REQUEST['issuer'] );
+            } else if ( $response_code === "pending" ) {
+                $order->add_order_note(__("Monri payment status is pending<br/>Approval code: ", $domain) . $_REQUEST['approval_code']);
+                $order->add_order_note(__('Thank you for shopping with us. Right now your payment status is pending, We will keep you posted regarding the status of your order through e-mail', $domain));
+                $order->add_order_note("Issuer: " . $_REQUEST['issuer']);
 
-				if ( $_REQUEST['number_of_installments'] > 1 ) {
-					$order->add_order_note( $lang['NUMBER_OF_INSTALLMENTS'] . ": " . $_REQUEST['number_of_installments'] );
-				}
+                if ($_REQUEST['number_of_installments'] > 1) {
+                    $order->add_order_note(__('Number of installments:', $domain) . ": " . $_REQUEST['number_of_installments']);
+                }
 
-				$order->update_status( 'on-hold' );
-				WC()->cart->empty_cart();
+                $order->update_status( 'on-hold' );
+                WC()->cart->empty_cart();
 
-			} else {
-				$order->update_status( 'failed', 'Response not authorized' );
-				$order->add_order_note( $lang['THANK_YOU_DECLINED_NOTE'] . $_REQUEST['Error'] );
+            }  else {
+                $order->update_status('failed', 'Response not authorized');
+                $order->add_order_note(__('Transaction Declined: ', $domain) . $_REQUEST['Error']);
 			}
 
 		} catch ( Exception $e ) {

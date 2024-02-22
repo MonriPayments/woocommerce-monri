@@ -88,7 +88,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 
         if (isset($result->status) && trim($result->status) === 'approved') {
 	        // Payment has been successful
-	        $order->update_status('wc-completed', __(Monri_WC_i18n::get_translation('PAYMENT_COMPLETED'), 'monri'));
+	        $order->update_status('wc-completed', __('Monri payment completed.', 'monri'));
 
 	        // Empty the cart (Very important step)
 	        WC()->cart->empty_cart();
@@ -117,7 +117,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 		wp_enqueue_script('monri-components', $script_url, array('jquery'), MONRI_WC_VERSION);
 		wp_enqueue_script('monri-installments', MONRI_WC_PLUGIN_URL . 'assets/js/installments.js', array('jquery'), MONRI_WC_VERSION);
 
-		$lang = Monri_WC_i18n::get_translation();
 		$order_total = (float) WC()->cart->total;
 
 		/*
@@ -169,16 +168,17 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 		// @todo regulate errors like commented below
 
         $order = wc_get_order($order_id);
+        $domain = 'monri';
 
 		$monri_token = $_POST['monri-token'] ?? '';
 
 		if (empty($monri_token)) {
-			wc_add_notice(Monri_WC_i18n::get_translation('TRANSACTION_FAILED'), 'error');
+			wc_add_notice(__('Transaction failed.', $domain), 'error');
 
 			return array(
 				'result'   => 'failure',
 				'redirect' => $order->get_checkout_payment_url( true ),
-				'message'  => __('Token is not provided'),
+				'message'  => __('Token is not provided', $domain),
 			);
 		}
 
@@ -248,8 +248,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 
 		$result = $this->request($params);
 
-		$lang = Monri_WC_i18n::get_translation();
-
 		//check if cc have 3Dsecure validation
 		if ( isset($result['secure_message']) ) {
 			//this is 3dsecure card
@@ -286,14 +284,14 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 			$order = wc_get_order($transactionResult['order_number']);
 
 			//Payment has been successful
-			$order->add_order_note(__($lang['PAYMENT_COMPLETED'], 'monri'));
+			$order->add_order_note(__('Monri payment completed.', $domain));
 			$monri_order_amount1 = $transactionResult['amount'] / 100;
 			$monri_order_amount2 = number_format($monri_order_amount1, 2);
 			if ($monri_order_amount2 != $order->get_total()) {
-				$order->add_order_note($lang['MONRI_ORDER_AMOUNT'] . ": " . $monri_order_amount2, true);
+				$order->add_order_note(__('Monri - Order amount: ', $domain) . $monri_order_amount2, true);
 			}
 			if (isset($params['number_of_installments']) && $params['number_of_installments'] > 1) {
-				$order->add_order_note($lang['NUMBER_OF_INSTALLMENTS'] . ": " . $params['number_of_installments']);
+				$order->add_order_note(__('Number of installments: ', $domain) . $params['number_of_installments']);
 			}
 
 			// Mark order as Paid
@@ -312,12 +310,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
         return array(
             'result'   => 'failure',
             'redirect' => $order->get_checkout_payment_url( true ),
-            'message'  => $lang['TRANSACTION_FAILED'],
+            'message'  => __('Transaction failed.', $domain),
         );
-
-		//nope
-		wc_add_notice($lang['TRANSACTION_FAILED'], 'error');
-		return false; //??
 	}
 
 	/**
