@@ -1,12 +1,17 @@
 <?php
 class Monri_WC_Installments_Fee
 {
-	const NAME = 'Installments fee';
+	public const NAME = 'Installments fee';
 
-	const CODE = 'monri_installments_fee';
+	public const CODE = 'monri_installments_fee';
+
+	/**
+	 * @var Monri_WC_Settings
+	 */
+	private $settings;
 
 	public function __construct() {
-
+		$this->settings = Monri_WC_Settings::instance();
 	}
 
 	/**
@@ -20,6 +25,8 @@ class Monri_WC_Installments_Fee
 		}
 
 		add_action( 'woocommerce_after_calculate_totals', array( $this, 'after_calculate_totals' ) );
+
+		// add fee javascript here
 	}
 
 	/**
@@ -30,21 +37,21 @@ class Monri_WC_Installments_Fee
 			return;
 		}
 
-		// check if active adapter has installments?
+		// check if installments are enabled?
+
+		// monri_installments, how to set on cart? get from post? set on wc session?
+		$installments = (int) WC()->session->get( 'monri_installments' );
+
+		if( $installments <= 1 || $installments > 24) {
+			return;
+		}
 
 		$total = (float)$cart->get_total( 'edit' );
 
-		// monri_installments, how to set on cart? get from post? set on wc session?
-
-		$number_of_installments = 0;
-		$installments_fee = 0;
-
-		if ($number_of_installments > 1) {
-			$installments_fee = (float) $this->settings->get_option("price_increase_$number_of_installments", 0);
-			//if ($installments_fee !== 0) {
-				$installments_fee = $total * $installments_fee / 100;
-			//}
-		}
+		$installments_fee_percent = (float) $this->settings->get_option("price_increase_$installments", 0);
+		//if ($installments_fee_percent !== 0) {
+			$installments_fee = $total * $installments_fee_percent / 100;
+		//}
 
 		if ($installments_fee < 0.01) {
 			return;
