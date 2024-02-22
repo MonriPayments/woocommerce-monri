@@ -38,6 +38,12 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		];
 	}
 
+	/**
+	 * Validate checkout fields for Monri
+	 *
+	 * @return true
+	 * @throws Exception
+	 */
 	public function validate_fields() {
 
 		$lang      = Monri_WC_i18n::get_translation();
