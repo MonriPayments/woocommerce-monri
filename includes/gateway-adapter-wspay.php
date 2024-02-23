@@ -101,6 +101,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	 * @param int $order_id
 	 *
 	 * @return array
+	 * @throws Exception
 	 */
 	public function process_payment( $order_id ) {
 
@@ -108,8 +109,6 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 		$order_number = (string) $order->get_id();
 		$order_number .= '-test' . time();
-
-        $domain = 'monri';
 
 		$req = [];
 
@@ -123,10 +122,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 				$tokens = $this->payment->get_tokens();
 
 				if (!isset($tokens[$token_id])) {
-					return [
-						'result'  => 'failure',
-						'messages' => __( 'Token does not exist.', $domain),
-					];
+					throw new Exception(__( 'Token does not exist.', 'monri'));
 				}
 
 				/** @var Monri_WC_Payment_Token_Wspay $use_token */
@@ -201,14 +197,10 @@ class Monri_WC_Gateway_Adapter_Wspay {
 				'redirect' => $response['PaymentFormUrl']
 			];
 
-		} else {
-			Monri_WC_Logger::log( $response, __METHOD__ );
-
-			return array(
-				'result'  => 'failure',
-				'messages' => __( 'Gateway currently not available.', $domain),
-			);
 		}
+
+		Monri_WC_Logger::log( $response, __METHOD__ );
+		throw new Exception(__( 'Gateway currently not available.', 'monri'));
 	}
 
 
@@ -229,7 +221,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$order_id = strstr( $order_id, '-test', true );
 		//$order_id = wc_get_order_id_by_order_key($_REQUEST['key']); // load by wp key?
 
-        $domain = 'monri';
+        'monri' = 'monri';
 
 		$order = wc_get_order( $order_id );
 
@@ -252,7 +244,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 		if ( $order->get_status() === 'completed' ) {
 
-			$this->msg['message'] = __('Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.', $domain);
+			$this->msg['message'] = __('Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.', 'monri');
 			$this->msg['class']   = 'woocommerce_message';
 
 		} else {
@@ -262,11 +254,11 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			$trx_authorized = $success === '1' && ! empty( $approval_code );
 
 			if ( $trx_authorized ) {
-				$this->msg['message'] = __('Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.', $domain);
+				$this->msg['message'] = __('Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.', 'monri');
 				$this->msg['class']   = 'woocommerce_message';
 
 				$order->payment_complete();
-				$order->add_order_note( __("Monri payment successful<br/>Approval code: ", $domain) . $approval_code );
+				$order->add_order_note( __("Monri payment successful<br/>Approval code: ", 'monri') . $approval_code );
 				//$order->add_order_note($this->msg['message']);
 				WC()->cart->empty_cart();
 
@@ -278,7 +270,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 			} else {
 				$this->msg['class']   = 'woocommerce_error';
-				$this->msg['message'] = __('Thank you for shopping with us. However, the transaction has been declined.', $domain);
+				$this->msg['message'] = __('Thank you for shopping with us. However, the transaction has been declined.', 'monri');
 
 				$order->update_status( 'failed' );
 				$order->add_order_note( 'Failed' );
