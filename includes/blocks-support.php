@@ -1,4 +1,5 @@
 <?php
+
 use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType;
 
 /**
@@ -52,18 +53,18 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 				'dependencies' => array(),
 				'version'      => MONRI_WC_VERSION
 			);
-		$script_url        = MONRI_WC_PLUGIN_URL . $script_path;
+		$script_url = MONRI_WC_PLUGIN_URL . $script_path;
 
-        if ($this->get_setting('monri_payment_gateway_service') === 'monri-web-pay' &&
-            $this->get_setting('monri_web_pay_integration_type') === 'components'
-        ) {
-            $script_asset['dependencies'][] = 'monri-components';
-        }
+		if ( $this->get_setting( 'monri_payment_gateway_service' ) === 'monri-web-pay' &&
+		     $this->get_setting( 'monri_web_pay_integration_type' ) === 'components'
+		) {
+			$script_asset['dependencies'][] = 'monri-components';
+		}
 		wp_register_script(
 			'monri-wc-payments-blocks',
 			$script_url,
-			$script_asset[ 'dependencies' ],
-			$script_asset[ 'version' ],
+			$script_asset['dependencies'],
+			$script_asset['version'],
 			true
 		);
 
@@ -80,39 +81,46 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 	 * @return array
 	 */
 	public function get_payment_method_data() {
-		$data =  [
+		$data = [
 			'title'       => $this->get_setting( 'title' ),
 			'description' => $this->get_setting( 'description' ),
 			'supports'    => array_filter( $this->gateway->supports, [ $this->gateway, 'supports' ] ),
-            'service'     => $this->get_setting('monri_payment_gateway_service'),
+			'service'     => $this->get_setting( 'monri_payment_gateway_service' ),
 		];
 
-        if ($data['service'] === 'monri-web-pay') {
-            $data['integration_type'] = $this->get_setting('monri_web_pay_integration_type');
+		if ( $data['service'] === 'monri-web-pay' ) {
+			$data['integration_type'] = $this->get_setting( 'monri_web_pay_integration_type' );
 
-            if ($data['integration_type'] === 'components') {
-                $data['components'] = $this->prepare_components_data();
-            }
-        }
+			if ( $data['integration_type'] === 'components' ) {
+				$data['components'] = $this->prepare_components_data();
+			}
+		}
 
-        return $data;
-    }
+		// @todo not aware of bottom limit
 
-    /**
-     * @return array
-     */
-    private function prepare_components_data()
-    {
-        // @see Monri_WC_Gateway_Adapter_Webpay_Components::payment_fields
-        $randomToken = wp_generate_uuid4();
-        $timestamp = (new DateTime())->format('c');
-        $digest = hash('SHA512', $this->get_setting('monri_merchant_key') . $randomToken . $timestamp);
+		if ($this->get_setting( 'paying_in_installments' ) ) {
+			$data['installments'] = $this->get_setting('number_of_allowed_installments');
+		} else {
+			$data['installments'] = 0;
+		}
 
-        return array(
-            'authenticity_token' => $this->get_setting('monri_authenticity_token'),
-            'random_token' => $randomToken,
-            'digest' => $digest,
-            'timestamp' => $timestamp
-        );
-    }
+		return $data;
+	}
+
+	/**
+	 * @return array
+	 */
+	private function prepare_components_data() {
+		// @see Monri_WC_Gateway_Adapter_Webpay_Components::payment_fields
+		$randomToken = wp_generate_uuid4();
+		$timestamp   = ( new DateTime() )->format( 'c' );
+		$digest      = hash( 'SHA512', $this->get_setting( 'monri_merchant_key' ) . $randomToken . $timestamp );
+
+		return array(
+			'authenticity_token' => $this->get_setting( 'monri_authenticity_token' ),
+			'random_token'       => $randomToken,
+			'digest'             => $digest,
+			'timestamp'          => $timestamp
+		);
+	}
 }
