@@ -98,7 +98,7 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 
 		// @todo not aware of bottom limit
 
-		if ($this->get_setting( 'paying_in_installments' ) ) {
+		if ( $data['service'] === 'monri-web-pay' && $this->get_setting( 'paying_in_installments' ) ) {
 			$data['installments'] = $this->get_setting('number_of_allowed_installments');
 		} else {
 			$data['installments'] = 0;
