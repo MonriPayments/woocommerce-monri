@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build:webpack": "wp-scripts build blocks/index.js",
-    "start:webpack": "wp-scripts start blocks/index.js"
+    "start:webpack": "wp-scripts start blocks/index.js",
+    "build": "rimraf assets/js/blocks/* && npm run build:webpack"
   },
   "author": "",
   "license": "ISC",
@@ -16,6 +17,7 @@
   "devDependencies": {
     "@woocommerce/dependency-extraction-webpack-plugin": "^2.3.0",
     "@wordpress/scripts": "^27.2.0",
+    "rimraf": "^5.0.5",
     "webpack": "^5.90.3"
   }
 }

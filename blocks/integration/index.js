@@ -1,17 +1,19 @@
-import { MonriRedirect } from './monri-web-pay/redirect';
-import { MonriComponents } from './monri-web-pay/components';
-import {useMonriData} from "./use-monri-data";
+import { getPaymentMethod as getWebPayForm } from './web-pay/form';
+import { getPaymentMethod as getWebPayComponents } from './web-pay/components';
+import { getPaymentMethod as getWsPayForm } from "./ws-pay/form";
+import { useMonriData } from "./use-monri-data";
 
 export const useIntegration = () => {
     const settings = useMonriData();
+
     switch (settings.service) {
         case 'monri-ws-pay':
-            return null; // todo: bbutkovic
+            return getWsPayForm();
         case 'monri-web-pay':
             if (settings.integration_type === 'components') {
-                return MonriComponents;
+                return getWebPayComponents();
+            } else {
+                return getWebPayForm();
             }
-
-            return MonriRedirect;
     }
 };

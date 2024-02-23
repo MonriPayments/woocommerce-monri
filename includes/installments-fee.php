@@ -33,6 +33,7 @@ class Monri_WC_Installments_Fee
 	 * @param WC_Cart $cart
 	 */
 	public function after_calculate_totals( $cart ) {
+        $cart = WC()->cart;
 
 		if( WC()->session->get( 'chosen_payment_method' ) !== 'monri' ) {
 			return;

@@ -134,7 +134,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			}
 
 			$new_token = isset( $_POST['wc-monri-new-payment-method'] ) &&
-			             $_POST['wc-monri-new-payment-method'] === 'true';
+			             in_array($_POST['wc-monri-new-payment-method'], ['true', '1', 1], true);
 
 			// paying with tokenized card
 			if ( $use_token ) {
