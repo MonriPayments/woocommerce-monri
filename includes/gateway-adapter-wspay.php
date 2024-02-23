@@ -221,8 +221,6 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$order_id = strstr( $order_id, '-test', true );
 		//$order_id = wc_get_order_id_by_order_key($_REQUEST['key']); // load by wp key?
 
-        'monri' = 'monri';
-
 		$order = wc_get_order( $order_id );
 
 		if ( ! $order || $order->get_payment_method() !== $this->payment->id ) {
