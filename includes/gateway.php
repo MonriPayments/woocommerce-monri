@@ -2,6 +2,8 @@
 
 class Monri_WC_Gateway extends WC_Payment_Gateway {
 
+	private const TEST_SUFFIX = '-test';
+
 	protected $adapter;
 
 	public $id = 'monri';
@@ -136,4 +138,23 @@ JS;
 	public function get_option_bool( $key ) {
 		return in_array( $this->get_option( $key ),  array( 'yes', '1', true ), true );
 	}
+
+	/**
+	 * @param string $order_id
+	 *
+	 * @return string
+	 */
+	public function get_test_order_id( $order_id ) {
+		return $order_id . self::TEST_SUFFIX . time();
+	}
+
+	/**
+	 * @param string $test_order_id
+	 *
+	 * @return string
+	 */
+	public function resolve_real_order_id( $test_order_id ) {
+		return strstr( $test_order_id, self::TEST_SUFFIX, true );
+	}
+
 }

@@ -107,8 +107,11 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 		$order = wc_get_order( $order_id );
 
-		$order_number = (string) $order->get_id();
-		$order_number .= '-test' . time();
+		$order_id = (string) $order->get_id();
+
+		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
+			$order_id = $this->payment->get_test_order_id($order_id);
+		}
 
 		$req = [];
 
@@ -161,12 +164,12 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		}
 
 		$req['shopID']         = $this->shop_id;
-		$req['shoppingCartID'] = $order_number;
+		$req['shoppingCartID'] = $order_id;
 
 		$amount             = number_format( $order->get_total(), 2, ',', '' );
 		$req['totalAmount'] = $amount;
 
-		$req['signature'] = $this->sign_transaction( $order_number, $amount );
+		$req['signature'] = $this->sign_transaction( $order_id, $amount );
 
 		//$req['returnURL'] = site_url() . '/ws-pay-redirect'; // directly to success
 		$req['returnURL'] = $order->get_checkout_order_received_url();
@@ -217,9 +220,11 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		//echo 12345;
 		//return;
 
-		$order_id = $_REQUEST['ShoppingCartID']; // is there wp param?
-		$order_id = strstr( $order_id, '-test', true );
-		//$order_id = wc_get_order_id_by_order_key($_REQUEST['key']); // load by wp key?
+		$order_id = $_REQUEST['ShoppingCartID'];
+		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
+			$order_id = $this->payment->resolve_real_order_id( $order_id );
+		}
+		//$order_id = wc_get_order_id_by_order_key($_REQUEST['key']); // possible to load by wp key
 
 		$order = wc_get_order( $order_id );
 
@@ -236,7 +241,6 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			// throw error? redirect to error?
 			return;
 		}
-
 
 		//wp_enqueue_style('thankyou-page', plugins_url() . '/woocommerce-monri/assets/style/thankyou-page.css');
 

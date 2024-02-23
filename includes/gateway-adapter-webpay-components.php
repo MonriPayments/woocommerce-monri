@@ -17,9 +17,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 	 */
 	private $payment;
 
-	public function __construct() {
-	}
-
 	/**
 	 * @param Monri_WC_Gateway $payment
 	 *
@@ -28,8 +25,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 	public function init($payment) {
 		$this->payment = $payment;
 		$this->payment->has_fields = true;
-
-		//add_action('woocommerce_receipt_' . $this->payment->id, [$this, 'process_redirect']);
 
 		// @todo: check if we can use parse_request here in older Woo? Are gateways loaded?
 		add_action('parse_request', [$this, 'parse_request']);
@@ -61,14 +56,23 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 		add_action('woocommerce_checkout_update_order_review', [$this, 'update_order_review']);
 	}
 
+	/**
+	 * @param string $posted_data
+	 *
+	 * @return void
+	 */
 	public function update_order_review(  $posted_data ) {
 		parse_str($posted_data, $posted_data);
 
+		/** @var array $posted_data */
 		if (isset($posted_data['monri-card-installments'])) {
 			WC()->session->set( 'monri_installments', (int) $posted_data['monri-card-installments'] );
 		}
 	}
 
+	/**
+	 * @return void
+	 */
 	// @todo why we have this? Can't we go back to thankyou page right away and regulate there?
 	public function parse_request() {
 
@@ -167,27 +171,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 
 		}
 
-		/*
-		$price_increase_message = "<span id='price-increase-1' class='price-increase-message' style='display: none; color: red;'></span>";
-
-		for ($i = 2; $i <= self::MAX_NUMBER_OF_INSTALLMENTS; $i++) {
-			$installment = "price_increase_$i";
-			if ($this->$installment != 0) {
-				$amount = $order_total + ($order_total * $this->$installment / 100);
-				$price_increase_message .= "<span id='price-increase-$i' class='price-increase-message' style='display: none; color: red;'> " . $lang["PAYMENT_INCREASE"] . " " . $this->$installment . "% = " . $amount . "</span>";
-			} else {
-				$price_increase_message .= "<span id='price-increase-$i' class='price-increase-message' style='display: none; color: red;'></span>";
-			}
-		}
-
-		if ($this->paying_in_installments && $this->number_of_allowed_installments && $order_total >= $this->bottom_limit) {
-			$options_string = "";
-			for ($i = 1; $i <= $this->number_of_allowed_installments; $i++) {
-				$options_string .= "<option value='$i'>$i</option>";
-			}
-		}
-		*/
-
 		$radnom_token = wp_generate_uuid4();
 		$timestamp = (new DateTime())->format('c');
 		$digest = hash('SHA512', $this->payment->get_option('monri_merchant_key') . $radnom_token . $timestamp);
@@ -261,8 +244,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 			'ch_phone' => $order->get_billing_phone(),
 			'ch_email' => $order->get_billing_email(),
 
-			'order_info' => $order_number . '_' . date('dmy'),
 			'order_number' => $order_number,
+			'order_info' => $order_number . '_' . date('dmy'),
 			'amount' => $amount,
 			'currency' => $currency,
 
@@ -290,7 +273,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 			$result = $result['secure_message'];
 
 			//$order->get_checkout_order_received_url()
-			$thank_you_page = $this->payment->get_return_url($order); //$this->settings['thankyou_page']
+			$thank_you_page = $this->payment->get_return_url($order);
 
 			$payment_token = $this->base64url_encode(
 				json_encode([$result['authenticity_token'], $order_number, $thank_you_page])
@@ -316,7 +299,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 
 			$transactionResult = $result['transaction'];
 
-			$order = wc_get_order($transactionResult['order_number']);
+			//$order = wc_get_order($transactionResult['order_number']); //@todo: recheck
 
 			//Payment has been successful
 			$order->add_order_note(__('Monri payment completed.', 'monri'));
@@ -350,8 +333,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 	}
 
 	/**
-	 *
 	 * @param array $params
+	 *
 	 * @return array
 	 */
 	protected function request($params)
@@ -395,6 +378,11 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 		return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
 	}
 
+	/**
+	 * @param string $data
+	 *
+	 * @return false|string
+	 */
 	private function base64url_decode($data)
 	{
 		return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '='));

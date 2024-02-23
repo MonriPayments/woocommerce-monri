@@ -60,28 +60,27 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	public function validate_fields() {
 
         $post_data = wc()->checkout()->get_posted_data();
-        $domain = "monri";
 
 		if ( empty( $post_data['billing_first_name'] ) || strlen( $post_data['billing_first_name'] ) < 3 || strlen( $post_data['billing_first_name'] ) > 11 ) {
-			throw new Exception( __('First name must have between 3 and 11 characters', $domain) );
+			throw new Exception( __('First name must have between 3 and 11 characters', 'monri') );
 		}
 		if ( empty( $post_data['billing_last_name'] ) || strlen( $post_data['billing_last_name'] ) < 3 || strlen( $post_data['billing_last_name'] ) > 18 ) {
-			throw new Exception( __("Last name must have between 3 and 28 characters", $domain) );
+			throw new Exception( __("Last name must have between 3 and 28 characters", 'monri') );
 		}
 		if ( empty( $post_data['billing_address_1'] ) || strlen( $post_data['billing_address_1'] ) < 3 || strlen( $post_data['billing_address_1'] ) > 300 ) {
-			throw new Exception( __('Address must have between 3 and 300 characters', $domain) );
+			throw new Exception( __('Address must have between 3 and 300 characters', 'monri') );
 		}
 		if ( empty( $post_data['billing_city'] ) || strlen( $post_data['billing_city'] ) < 3 || strlen( $post_data['billing_city'] ) > 30 ) {
-			throw new Exception( __('City must have between 3 and 30 characters', $domain) );
+			throw new Exception( __('City must have between 3 and 30 characters', 'monri') );
 		}
 		if ( empty( $post_data['billing_postcode'] ) || strlen( $post_data['billing_postcode'] ) < 3 || strlen( $post_data['billing_postcode'] ) > 9 ) {
-			throw new Exception( __('ZIP must have between 3 and 30 characters', $domain) );
+			throw new Exception( __('ZIP must have between 3 and 30 characters', 'monri') );
 		}
 		if ( empty( $post_data['billing_phone'] ) || strlen( $post_data['billing_phone'] ) < 3 || strlen( $post_data['billing_phone'] ) > 30 ) {
-			throw new Exception( __('Phone must have between 3 and 30 characters', $domain) );
+			throw new Exception( __('Phone must have between 3 and 30 characters', 'monri') );
 		}
 		if ( empty( $post_data['billing_email'] ) || strlen( $post_data['billing_email'] ) < 3 || strlen( $post_data['billing_email'] ) > 100 ) {
-			throw new Exception( __('Email must have between 3 and 30 characters', $domain) );
+			throw new Exception( __('Email must have between 3 and 30 characters', 'monri') );
 		}
 
 		return true;
@@ -97,6 +96,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	function process_redirect( $order_id ) {
 
 		$order = wc_get_order( $order_id );
+
+		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
+			$order_id = $this->payment->get_test_order_id( $order_id );
+		}
 
 		$key   = $this->payment->get_option( 'monri_merchant_key' );
 		$token = $this->payment->get_option( 'monri_authenticity_token' );
@@ -125,8 +128,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			'ch_phone'     => $order->get_billing_phone(),
 			'ch_email'     => $order->get_billing_email(),
 
-			'order_info'      => $order_id . '_' . date( 'dmy' ),
 			'order_number'    => $order_id,
+			'order_info'      => $order_id . '_' . date( 'dmy' ),
 			'amount'          => $order_total,
 			'currency'        => $currency,
 			'original_amount' => $order->get_total(),
@@ -178,10 +181,12 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		Monri_WC_Logger::log( "Response data: " . print_r( $_REQUEST, true ), __METHOD__ );
 		$order_id = $_REQUEST['order_number'];
 
-        $domain = 'monri';
-
 		if ( ! $order_id ) {
 			return;
+		}
+
+		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
+			$order_id = $this->payment->resolve_real_order_id( $order_id );
 		}
 
 		$order = wc_get_order( $order_id );
@@ -227,8 +232,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 				if ( $order->get_status() !== 'processing' ) {
 					$order->payment_complete();
-					$order->add_order_note( __("Monri payment successful<br/>Approval code: ", $domain) . $_REQUEST['approval_code'] );
-					$order->add_order_note( __('Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.', $domain) );
+					$order->add_order_note( __("Monri payment successful<br/>Approval code: ", 'monri') . $_REQUEST['approval_code'] );
+					$order->add_order_note( __('Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.', 'monri') );
 					$order->add_order_note( "Issuer: " . $_REQUEST['issuer'] );
 
 					if ( $_REQUEST['number_of_installments'] > 1 ) {
@@ -239,12 +244,12 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
                 }
 
             } else if ( $response_code === "pending" ) {
-                $order->add_order_note(__("Monri payment status is pending<br/>Approval code: ", $domain) . $_REQUEST['approval_code']);
-                $order->add_order_note(__('Thank you for shopping with us. Right now your payment status is pending, We will keep you posted regarding the status of your order through e-mail', $domain));
+                $order->add_order_note(__("Monri payment status is pending<br/>Approval code: ", 'monri') . $_REQUEST['approval_code']);
+                $order->add_order_note(__('Thank you for shopping with us. Right now your payment status is pending, We will keep you posted regarding the status of your order through e-mail', 'monri'));
                 $order->add_order_note("Issuer: " . $_REQUEST['issuer']);
 
                 if ($_REQUEST['number_of_installments'] > 1) {
-                    $order->add_order_note(__('Number of installments:', $domain) . ": " . $_REQUEST['number_of_installments']);
+                    $order->add_order_note(__('Number of installments:', 'monri') . ": " . $_REQUEST['number_of_installments']);
                 }
 
                 $order->update_status( 'on-hold' );
@@ -252,7 +257,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
             }  else {
                 $order->update_status('failed', 'Response not authorized');
-                $order->add_order_note(__('Transaction Declined: ', $domain) . $_REQUEST['Error']);
+                $order->add_order_note(__('Transaction Declined: ', 'monri') . $_REQUEST['Error']);
 			}
 
 		} catch ( Exception $e ) {

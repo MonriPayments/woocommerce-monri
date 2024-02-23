@@ -16,7 +16,6 @@ define( 'MONRI_WC_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 
 require_once __DIR__ . '/includes/settings.php';
 require_once __DIR__ . '/includes/logger.php';
-require_once __DIR__ . '/util.php';
 
 function monri_wc_init() {
 	if ( ! class_exists( 'WC_Payment_Gateway' ) ) {
@@ -32,8 +31,6 @@ function monri_wc_init() {
 	}
 
 	add_filter( 'woocommerce_payment_gateways', 'woocommerce_add_monri_gateway' );
-
-	// woocommerce actions/filters here?!
 }
 add_action( 'plugins_loaded', 'monri_wc_init', 0 );
 
