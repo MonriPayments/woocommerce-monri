@@ -54,6 +54,7 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 			);
 		$script_url        = MONRI_WC_PLUGIN_URL . $script_path;
 
+        $script_asset['dependencies'][] = 'monri-components';
 		wp_register_script(
 			'monri-wc-payments-blocks',
 			$script_url,

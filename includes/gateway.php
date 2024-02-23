@@ -7,8 +7,7 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 	public $id = 'monri';
 
 	public function __construct() {
-
-		$this->method_title = __('Monri', 'monri');
+        $this->method_title = __('Monri', 'monri');
 		$this->method_description = __('Monri Payment Gateway Plug-in for WooCommerce', 'monri');
 
 		$this->init_form_fields();
