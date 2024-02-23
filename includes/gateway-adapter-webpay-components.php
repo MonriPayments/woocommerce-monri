@@ -44,6 +44,16 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 		//@todo check if enabled?
 		require_once __DIR__ . '/installments-fee.php';
 		( new Monri_WC_Installments_Fee() )->init();
+
+		add_action('woocommerce_checkout_update_order_review', [$this, 'update_order_review']);
+	}
+
+	public function update_order_review(  $posted_data ) {
+		parse_str($posted_data, $posted_data);
+
+		if (isset($posted_data['monri-card-installments'])) {
+			WC()->session->set( 'monri_installments', (int) $posted_data['monri-card-installments'] );
+		}
 	}
 
 	// @todo why we have this? Can't we go back to thankyou page right away and regulate there?
@@ -115,9 +125,34 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 		$script_url = $this->payment->get_option_bool('test_mode') ? self::SCRIPT_ENDPOINT_TEST : self::SCRIPT_ENDPOINT;
 
 		wp_enqueue_script('monri-components', $script_url, array('jquery'), MONRI_WC_VERSION);
-		wp_enqueue_script('monri-installments', MONRI_WC_PLUGIN_URL . 'assets/js/installments.js', array('jquery'), MONRI_WC_VERSION);
+		//wp_enqueue_script('monri-installments', MONRI_WC_PLUGIN_URL . 'assets/js/installments.js', array('jquery'), MONRI_WC_VERSION);
 
-		$order_total = (float) WC()->cart->total;
+		$order_total = (float) WC()->cart->get_total( 'edit' );
+
+		//$installments key/value array to template
+		$installments = array();
+
+		if ( $this->payment->get_option_bool('paying_in_installments') ) {
+
+			$bottom_limit = (float)$this->payment->get_option('bottom_limit', 0);
+			$bottom_limit_satisfied = ($bottom_limit < 0.01) || ($order_total >= $bottom_limit);
+
+			if ( $bottom_limit_satisfied ) {
+
+				$selected = (int) WC()->session->get( 'monri_installments' );
+
+				for ($i = 1; $i <= (int) $this->payment->get_option('number_of_allowed_installments', 12); $i++ ) {
+					$installments[] = [
+						'label' => (string) $i,
+						'value' => (string) $i,
+						'selected' => ($selected === $i),
+						'price_increase' => $this->payment->get_option("price_increase_$i", 0)
+					];
+				}
+
+			}
+
+		}
 
 		/*
 		$price_increase_message = "<span id='price-increase-1' class='price-increase-message' style='display: none; color: red;'></span>";
@@ -140,9 +175,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 		}
 		*/
 
-		//$installments key/value array to template
-		$installments = array();
-
 		$radnom_token = wp_generate_uuid4();
 		$timestamp = (new DateTime())->format('c');
 		$digest = hash('SHA512', $this->payment->get_option('monri_merchant_key') . $radnom_token . $timestamp);
@@ -152,7 +184,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 				'authenticity_token' => $this->payment->get_option('monri_authenticity_token'),
 				'random_token' => $radnom_token,
 				'digest' => $digest,
-				'timestamp' => $timestamp
+				'timestamp' => $timestamp,
+				'locale' => $this->payment->get_option('form_language'),
 			),
 			'installments' => $installments
 		), basename(MONRI_WC_PLUGIN_PATH), MONRI_WC_PLUGIN_PATH . 'templates/' );
@@ -162,24 +195,14 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 	 * @param int $order_id
 	 *
 	 * @return array
+	 * @throws Exception
 	 */
 	public function process_payment($order_id) {
-
-		// @todo regulate errors like commented below
-
-        $order = wc_get_order($order_id);
-        $domain = 'monri';
 
 		$monri_token = $_POST['monri-token'] ?? '';
 
 		if (empty($monri_token)) {
-			wc_add_notice(__('Transaction failed.', $domain), 'error');
-
-			return array(
-				'result'   => 'failure',
-				'redirect' => $order->get_checkout_payment_url( true ),
-				'message'  => __('Token is not provided', $domain),
-			);
+			throw new Exception(__('Missing Monri token.', 'monri'));
 		}
 
 		$number_of_installments = isset($_POST['monri-card-installments']) ? (int)$_POST['monri-card-installments'] : 1;
@@ -194,13 +217,12 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 		//Check if paying in installments, if yes set transaction_type to purchase
 		if ($number_of_installments > 1) {
 			$transaction_type = 'purchase';
-
-			// @todo move to installments class
+			/*
 			$installment = (float) $this->payment->get_option("price_increase_$number_of_installments", 0);
 			if ($installment != 0) {
 				$amount = $order->get_total() + ($order->get_total() * $installment / 100);
 			}
-			//
+			*/
 		}
 
 		//Convert order amount to number without decimals
@@ -284,14 +306,14 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 			$order = wc_get_order($transactionResult['order_number']);
 
 			//Payment has been successful
-			$order->add_order_note(__('Monri payment completed.', $domain));
+			$order->add_order_note(__('Monri payment completed.', 'monri'));
 			$monri_order_amount1 = $transactionResult['amount'] / 100;
 			$monri_order_amount2 = number_format($monri_order_amount1, 2);
 			if ($monri_order_amount2 != $order->get_total()) {
-				$order->add_order_note(__('Monri - Order amount: ', $domain) . $monri_order_amount2, true);
+				$order->add_order_note(__('Monri - Order amount: ', 'monri') . $monri_order_amount2, true);
 			}
 			if (isset($params['number_of_installments']) && $params['number_of_installments'] > 1) {
-				$order->add_order_note(__('Number of installments: ', $domain) . $params['number_of_installments']);
+				$order->add_order_note(__('Number of installments: ', 'monri') . $params['number_of_installments']);
 			}
 
 			// Mark order as Paid
@@ -307,11 +329,11 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 			);
 		}
 
-        return array(
-            'result'   => 'failure',
-            'redirect' => $order->get_checkout_payment_url( true ),
-            'message'  => __('Transaction failed.', $domain),
-        );
+		throw new Exception(
+			isset($result['errors']) && !empty($result['errors']) ?
+				implode('; ', $result['errors']) :
+				__('Missing Monri token.', 'monri')
+		);
 	}
 
 	/**

@@ -67,10 +67,10 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 	}
 
 	public function payment_fields() {
+		parent::payment_fields();
 		if(method_exists($this->adapter, 'payment_fields')) {
 			$this->adapter->payment_fields();
 		}
-		parent::payment_fields();
 	}
 
 	public function init_form_fields() {

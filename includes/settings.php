@@ -245,7 +245,7 @@ class Monri_WC_Settings {
 				'title'       => __( 'Number of allowed installments', $domain ),
 				'type'        => 'select',
 				'class'       => 'wc-enhanced-select woocommerce-monri-dynamic-option monri-web-pay-option',
-				'default'     => 0,
+				'default'     => '12',
 				'description' => '',
 				'options'     => $number_of_allowed_installments,
 				'desc_tip'    => true,
@@ -260,7 +260,7 @@ class Monri_WC_Settings {
 				'type'        => 'price',
 				'description' => __( 'This controls the bottom price limit on which the installments can be used.', $domain ),
 				'desc_tip'    => true,
-				'default' => '0',
+				'default' => '',
 				'class'       => 'woocommerce-monri-dynamic-option monri-web-pay-option',
 				'custom_attributes' => [
 					'data-depends' => '{

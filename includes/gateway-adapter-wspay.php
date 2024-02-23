@@ -125,7 +125,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 				if (!isset($tokens[$token_id])) {
 					return [
 						'result'  => 'failure',
-						'message' => __( 'Token does not exist.', $domain),
+						'messages' => __( 'Token does not exist.', $domain),
 					];
 				}
 
@@ -206,7 +206,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 			return array(
 				'result'  => 'failure',
-				'message' => __( 'Gateway currently not available.', $domain),
+				'messages' => __( 'Gateway currently not available.', $domain),
 			);
 		}
 	}
