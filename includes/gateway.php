@@ -34,14 +34,15 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 
 		$this->adapter->init($this);
 
+		// @todo: not here
         require_once __DIR__ . '/callback.php';
         $callback = new Monri_WC_Callback();
         $callback->init();
+		//
 
-		// adapter can change this, or inherit from adapter?
-		//$this->has_fields = $this->adapter->has_fields ?? false;
-
-		add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
+		if (is_admin()) {
+			add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
+		}
 	}
 
 	public function process_payment( $order_id ) {
@@ -80,26 +81,50 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 	{
 		parent::admin_options();
 
+		// add field dependency logic
 		echo <<<JS
 <script>
-    (function () {
-        updateOptions(jQuery("#woocommerce_monri_monri_payment_gateway_service").val())
-    })()
-    
-    function updateOptions(value) {
-        jQuery(".woocommerce-monri-dynamic-option").parents("tr").hide()
-        if (value === "monri-ws-pay") {
-            jQuery('.woocommerce-monri-dynamic-option.monri-web-pay-option').parents('tr').hide()
-            jQuery('.woocommerce-monri-dynamic-option.monri-ws-pay-option').parents('tr').show()
-        } else if (value === "monri-web-pay") {
-            jQuery('.woocommerce-monri-dynamic-option.monri-web-pay-option').parents('tr').show()
-            jQuery('.woocommerce-monri-dynamic-option.monri-ws-pay-option').parents('tr').hide()
+    (function ($) {
+        
+        var rules = {}, toListen = [];
+        $('input[data-depends],textarea[data-depends],select[data-depends]').each(function(i, el) {
+            rules[$(el).attr('id')] = {};
+            var i, idName;
+            for (i in $(el).data('depends')) {
+                idName = '#woocommerce_monri_'+i;
+                rules[$(el).attr('id')][idName] = $(el).data('depends')[i];
+                if (!toListen.includes(idName)) {
+                    toListen.push(idName);
+                }
+            }
+        });
+        
+        var updateOptions = function() {
+            var show, el;
+            for(el in rules) {
+                show = true;
+                for (depends in rules[el]) {
+                    if (!$(depends).parents('tr').is(':visible')) {
+                        show = false; break;
+                    }
+                    
+	                if ($(depends).val() != rules[el][depends]) {
+	                    show = false; break;
+	                }
+                    
+                    if ($(depends).attr('type') === 'checkbox' && !$(depends).is(':checked')) {
+                        show = false; break;
+                    }
+                }
+                show ? $('#'+el).parents('tr').show() : $('#'+el).parents('tr').hide();
+            }
         }
-    }
-    
-    jQuery("#woocommerce_monri_monri_payment_gateway_service").on("change", function (e) {
-        updateOptions(e.target.value)
-    })
+
+        $(toListen.join(',')).on('change', updateOptions);
+        updateOptions();
+        
+    })(jQuery)
+
 </script>
 JS;
 	}
@@ -111,10 +136,5 @@ JS;
 	 */
 	public function get_option_bool( $key ) {
 		return in_array( $this->get_option( $key ),  array( 'yes', '1', true ), true );
-	}
-
-	// is enabled?
-	public function is_availableXX( $key ) {
-
 	}
 }
