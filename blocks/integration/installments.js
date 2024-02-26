@@ -1,35 +1,13 @@
-import { useState, useEffect, useId } from 'react';
+import { useState, useEffect, useMemo, useId } from 'react';
 import { useMonriData } from "./use-monri-data";
-import { useDispatch, useSelect } from '@wordpress/data';
-import { select } from "@woocommerce/block-data";
+import { __ } from '@wordpress/i18n';
 
 const { extensionCartUpdate } = wc.blocksCheckout;
-const { CART_STORE_KEY } = wc.wcBlocksData;
 
 const useMaximumInstallments = () => {
     const data = useMonriData();
-    // todo
-    return 12;
-};
 
-const useInitialInstallments = () => {
-    const data = useMonriData();
-
-    return 0;
-};
-
-const useCartData = () => {
-    return useSelect((select) => {
-        const store = select(CART_STORE_KEY);
-
-        return store.getCartData();
-    });
-};
-
-const useInstallmentsFee = () => {
-    const cartData = useCartData();
-
-    return [...cartData.fees].find((fee) => fee.key === 'monri_installments_fee') || null;
+    return data.installments;
 };
 
 const updateInstallments = (installments) => {
@@ -41,18 +19,31 @@ const updateInstallments = (installments) => {
     });
 };
 
-const formatInstallmentsFee = (fee) => {
-      // todo: check if there is a built-in helper?
+const useInstallmentOptions = (maximumInstallments) => {
+    if (maximumInstallments < 1) {
+        return [];
+    }
 
-    const feeCents = parseInt(fee);
+    const options = [
+        {
+            label: __('No installments', 'monri'),
+            value: 0,
+        }
+    ];
 
-    return feeCents/100.0;
+    for (let i = 2; i <= maximumInstallments; i++) {
+        options.push({
+            label: i,
+            value: i,
+        });
+    }
+
+    return options;
 };
 
 export const Installments = () => {
     const maximumInstallments = useMaximumInstallments();
-    const initialInstallments = useInitialInstallments();
-    const [installments, setInstallments] = useState(initialInstallments);
+    const [installments, setInstallments] = useState(0);
 
     const handleInstallmentsChange = (i) => setInstallments(i);
 
@@ -60,30 +51,29 @@ export const Installments = () => {
         updateInstallments(installments);
     }, [installments]);
 
-    const installmentOptions = [...new Array(maximumInstallments + 1)]
-        .map((_, index) => {
-            return <option value={index} key={`installments-${index}`}>{index}</option>;
-        });
+    const installmentOptions = useMemo(
+        () => useInstallmentOptions(maximumInstallments),
+        [maximumInstallments]
+    );
 
     const installmentsSelectorId = useId();
 
-    const installmentsFee = useInstallmentsFee();
+    if (installmentOptions.length < 1) {
+        return null;
+    }
 
     return (
         <div>
-            <label htmlFor={installmentsSelectorId}>Installments: </label>
+            <label htmlFor={installmentsSelectorId}>{__('Number of installments: ', 'monri')}</label>
             <select
                 id={installmentsSelectorId}
                 onChange={e => handleInstallmentsChange(e.target.value)}
                 value={installments}
             >
-                {installmentOptions}
+                {installmentOptions.map(({ label, value }) =>
+                    <option value={value} key={`installments-${value}`}>{label}</option>
+                )}
             </select>
-            {installmentsFee &&
-                <div className="installments-fee-notice">
-                    An additional fee of {formatInstallmentsFee(installmentsFee.totals.total)} will be applied to your order
-                </div>
-            }
         </div>
     );
 };
