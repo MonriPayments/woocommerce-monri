@@ -28,6 +28,20 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 		$this->settings = get_option( 'woocommerce_monri_settings', [] );
 		$gateways       = WC()->payment_gateways->payment_gateways();
 		$this->gateway  = $gateways[ $this->name ];
+
+		woocommerce_store_api_register_update_callback(
+			[
+				'namespace' => 'monri-payments',
+				'callback' => function ($data) {
+					if (!isset($data['installments'])) {
+						return;
+					}
+
+					$installments = $data['installments'];
+					WC()->session->set('monri_installments', $installments);
+				}
+			]
+		);
 	}
 
 	/**
