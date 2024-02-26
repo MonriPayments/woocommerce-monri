@@ -28,19 +28,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 
 		// @todo: check if we can use parse_request here in older Woo? Are gateways loaded?
 		add_action('parse_request', [$this, 'parse_request']);
-        woocommerce_store_api_register_update_callback(
-            [
-                'namespace' => 'monri-payments',
-                'callback' => function ($data) {
-                    if (!isset($data['installments'])) {
-                        return;
-                    }
-
-                    $installments = $data['installments'];
-                    WC()->session->set('monri_installments', $installments);
-                }
-            ]
-        );
 
 //        if (is_checkout()) {
             // @todo: bbutkovic
