@@ -48,7 +48,7 @@ function monri_declare_woo_feature_compatibility() {
 		);
 	}
 }
-//add_action( 'before_woocommerce_init', 'monri_declare_woo_feature_compatibility' );
+add_action( 'before_woocommerce_init', 'monri_declare_woo_feature_compatibility' );
 
 
 function monri_wc_action_links( $links ) {
