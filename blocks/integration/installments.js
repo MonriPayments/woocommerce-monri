@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo, useId } from 'react';
 import { useMonriData } from "./use-monri-data";
 import { __ } from '@wordpress/i18n';
+import { useSelect } from '@wordpress/data';
 
 const { extensionCartUpdate } = wc.blocksCheckout;
+const { CART_STORE_KEY } = wc.wcBlocksData;
 
 const useMaximumInstallments = () => {
     const data = useMonriData();
@@ -17,6 +19,27 @@ const updateInstallments = (installments) => {
             installments
         }
     });
+};
+
+const useCartData = () => {
+    return useSelect((select) => {
+        const store = select(CART_STORE_KEY);
+
+        return store.getCartData();
+    });
+};
+
+const useInstallmentsNotice = () => {
+    const cartData = useCartData();
+
+    const hasInstallmentsAdditionalFee = [...cartData.fees]
+        .findIndex((fee) => fee.key === 'monri_installments_fee') !== -1;
+
+    if (!hasInstallmentsAdditionalFee) {
+        return null;
+    }
+
+    return __('An additional installments fee has been applied', 'monri');
 };
 
 const useInstallmentOptions = (maximumInstallments) => {
@@ -58,6 +81,8 @@ export const Installments = () => {
 
     const installmentsSelectorId = useId();
 
+    const installmentsNotice = useInstallmentsNotice();
+
     if (installmentOptions.length < 1) {
         return null;
     }
@@ -74,6 +99,7 @@ export const Installments = () => {
                     <option value={value} key={`installments-${value}`}>{label}</option>
                 )}
             </select>
+            {installmentsNotice && <div className={"installments-notice"}>{installmentsNotice}</div> }
         </div>
     );
 };
