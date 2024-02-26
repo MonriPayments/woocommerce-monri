@@ -72,7 +72,9 @@ export const WebPayComponents = (props) => {
 
     return <Fragment>
         {decodeEntities( settings.description || '' )}
+        <br />
         <Installments />
+        <br />
         <div id={monriWrapperId} />
     </Fragment>;
 };
