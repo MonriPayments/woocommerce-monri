@@ -176,8 +176,8 @@ msgid "Description which the customer sees during checkout."
 msgstr "Opis koji vidi kupac prilikom plaćanja"
 
 #: includes/gateway.php:139 includes/settings.php:96
-msgid "Description for Monri"
-msgstr "Opis za Monri"
+msgid "Pay quick and easy via Monri"
+msgstr "Plaćajte brzo i jednostavno putem Monrija"
 
 #: includes/gateway.php:142 includes/settings.php:99
 msgid "Instructions"

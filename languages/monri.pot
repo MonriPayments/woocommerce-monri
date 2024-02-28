@@ -175,7 +175,7 @@ msgstr ""
 
 #: includes/gateway.php:139
 #: includes/settings.php:96
-msgid "Description for Monri"
+msgid "Pay quick and easy via Monri"
 msgstr ""
 
 #: includes/gateway.php:142
