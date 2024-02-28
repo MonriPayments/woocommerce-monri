@@ -23,6 +23,14 @@ msgstr ""
 msgid "Monri"
 msgstr ""
 
+#: blocks/integration/installments.js:42
+msgid "An additional installments fee has been applied"
+msgstr ""
+
+#: blocks/integration/installments.js:52
+msgid "No installments"
+msgstr ""
+
 #. Plugin URI of the plugin
 #. Author URI of the plugin
 #: monri.php
@@ -122,6 +130,10 @@ msgstr ""
 
 #: includes/gateway-adapter-wspay.php:273
 msgid "Thank you for shopping with us. However, the transaction has been declined."
+msgstr ""
+
+#: includes/installments-fee.php:64
+msgid "Installments fee"
 msgstr ""
 
 #: includes/gateway.php:12
@@ -332,6 +344,10 @@ msgstr ""
 
 #: monri.php:45
 msgid "Settings"
+msgstr ""
+
+#: templates/components.php:23
+msgid "Fees may be applied for installments"
 msgstr ""
 
 #: templates/redirect-form.php:13

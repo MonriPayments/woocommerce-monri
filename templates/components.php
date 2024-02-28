@@ -8,7 +8,7 @@ $installments_price_increase = false;
 <?php if ($installments): ?>
 <div id="monri-installments" class="monri-installments">
 
-	<label for="monri-card-installments"><?php esc_html_e('Number of installments', 'monri') ?></label>
+	<label for="monri-card-installments"><?php esc_html_e(__('Number of installments: ', 'monri')) ?></label>
 	<select id="monri-card-installments" name="monri-card-installments" class="input-text">
 		<?php foreach ($installments as $installment): ?>
 			<option value="<?php echo $installment['value'] ?>"
@@ -20,7 +20,7 @@ $installments_price_increase = false;
 
 	<?php if ($installments_price_increase): ?>
 	<p>
-		<?php esc_html_e('Fees may be applied for installments') ?>
+		<?php esc_html_e(__('Fees may be applied for installments','monri')) ?>
 	</p>
 	<?php endif; ?>
 	<br/>
