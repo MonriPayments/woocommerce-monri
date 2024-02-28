@@ -102,7 +102,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components
 
         if (isset($result->status) && trim($result->status) === 'approved') {
 	        // Payment has been successful
-	        $order->update_status('wc-completed', __('Monri payment completed.', 'monri'));
+            $order->payment_complete();
 
 	        // Empty the cart (Very important step)
 	        WC()->cart->empty_cart();

@@ -21,6 +21,14 @@ msgstr ""
 msgid "Monri"
 msgstr "Monri"
 
+#: blocks/integration/installments.js:42
+msgid "An additional installments fee has been applied"
+msgstr "Primijenjena je naknada za dodatne rate"
+
+#: blocks/integration/installments.js:52
+msgid "No installments"
+msgstr "Bez rata"
+
 #. Plugin URI of the plugin
 #. Author URI of the plugin
 #: monri.php
@@ -126,6 +134,10 @@ msgstr "Gateway trenutno nije dostupan"
 msgid ""
 "Thank you for shopping with us. However, the transaction has been declined."
 msgstr "Hvala što ste kupovali kod nas. Nažalost transakcija je odbijena."
+
+#: includes/installments-fee.php:64
+msgid "Installments fee"
+msgstr "Naknada za rate"
 
 #: includes/gateway.php:12
 msgid "Monri Payment Gateway Plug-in for WooCommerce"
@@ -316,6 +328,10 @@ msgstr "Povećanje cijene prilikom plaćanja na %d rata:"
 #: monri.php:45
 msgid "Settings"
 msgstr "Postavke"
+
+#: templates/components.php:23
+msgid "Fees may be applied for installments"
+msgstr "Za rate se mogu primijeniti naknade"
 
 #: templates/redirect-form.php:13
 msgid "Pay via Monri"

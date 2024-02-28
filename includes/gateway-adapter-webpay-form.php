@@ -237,7 +237,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 					$order->add_order_note( "Issuer: " . $_REQUEST['issuer'] );
 
 					if ( $_REQUEST['number_of_installments'] > 1 ) {
-						$order->add_order_note( __('Number of installments: ') . $_REQUEST['number_of_installments'] );
+						$order->add_order_note( __('Number of installments: ', 'monri') . $_REQUEST['number_of_installments'] );
 					}
 
                     WC()->cart->empty_cart();

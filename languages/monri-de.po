@@ -22,6 +22,14 @@ msgstr ""
 msgid "Monri"
 msgstr ""
 
+#: blocks/integration/installments.js:42
+msgid "An additional installments fee has been applied"
+msgstr "Es wurde eine zusätzliche Ratenzahlungsgebühr erhoben"
+
+#: blocks/integration/installments.js:52
+msgid "No installments"
+msgstr "Keine Raten"
+
 #. Plugin URI of the plugin
 #. Author URI of the plugin
 #: monri.php
@@ -133,6 +141,10 @@ msgid ""
 msgstr ""
 "Vielen Dank für Ihren Einkauf bei uns. Leider wurde die Transaktion "
 "abgelehnt."
+
+#: includes/installments-fee.php:64
+msgid "Installments fee"
+msgstr "Ratenzahlungsgebühr"
 
 #: includes/gateway.php:12
 msgid "Monri Payment Gateway Plug-in for WooCommerce"
@@ -328,6 +340,10 @@ msgstr ""
 #: monri.php:45
 msgid "Settings"
 msgstr "Einstellungen"
+
+#: templates/components.php:23
+msgid "Fees may be applied for installments"
+msgstr "Für die Ratenzahlung können Gebühren anfallen"
 
 #: templates/redirect-form.php:13
 msgid "Pay via Monri"
