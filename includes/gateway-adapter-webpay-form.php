@@ -52,48 +52,13 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	}
 
 	/**
-	 * Validate checkout fields for Monri
-	 *
-	 * @return true
-	 * @throws Exception
-	 */
-	public function validate_fields() {
-
-        $post_data = wc()->checkout()->get_posted_data();
-
-		if ( empty( $post_data['billing_first_name'] ) || strlen( $post_data['billing_first_name'] ) < 3 || strlen( $post_data['billing_first_name'] ) > 11 ) {
-			throw new Exception( __('First name must have between 3 and 11 characters', 'monri') );
-		}
-		if ( empty( $post_data['billing_last_name'] ) || strlen( $post_data['billing_last_name'] ) < 3 || strlen( $post_data['billing_last_name'] ) > 18 ) {
-			throw new Exception( __("Last name must have between 3 and 28 characters", 'monri') );
-		}
-		if ( empty( $post_data['billing_address_1'] ) || strlen( $post_data['billing_address_1'] ) < 3 || strlen( $post_data['billing_address_1'] ) > 300 ) {
-			throw new Exception( __('Address must have between 3 and 300 characters', 'monri') );
-		}
-		if ( empty( $post_data['billing_city'] ) || strlen( $post_data['billing_city'] ) < 3 || strlen( $post_data['billing_city'] ) > 30 ) {
-			throw new Exception( __('City must have between 3 and 30 characters', 'monri') );
-		}
-		if ( empty( $post_data['billing_postcode'] ) || strlen( $post_data['billing_postcode'] ) < 3 || strlen( $post_data['billing_postcode'] ) > 9 ) {
-			throw new Exception( __('ZIP must have between 3 and 30 characters', 'monri') );
-		}
-		if ( empty( $post_data['billing_phone'] ) || strlen( $post_data['billing_phone'] ) < 3 || strlen( $post_data['billing_phone'] ) > 30 ) {
-			throw new Exception( __('Phone must have between 3 and 30 characters', 'monri') );
-		}
-		if ( empty( $post_data['billing_email'] ) || strlen( $post_data['billing_email'] ) < 3 || strlen( $post_data['billing_email'] ) > 100 ) {
-			throw new Exception( __('Email must have between 3 and 30 characters', 'monri') );
-		}
-
-		return true;
-	}
-
-	/**
 	 * Redirect form on receipt page
 	 *
 	 * @param int $order_id
 	 *
 	 * @return void
 	 */
-	function process_redirect( $order_id ) {
+	public function process_redirect( $order_id ) {
 
 		$order = wc_get_order( $order_id );
 
@@ -120,13 +85,13 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 		//Array of order information
 		$args = array(
-			'ch_full_name' => $full_name,
-			'ch_address'   => $order->get_billing_address_1(),
-			'ch_city'      => $order->get_billing_city(),
-			'ch_zip'       => $order->get_billing_postcode(),
+			'ch_full_name' => wc_trim_string( $full_name, 30, '' ),
+			'ch_address'   => wc_trim_string( $order->get_billing_address_1(), 100, ''),
+			'ch_city'      => wc_trim_string( $order->get_billing_city(), 30, ''),
+			'ch_zip'       => wc_trim_string( $order->get_billing_postcode(), 9, ''),
 			'ch_country'   => $order->get_billing_country(),
-			'ch_phone'     => $order->get_billing_phone(),
-			'ch_email'     => $order->get_billing_email(),
+			'ch_phone'     => wc_trim_string( $order->get_billing_phone(), 30, ''),
+			'ch_email'     => wc_trim_string( $order->get_billing_email(), 100, ''),
 
 			'order_number'    => $order_id,
 			'order_info'      => $order_id . '_' . date( 'dmy' ),

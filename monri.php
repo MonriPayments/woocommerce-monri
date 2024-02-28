@@ -82,7 +82,3 @@ function monri_wc_block_support() {
 	}
 }
 add_action( 'woocommerce_blocks_loaded', 'monri_wc_block_support' );
-
-
-// controllers here? call what's needed
-// install/uninstall here

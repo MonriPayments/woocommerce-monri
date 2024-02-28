@@ -4,7 +4,7 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 
 	private const TEST_SUFFIX = '-test';
 
-	protected $adapter;
+	private $adapter;
 
 	public $id = 'monri';
 
