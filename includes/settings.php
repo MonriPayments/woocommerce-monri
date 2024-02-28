@@ -83,7 +83,7 @@ class Monri_WC_Settings {
 				'title'       => __( 'Description', $domain ),
 				'type'        => 'textarea',
 				'description' => __( 'Description which the customer sees during checkout.', $domain ),
-				'default'     => __( 'Description for Monri', $domain ),
+				'default'     => __( 'Pay quick and easy via Monri', $domain ),
 				'desc_tip'    => true,
 			),
 			'instructions' => array(

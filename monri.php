@@ -1,12 +1,12 @@
 <?php
 /*
 Plugin Name: Monri
-Plugin URI: http://www.monri.com
+Plugin URI: https://monri.com
 Description: Monri - Payment gateway for WooCommerce
 Version: 3.0.0
 Author: Monri Payments d.o.o.
-Author URI: http://www.monri.com
-WC requires at least: 3.1.0
+Author URI: https://monri.com
+WC requires at least: 4.3.0
 WC tested up to: 8.6
 */
 
