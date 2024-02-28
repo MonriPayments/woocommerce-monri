@@ -46,6 +46,12 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			}
 		} );
 
+		//@todo: can we do better to just load on checkout editing?
+		add_action('enqueue_block_editor_assets', function () {
+			$script_url = $this->payment->get_option_bool( 'test_mode' ) ? self::SCRIPT_ENDPOINT_TEST : self::SCRIPT_ENDPOINT;
+			wp_enqueue_script( 'monri-components', $script_url, array(), MONRI_WC_VERSION );
+		});
+
 	}
 
 	/**
