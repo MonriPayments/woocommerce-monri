@@ -114,7 +114,7 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 
 		// @todo not aware of bottom limit
 
-		if ( $data['service'] === 'monri-web-pay'  && $this->get_setting( 'paying_in_installments' ) ) {
+		if ( $data['service'] === 'monri-web-pay' &&$data['integration_type'] === 'components' && $this->get_setting( 'paying_in_installments' ) ) {
 			$data['installments'] = $this->get_setting( 'number_of_allowed_installments' );
 		} else {
 			$data['installments'] = 0;
@@ -136,7 +136,8 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 			'authenticity_token' => $this->get_setting( 'monri_authenticity_token' ),
 			'random_token'       => $randomToken,
 			'digest'             => $digest,
-			'timestamp'          => $timestamp
+			'timestamp'          => $timestamp,
+			'locale'             => $this->get_setting( 'form_language' ),
 		);
 	}
 }

@@ -29,7 +29,7 @@ $installments_price_increase = false;
 <?php endif; ?>
 
 <div id="monri-components"></div>
-<p id="monri-components-error" style="color:red;text-transform:uppercase;" role="alert"></p>
+<p id="monri-components-error" style="color:red;" role="alert"></p>
 <input type="hidden" id="monri-token" name="monri-token" />
 
 <?php if ($installments_price_increase): /* installments are changing total */ ?>

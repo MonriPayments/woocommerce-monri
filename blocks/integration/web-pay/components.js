@@ -18,7 +18,7 @@ export const WebPayComponents = (props) => {
 
     useEffect(() => {
         monriRef.current = Monri(settings.components.authenticity_token, {
-            locale: 'hr' // todo
+            locale: settings.components.locale
         });
 
         const components = monriRef.current.components(
@@ -27,7 +27,7 @@ export const WebPayComponents = (props) => {
             settings.components.timestamp,
         );
 
-        cardRef.current = components.create('card');
+        cardRef.current = components.create('card', {style: {invalid: {color: 'red'}}});
         cardRef.current.mount(monriWrapperId);
     }, []);
 
