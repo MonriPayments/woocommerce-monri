@@ -74,6 +74,13 @@ export const Installments = () => {
         updateInstallments(installments);
     }, [installments]);
 
+    useEffect(() => {
+        return () => {
+            // Clean up installments when deselected
+            updateInstallments(0);
+        }
+    }, []);
+
     const installmentOptions = useMemo(
         () => useInstallmentOptions(maximumInstallments),
         [maximumInstallments]
