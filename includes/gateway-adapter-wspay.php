@@ -59,11 +59,10 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		}
 
 		add_action( 'woocommerce_thankyou_monri', [ $this, 'thankyou_page' ] );
-		//add_action( 'woocommerce_thankyou', [ $this, 'process_return' ] );
 
 		/*
 		add_filter( 'woocommerce_thankyou_order_received_text', function() {
-			return '121212';
+			return 'test';
 		}, 10, 2 );
 		*/
 	}
