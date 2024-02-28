@@ -27,12 +27,11 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		add_action( 'woocommerce_receipt_' . $this->payment->id, [ $this, 'process_redirect' ] );
 		add_action( 'woocommerce_thankyou', [ $this, 'process_return' ] );
 
-		// load installments fee calculations if installments enabled
+		// load installments fee logic if installments enabled
 		if ( $this->payment->get_option( 'paying_in_installments' ) ) {
 			require_once __DIR__ . '/installments-fee.php';
 			( new Monri_WC_Installments_Fee() )->init();
 		}
-
 	}
 
 	/**
@@ -86,12 +85,12 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		//Array of order information
 		$args = array(
 			'ch_full_name' => wc_trim_string( $full_name, 30, '' ),
-			'ch_address'   => wc_trim_string( $order->get_billing_address_1(), 100, ''),
-			'ch_city'      => wc_trim_string( $order->get_billing_city(), 30, ''),
-			'ch_zip'       => wc_trim_string( $order->get_billing_postcode(), 9, ''),
+			'ch_address'   => wc_trim_string( $order->get_billing_address_1(), 100, '' ),
+			'ch_city'      => wc_trim_string( $order->get_billing_city(), 30, '' ),
+			'ch_zip'       => wc_trim_string( $order->get_billing_postcode(), 9, '' ),
 			'ch_country'   => $order->get_billing_country(),
-			'ch_phone'     => wc_trim_string( $order->get_billing_phone(), 30, ''),
-			'ch_email'     => wc_trim_string( $order->get_billing_email(), 100, ''),
+			'ch_phone'     => wc_trim_string( $order->get_billing_phone(), 30, '' ),
+			'ch_email'     => wc_trim_string( $order->get_billing_email(), 100, '' ),
 
 			'order_number'    => $order_id,
 			'order_info'      => $order_id . '_' . date( 'dmy' ),
@@ -197,32 +196,32 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 				if ( $order->get_status() !== 'processing' ) {
 					$order->payment_complete();
-					$order->add_order_note( __("Monri payment successful<br/>Approval code: ", 'monri') . $_REQUEST['approval_code'] );
-					$order->add_order_note( __('Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.', 'monri') );
+					$order->add_order_note( __( "Monri payment successful<br/>Approval code: ", 'monri' ) . $_REQUEST['approval_code'] );
+					$order->add_order_note( __( 'Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.', 'monri' ) );
 					$order->add_order_note( "Issuer: " . $_REQUEST['issuer'] );
 
 					if ( $_REQUEST['number_of_installments'] > 1 ) {
-						$order->add_order_note( __('Number of installments: ', 'monri') . $_REQUEST['number_of_installments'] );
+						$order->add_order_note( __( 'Number of installments: ', 'monri' ) . $_REQUEST['number_of_installments'] );
 					}
 
-                    WC()->cart->empty_cart();
-                }
+					WC()->cart->empty_cart();
+				}
 
-            } else if ( $response_code === "pending" ) {
-                $order->add_order_note(__("Monri payment status is pending<br/>Approval code: ", 'monri') . $_REQUEST['approval_code']);
-                $order->add_order_note(__('Thank you for shopping with us. Right now your payment status is pending, We will keep you posted regarding the status of your order through e-mail', 'monri'));
-                $order->add_order_note("Issuer: " . $_REQUEST['issuer']);
+			} else if ( $response_code === "pending" ) {
+				$order->add_order_note( __( "Monri payment status is pending<br/>Approval code: ", 'monri' ) . $_REQUEST['approval_code'] );
+				$order->add_order_note( __( 'Thank you for shopping with us. Right now your payment status is pending, We will keep you posted regarding the status of your order through e-mail', 'monri' ) );
+				$order->add_order_note( "Issuer: " . $_REQUEST['issuer'] );
 
-                if ($_REQUEST['number_of_installments'] > 1) {
-                    $order->add_order_note(__('Number of installments:', 'monri') . ": " . $_REQUEST['number_of_installments']);
-                }
+				if ( $_REQUEST['number_of_installments'] > 1 ) {
+					$order->add_order_note( __( 'Number of installments:', 'monri' ) . ": " . $_REQUEST['number_of_installments'] );
+				}
 
-                $order->update_status( 'on-hold' );
-                WC()->cart->empty_cart();
+				$order->update_status( 'on-hold' );
+				WC()->cart->empty_cart();
 
-            }  else {
-                $order->update_status('failed', 'Response not authorized');
-                $order->add_order_note(__('Transaction Declined: ', 'monri') . $_REQUEST['Error']);
+			} else {
+				$order->update_status( 'failed', 'Response not authorized' );
+				$order->add_order_note( __( 'Transaction Declined: ', 'monri' ) . $_REQUEST['Error'] );
 			}
 
 		} catch ( Exception $e ) {

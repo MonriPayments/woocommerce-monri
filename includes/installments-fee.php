@@ -18,7 +18,6 @@ class Monri_WC_Installments_Fee {
 	 * Init hooks
 	 */
 	public function init() {
-		// check if enabled?
 
 		if ( is_admin() ) {
 			return;
@@ -26,7 +25,56 @@ class Monri_WC_Installments_Fee {
 
 		add_action( 'woocommerce_after_calculate_totals', array( $this, 'after_calculate_totals' ) );
 
-		// add fee javascript here
+		add_action( 'woocommerce_checkout_update_order_review', [ $this, 'update_order_review' ] );
+
+		if ( function_exists( 'woocommerce_store_api_register_update_callback' ) ) {
+			woocommerce_store_api_register_update_callback(
+				[
+					'namespace' => 'monri-payments',
+					'callback'  => [ $this, 'store_api_update_callback' ]
+				]
+			);
+		}
+
+		// reset installments on checkout load
+		add_action( 'template_redirect', function () {
+			if ( is_checkout() || is_cart() ) {
+				WC()->session->set( 'monri_installments', 0 );
+			}
+		} );
+
+	}
+
+	/**
+	 * Sets selected installments on New Blocks Checkout
+	 *
+	 * @param $data
+	 *
+	 * @return void
+	 */
+	public function store_api_update_callback( $data ) {
+		if ( ! isset( $data['installments'] ) ) {
+			return;
+		}
+
+		$installments = $data['installments'];
+		WC()->session->set( 'monri_installments', $installments );
+	}
+
+	/**
+	 * Sets selected installments on Old Checkout
+	 *
+	 * @param string $posted_data
+	 *
+	 * @return void
+	 */
+	public function update_order_review( $posted_data ) {
+		parse_str( $posted_data, $posted_data );
+
+		/** @var array $posted_data */
+		if ( isset( $posted_data['monri-card-installments'] ) ) {
+			WC()->session->set( 'monri_installments', (int) $posted_data['monri-card-installments'] );
+		}
 	}
 
 	/**
@@ -36,10 +84,6 @@ class Monri_WC_Installments_Fee {
 
 		if ( ! ( $cart instanceof WC_Cart ) ) {
 			$cart = WC()->cart;
-		}
-
-		if ( WC()->session->get( 'chosen_payment_method' ) !== 'monri' ) {
-			return;
 		}
 
 		// monri_installments, how to set on cart? get from post? set on wc session?

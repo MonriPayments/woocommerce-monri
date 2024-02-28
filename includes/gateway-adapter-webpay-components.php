@@ -32,32 +32,20 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		// @todo: check if we can use parse_request here in older Woo? Are gateways loaded?
 		add_action( 'parse_request', [ $this, 'parse_request' ] );
 
-//        if (is_checkout()) {
-		// @todo: bbutkovic
-		$script_url = $this->payment->get_option_bool( 'test_mode' ) ? self::SCRIPT_ENDPOINT_TEST : self::SCRIPT_ENDPOINT;
-
-		wp_enqueue_script( 'monri-components', $script_url, array(), MONRI_WC_VERSION );
-//        }
-
-		//@todo check if enabled?
-		require_once __DIR__ . '/installments-fee.php';
-		( new Monri_WC_Installments_Fee() )->init();
-
-		add_action( 'woocommerce_checkout_update_order_review', [ $this, 'update_order_review' ] );
-	}
-
-	/**
-	 * @param string $posted_data
-	 *
-	 * @return void
-	 */
-	public function update_order_review( $posted_data ) {
-		parse_str( $posted_data, $posted_data );
-
-		/** @var array $posted_data */
-		if ( isset( $posted_data['monri-card-installments'] ) ) {
-			WC()->session->set( 'monri_installments', (int) $posted_data['monri-card-installments'] );
+		// load installments fee logic if installments enabled
+		if ( $this->payment->get_option( 'paying_in_installments' ) ) {
+			require_once __DIR__ . '/installments-fee.php';
+			( new Monri_WC_Installments_Fee() )->init();
 		}
+
+		// reset installments on checkout load
+		add_action( 'template_redirect', function () {
+			if ( is_checkout() ) {
+				$script_url = $this->payment->get_option_bool( 'test_mode' ) ? self::SCRIPT_ENDPOINT_TEST : self::SCRIPT_ENDPOINT;
+				wp_enqueue_script( 'monri-components', $script_url, array(), MONRI_WC_VERSION );
+			}
+		} );
+
 	}
 
 	/**
