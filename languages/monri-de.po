@@ -179,7 +179,7 @@ msgid "Description which the customer sees during checkout."
 msgstr "Beschreibung, die der Kunde beim Bezahlvorgang sieht."
 
 #: includes/gateway.php:139 includes/settings.php:96
-msgid "Description for Monri"
+msgid "Pay quick and easy via Monri"
 msgstr ""
 
 #: includes/gateway.php:142 includes/settings.php:99
