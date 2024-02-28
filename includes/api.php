@@ -1,7 +1,7 @@
 <?php
 
-class Monri_WC_Api
-{
+class Monri_WC_Api {
+
 	public const ENDPOINT = 'https://ipg.monri.com';
 	public const TEST_ENDPOINT = 'https://ipgtest.monri.com';
 
@@ -20,7 +20,7 @@ class Monri_WC_Api
 	 */
 	public static function instance() {
 
-		if (is_null(self::$instance)) {
+		if ( is_null( self::$instance ) ) {
 			self::$instance = new self();
 		}
 
@@ -28,30 +28,30 @@ class Monri_WC_Api
 	}
 
 	public function __construct() {
-		$this->test_mode = Monri_WC_Settings::instance()->get_option_bool('test_mode');
+		$this->test_mode = Monri_WC_Settings::instance()->get_option_bool( 'test_mode' );
 	}
 
 	/**
-	 * @param $path
-	 * @param $body
+	 * @param string $path
+	 * @param string $body
 	 *
 	 * @return SimpleXmlElement|WP_Error
 	 */
-	private function request($path, $body) {
+	private function request( $path, $body ) {
 
 		$url = $this->test_mode ? self::TEST_ENDPOINT : self::ENDPOINT;
 
 		$headers = [
 			'Content-Type' => 'application/xml',
-			'Accept' => 'application/xml',
+			'Accept'       => 'application/xml',
 		];
 
-		$response = wp_remote_post("$url$path", array(
-			'body' => $body,
-			'headers' => $headers,
+		$response = wp_remote_post( "$url$path", array(
+			'body'       => $body,
+			'headers'    => $headers,
 			'user-agent' => 'Monri 3DS Ringer',
-			'timeout' => 15
-		));
+			'timeout'    => 15
+		) );
 
 		if ( is_wp_error( $response ) ) {
 			return $response;
@@ -60,22 +60,15 @@ class Monri_WC_Api
 		$code = (int) wp_remote_retrieve_response_code( $response );
 		$body = wp_remote_retrieve_body( $response );
 
-		if ( !in_array( $code, [ 200, 201 ], true ) ) {
-			return new \WP_Error('monri_api_error', $body ?: $code);
+		if ( ! in_array( $code, [ 200, 201 ], true ) ) {
+			return new \WP_Error( 'monri_api_error', $body ?: $code );
 		}
 
 		try {
-			$body = new SimpleXmlElement($body);
-		} catch (\Exception $e) {
-			return new \WP_Error('monri_api_error', $body ?: $code);
+			$body = new SimpleXmlElement( $body );
+		} catch ( \Exception $e ) {
+			return new \WP_Error( 'monri_api_error', $body ?: $code );
 		}
-
-		/*
-		return [
-			'statusCode' => $code,
-			'body' => $response_body,
-		];
-		*/
 
 		return $body;
 	}
@@ -85,18 +78,18 @@ class Monri_WC_Api
 	 *
 	 * @return SimpleXmlElement|WP_Error
 	 */
-	public function orders_show($order_number) {
+	public function orders_show( $order_number ) {
 
-		$authenticity_token = Monri_WC_Settings::instance()->get_option('monri_authenticity_token');
+		$authenticity_token = Monri_WC_Settings::instance()->get_option( 'monri_authenticity_token' );
 
 		$payload = '<?xml version="1.0" encoding="UTF-8"?>
               <order>
                 <order-number>' . $order_number . '</order-number>
                 <authenticity-token>' . $authenticity_token . '</authenticity-token>
-                <digest>' . $this->digest($order_number) . '</digest>
+                <digest>' . $this->digest( $order_number ) . '</digest>
             </order>';
 
-		return $this->request('/orders/show', $payload);
+		return $this->request( '/orders/show', $payload );
 	}
 
 	/**
@@ -106,9 +99,9 @@ class Monri_WC_Api
 	 *
 	 * @return SimpleXmlElement|WP_Error
 	 */
-	public function refund($order_number, $amount, $currency) {
+	public function refund( $order_number, $amount, $currency ) {
 
-		$authenticity_token = Monri_WC_Settings::instance()->get_option('monri_authenticity_token');
+		$authenticity_token = Monri_WC_Settings::instance()->get_option( 'monri_authenticity_token' );
 
 		$payload = '<?xml version="1.0" encoding="UTF-8"?>
               <transaction>
@@ -116,10 +109,10 @@ class Monri_WC_Api
                 <currency>' . $currency . '</currency>
                 <order-number>' . $order_number . '</order-number>
                 <authenticity-token>' . $authenticity_token . '</authenticity-token>
-                <digest>' . $this->digest($order_number) . '</digest>
+                <digest>' . $this->digest( $order_number ) . '</digest>
             </transaction>';
 
-		return $this->request("/transactions/$order_number/refund.xml", $payload);
+		return $this->request( "/transactions/$order_number/refund.xml", $payload );
 	}
 
 	/**
@@ -127,7 +120,7 @@ class Monri_WC_Api
 	 *
 	 * @return SimpleXmlElement|WP_Error
 	 */
-	public function pares($post) {
+	public function pares( $post ) {
 
 		$xml = "<?xml version='1.0' encoding='UTF-8'?>
                 <secure-message>              
@@ -135,7 +128,7 @@ class Monri_WC_Api
                   <PaRes>{$post['PaRes']}</PaRes>
                 </secure-message>";
 
-		return $this->request('/pares', $xml);
+		return $this->request( '/pares', $xml );
 	}
 
 	/**
@@ -143,10 +136,11 @@ class Monri_WC_Api
 	 *
 	 * @return string
 	 */
-	private function digest($order_number) {
+	private function digest( $order_number ) {
 
-		$merchant_key = Monri_WC_Settings::instance()->get_option('monri_merchant_key');
-		return hash('SHA1', $merchant_key . $order_number);
+		$merchant_key = Monri_WC_Settings::instance()->get_option( 'monri_merchant_key' );
+
+		return hash( 'SHA1', $merchant_key . $order_number );
 	}
 
 }

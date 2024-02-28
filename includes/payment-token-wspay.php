@@ -1,7 +1,5 @@
 <?php
 
-//or use woocommerce_payment_token_class filter !!
-
 class Monri_WC_Payment_Token_Wspay extends WC_Payment_Token {
 
 	/**
@@ -24,9 +22,10 @@ class Monri_WC_Payment_Token_Wspay extends WC_Payment_Token {
 	/**
 	 * Get type to display to user.
 	 *
-	 * @since  2.6.0
-	 * @param  string $deprecated Deprecated since WooCommerce 3.0.
+	 * @param string $deprecated Deprecated since WooCommerce 3.0.
+	 *
 	 * @return string
+	 * @since  2.6.0
 	 */
 	public function get_display_name( $deprecated = '' ) {
 		$display = sprintf(
@@ -37,13 +36,15 @@ class Monri_WC_Payment_Token_Wspay extends WC_Payment_Token {
 			$this->get_expiry_month(),
 			$this->get_expiry_year()
 		);
+
 		return $display;
 	}
 
 	/**
 	 * Returns the card type (mastercard, visa, ...).
 	 *
-	 * @param  string $context What the value is for. Valid values are view and edit.
+	 * @param string $context What the value is for. Valid values are view and edit.
+	 *
 	 * @return string Card type
 	 */
 	public function get_card_type( $context = 'view' ) {
@@ -62,7 +63,8 @@ class Monri_WC_Payment_Token_Wspay extends WC_Payment_Token {
 	/**
 	 * Returns the card expiration year (YYYY).
 	 *
-	 * @param  string $context What the value is for. Valid values are view and edit.
+	 * @param string $context What the value is for. Valid values are view and edit.
+	 *
 	 * @return string Expiration year
 	 */
 	public function get_expiry_year( $context = 'view' ) {
@@ -72,8 +74,9 @@ class Monri_WC_Payment_Token_Wspay extends WC_Payment_Token {
 	/**
 	 * Set the expiration year for the card (YYYY format).
 	 *
-	 * @since 2.6.0
 	 * @param string $year Credit card expiration year.
+	 *
+	 * @since 2.6.0
 	 */
 	public function set_expiry_year( $year ) {
 		$this->set_prop( 'expiry_year', $year );
@@ -82,7 +85,8 @@ class Monri_WC_Payment_Token_Wspay extends WC_Payment_Token {
 	/**
 	 * Returns the card expiration month (MM).
 	 *
-	 * @param  string $context What the value is for. Valid values are view and edit.
+	 * @param string $context What the value is for. Valid values are view and edit.
+	 *
 	 * @return string Expiration month
 	 */
 	public function get_expiry_month( $context = 'view' ) {
@@ -101,7 +105,8 @@ class Monri_WC_Payment_Token_Wspay extends WC_Payment_Token {
 	/**
 	 * Returns the last four digits.
 	 *
-	 * @param  string $context What the value is for. Valid values are view and edit.
+	 * @param string $context What the value is for. Valid values are view and edit.
+	 *
 	 * @return string Last 4 digits
 	 */
 	public function get_last4( $context = 'view' ) {

@@ -1,11 +1,13 @@
 <?php
 
 /**
- * @todo: popravit thankyou poruke + vidit kako je bolje
- * switchanje tokenizacijskih kljuceva - kako je u magentu? mislim da njihovo nije dobro
+ * @todo: thankyou messages and error handling
  */
 class Monri_WC_Gateway_Adapter_Wspay {
 
+	/**
+	 * Adapter ID
+	 */
 	public const ADAPTER_ID = 'wspay';
 
 	public const ENDPOINT_TEST = 'https://formtest.wspay.biz';
@@ -47,10 +49,11 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 			require_once __DIR__ . '/payment-token-wspay.php';
 
-			add_filter( 'woocommerce_payment_token_class', function ($value, $type) {
-				if ($type === 'Monri_Wspay') {
+			add_filter( 'woocommerce_payment_token_class', function ( $value, $type ) {
+				if ( $type === 'Monri_Wspay' ) {
 					return Monri_WC_Payment_Token_Wspay::class;
 				}
+
 				return $value;
 			}, 0, 2 );
 		}
@@ -110,7 +113,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$order_id = (string) $order->get_id();
 
 		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
-			$order_id = $this->payment->get_test_order_id($order_id);
+			$order_id = $this->payment->get_test_order_id( $order_id );
 		}
 
 		$req = [];
@@ -119,21 +122,21 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 			$use_token = null;
 			if ( isset( $_POST['wc-monri-payment-token'] ) &&
-			     ! in_array($_POST['wc-monri-payment-token'], ['not-selected', 'new', ''], true)
+			     ! in_array( $_POST['wc-monri-payment-token'], [ 'not-selected', 'new', '' ], true )
 			) {
 				$token_id = $_POST['wc-monri-payment-token'];
-				$tokens = $this->payment->get_tokens();
+				$tokens   = $this->payment->get_tokens();
 
-				if (!isset($tokens[$token_id])) {
-					throw new Exception(__( 'Token does not exist.', 'monri'));
+				if ( ! isset( $tokens[ $token_id ] ) ) {
+					throw new Exception( __( 'Token does not exist.', 'monri' ) );
 				}
 
 				/** @var Monri_WC_Payment_Token_Wspay $use_token */
-				$use_token = $tokens[$token_id];
+				$use_token = $tokens[ $token_id ];
 			}
 
 			$new_token = isset( $_POST['wc-monri-new-payment-method'] ) &&
-			             in_array($_POST['wc-monri-new-payment-method'], ['true', '1', 1], true);
+			             in_array( $_POST['wc-monri-new-payment-method'], [ 'true', '1', 1 ], true );
 
 			// paying with tokenized card
 			if ( $use_token ) {
@@ -142,7 +145,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 				$req['Token']       = $use_token->get_token();
 				$req['TokenNumber'] = $use_token->get_last4();
 
-				$order->update_meta_data('_monri_order_token_used', 1);
+				$order->update_meta_data( '_monri_order_token_used', 1 );
 				$order->save_meta_data();
 
 				// use different shop_id/secret for tokenization
@@ -203,7 +206,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		}
 
 		Monri_WC_Logger::log( $response, __METHOD__ );
-		throw new Exception(__( 'Gateway currently not available.', 'monri'));
+		throw new Exception( __( 'Gateway currently not available.', 'monri' ) );
 	}
 
 
@@ -217,8 +220,6 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	public function thankyou_page() {
 
 		//echo $this->show_message('wqewqeqe', 'woocommerce_message woocommerce_error');
-		//echo 12345;
-		//return;
 
 		$order_id = $_REQUEST['ShoppingCartID'];
 		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
@@ -233,7 +234,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		}
 
 		$is_tokenization = $order->get_meta( '_monri_order_token_used', true );
-		if ($is_tokenization) {
+		if ( $is_tokenization ) {
 			$this->use_tokenization_credentials();
 		}
 
@@ -246,7 +247,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 		if ( $order->get_status() === 'completed' ) {
 
-			$this->msg['message'] = __('Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.', 'monri');
+			$this->msg['message'] = __( 'Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.', 'monri' );
 			$this->msg['class']   = 'woocommerce_message';
 
 		} else {
@@ -256,15 +257,13 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			$trx_authorized = $success === '1' && ! empty( $approval_code );
 
 			if ( $trx_authorized ) {
-				$this->msg['message'] = __('Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.', 'monri');
+				$this->msg['message'] = __( 'Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.', 'monri' );
 				$this->msg['class']   = 'woocommerce_message';
 
 				$order->payment_complete();
-				$order->add_order_note( __("Monri payment successful<br/>Approval code: ", 'monri') . $approval_code );
+				$order->add_order_note( __( "Monri payment successful<br/>Approval code: ", 'monri' ) . $approval_code );
 				//$order->add_order_note($this->msg['message']);
 				WC()->cart->empty_cart();
-
-				//$tokenized = $this->save_token_details_ws_pay();
 
 				if ( $this->tokenization_enabled() && $order->get_user_id() ) {
 					$this->save_user_token( $order->get_user_id(), $_REQUEST );
@@ -272,7 +271,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 			} else {
 				$this->msg['class']   = 'woocommerce_error';
-				$this->msg['message'] = __('Thank you for shopping with us. However, the transaction has been declined.', 'monri');
+				$this->msg['message'] = __( 'Thank you for shopping with us. However, the transaction has been declined.', 'monri' );
 
 				$order->update_status( 'failed' );
 				$order->add_order_note( 'Failed' );
@@ -382,10 +381,10 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$wc_token->set_user_id( $user_id );
 
 		$wc_token->set_last4( $data['TokenNumber'] );
-		$ccType = $data['PaymentType'] ?? ($data['CreditCardName'] ?? '');
-		$wc_token->set_card_type($ccType);
-		$wc_token->set_expiry_year( substr( $data['TokenExp'] , 0, 2) );
-		$wc_token->set_expiry_month( substr( $data['TokenExp'] , 2, 2) );
+		$ccType = $data['PaymentType'] ?? ( $data['CreditCardName'] ?? '' );
+		$wc_token->set_card_type( $ccType );
+		$wc_token->set_expiry_year( substr( $data['TokenExp'], 0, 2 ) );
+		$wc_token->set_expiry_month( substr( $data['TokenExp'], 2, 2 ) );
 
 		$wc_token->save();
 	}

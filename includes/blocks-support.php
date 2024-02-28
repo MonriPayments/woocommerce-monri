@@ -32,13 +32,13 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 		woocommerce_store_api_register_update_callback(
 			[
 				'namespace' => 'monri-payments',
-				'callback' => function ($data) {
-					if (!isset($data['installments'])) {
+				'callback'  => function ( $data ) {
+					if ( ! isset( $data['installments'] ) ) {
 						return;
 					}
 
 					$installments = $data['installments'];
-					WC()->session->set('monri_installments', $installments);
+					WC()->session->set( 'monri_installments', $installments );
 				}
 			]
 		);
@@ -67,7 +67,7 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 				'dependencies' => array(),
 				'version'      => MONRI_WC_VERSION
 			);
-		$script_url = MONRI_WC_PLUGIN_URL . $script_path;
+		$script_url        = MONRI_WC_PLUGIN_URL . $script_path;
 
 		if ( $this->get_setting( 'monri_payment_gateway_service' ) === 'monri-web-pay' &&
 		     $this->get_setting( 'monri_web_pay_integration_type' ) === 'components'
@@ -113,7 +113,7 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 		// @todo not aware of bottom limit
 
 		if ( $data['service'] === 'monri-web-pay' && $this->get_setting( 'paying_in_installments' ) ) {
-			$data['installments'] = $this->get_setting('number_of_allowed_installments');
+			$data['installments'] = $this->get_setting( 'number_of_allowed_installments' );
 		} else {
 			$data['installments'] = 0;
 		}
