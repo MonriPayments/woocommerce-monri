@@ -35,6 +35,6 @@ class Monri_WC_Logger {
 	}
 
 	public static function is_log_enabled() {
-		return Monri_WC_Settings::instance()->get_option_bool( 'logging' );
+		return Monri_WC_Settings::instance()->get_option_bool( 'debug_mode' );
 	}
 }

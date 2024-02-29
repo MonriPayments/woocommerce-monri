@@ -192,17 +192,16 @@ class Monri_WC_Settings {
 			),
 			'test_mode' => array(
 				'title'       => __( 'Test mode', 'monri' ),
+				'description' => __( 'Just test the gateway, no real orders will be placed on the gateway side.' ),
 				'type'        => 'select',
 				'class'       => 'wc-enhanced-select',
 				'default'     => 0,
-				'description' => '',
 				'options'     => $yes_or_no,
 				'desc_tip'    => true,
 			),
-			'logging' => array(
-				'title'       => __( 'Logging', 'monri' ),
-				'label'       => __( 'Log debug messages', 'monri' ),
-				'description' => __( 'Save debug messages to the WooCommerce System Status log.', 'monri' ),
+			'debug_mode' => array(
+				'title'       => __( 'Debug mode', 'monri' ),
+				'description' => __( 'Save detailed messages, error messages and API requests to the WooCommerce Status log.', 'monri' ),
 				'type'        => 'select',
 				'class'       => 'wc-enhanced-select',
 				'default'     => 0,
