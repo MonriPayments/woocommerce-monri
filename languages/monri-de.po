@@ -247,8 +247,8 @@ msgid "Number of allowed installments"
 msgstr "Anzahl der erlaubten Raten"
 
 #: includes/gateway.php:258 includes/settings.php:279
-msgid "Price limit for paying in installments:"
-msgstr "Preisobergrenze für Ratenzahlung:"
+msgid "Price limit for paying in installments"
+msgstr "Preisobergrenze für Ratenzahlung"
 
 #: includes/gateway.php:260 includes/settings.php:281
 msgid ""
@@ -334,7 +334,7 @@ msgid "Form language:"
 msgstr ""
 
 #: includes/settings.php:290
-msgid "Price increase when paying in %d installments:"
+msgid "Price increase when paying in %d installments"
 msgstr ""
 
 #: monri.php:45

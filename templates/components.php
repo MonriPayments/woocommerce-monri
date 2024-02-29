@@ -11,7 +11,7 @@ $installments_price_increase = false;
 	<label for="monri-card-installments"><?php esc_html_e('Number of installments: ', 'monri') ?></label>
 	<select id="monri-card-installments" name="monri-card-installments" class="input-text">
 		<?php foreach ($installments as $installment): ?>
-			<option value="<?php echo esc_attr ( $installment['value'] ) ?>"
+			<option value="<?php echo esc_attr( $installment['value'] ) ?>"
 					<?php if ($installment['selected']): ?>selected<?php endif ?>
 			><?php echo esc_html($installment['label']) ?></option>
 			<?php $installments_price_increase = $installments_price_increase || ($installment['price_increase'] !== 0); ?>

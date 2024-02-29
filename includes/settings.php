@@ -270,7 +270,7 @@ class Monri_WC_Settings {
 		for ( $i = 2; $i <= 24; $i ++ ) {
 			$form_fields["price_increase_$i"] = array(
 				/* translators: %d: number of installments */
-				'title'       => sprintf(__( 'Price increase when paying in %d installments:', 'monri' ), $i),
+				'title'       => sprintf(__( 'Price increase when paying in %d installments', 'monri' ), $i),
 				'type'        => 'decimal',
 				'description' => __( 'This controls the price increase when paying with installments.', 'monri' ),
 				'desc_tip'    => true,

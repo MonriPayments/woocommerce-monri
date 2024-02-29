@@ -9,7 +9,7 @@ if ( ! isset( $_GET['acsUrl'], $_GET['pareq'], $_GET['returnUrl'], $_GET['token'
 <!DOCTYPE html>
 <html>
 	<head>
-        <title><?php echo 'Monri 3D Secure Verification' ?></title>
+        <title><?php esc_html_e( 'Monri 3D Secure Verification' ) ?></title>
 	</head>
 	<body style="display:none">
         <p><?php esc_html_e( 'Invoking 3-D secure form, please wait ...', 'monri' ); ?></p>

@@ -256,7 +256,7 @@ msgstr ""
 
 #: includes/gateway.php:258
 #: includes/settings.php:279
-msgid "Price limit for paying in installments:"
+msgid "Price limit for paying in installments"
 msgstr ""
 
 #: includes/gateway.php:260
@@ -339,7 +339,7 @@ msgid "Form language:"
 msgstr ""
 
 #: includes/settings.php:290
-msgid "Price increase when paying in %d installments:"
+msgid "Price increase when paying in %d installments"
 msgstr ""
 
 #: monri.php:45
