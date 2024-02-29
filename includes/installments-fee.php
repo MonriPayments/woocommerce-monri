@@ -94,9 +94,7 @@ class Monri_WC_Installments_Fee {
 		$total = (float) $cart->get_total( 'edit' );
 
 		$installments_fee_percent = (float) $this->settings->get_option( "price_increase_$installments", 0 );
-		//if ($installments_fee_percent !== 0) {
-		$installments_fee = $total * $installments_fee_percent / 100;
-		//}
+		$installments_fee = round( $total * $installments_fee_percent / 100, 2 );
 
 		if ( $installments_fee < 0.01 ) {
 			return;
