@@ -263,7 +263,7 @@ class Monri_WC_Settings {
 				]
 			),
 			'bottom_limit' => array(
-				'title'       => __( 'Price limit for paying in installments:', 'monri' ),
+				'title'       => __( 'Price limit for paying in installments', 'monri' ),
 				'type'        => 'price',
 				'description' => __( 'This controls the bottom price limit on which the installments can be used.', 'monri' ),
 				'desc_tip'    => true,
