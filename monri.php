@@ -81,3 +81,44 @@ function monri_wc_block_support() {
 	}
 }
 add_action( 'woocommerce_blocks_loaded', 'monri_wc_block_support' );
+
+
+// Migrate settings from older version to new option settings, disable deprecated modules
+function monri_legacy_migrate() {
+
+	// deactivate legacy plugins if active
+	if ( is_plugin_active( 'woocommerce-monri/pikpay.php' ) ) {
+		deactivate_plugins( 'woocommerce-monri/pikpay.php' );
+	}
+	if ( is_plugin_active( 'woocommerce-monri/monri.php' ) ) {
+		deactivate_plugins( 'woocommerce-monri/monri.php' );
+	}
+
+	$monri_settings = get_option( 'woocommerce_monri_settings' );
+	if ( $monri_settings && is_array( $monri_settings ) ) {
+		return;
+	}
+
+	$old_settings = get_option( 'woocommerce_pikpay_settings' );
+	if ( ! $old_settings || ! is_array( $old_settings ) ) {
+		return;
+	}
+
+	if ( isset( $old_settings['pikpaykey'] ) ) {
+		$old_settings['monri_merchant_key'] = $old_settings['pikpaykey'];
+		unset( $old_settings['pikpaykey'] );
+	}
+
+	if ( isset( $old_settings['pikpayauthtoken'] ) ) {
+		$old_settings['monri_authenticity_token'] = $old_settings['pikpayauthtoken'];
+		unset( $old_settings['pikpayauthtoken'] );
+	}
+
+	unset( $old_settings['pickpay_methods'] );
+
+	add_option( 'woocommerce_monri_settings', $old_settings );
+
+}
+
+add_action( 'upgrader_process_complete', 'monri_legacy_migrate' );
+register_activation_hook( __FILE__, 'monri_legacy_migrate' );
