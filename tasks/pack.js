@@ -7,7 +7,7 @@ const archiver = require( 'archiver' );
 const fs = require( 'fs' );
 const { rimrafSync: rimraf } = require('rimraf');
 
-const pluginSlug = 'woocommerce-monri';
+const pluginSlug = 'monri-payments';
 
 // some config
 const releaseFolder = 'release';

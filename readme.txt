@@ -1,5 +1,5 @@
-=== Monri Payment Gateway for WooCommerce ===
-Contributors: Favicode d.o.o.
+=== Monri Payments Gateway for WooCommerce ===
+Contributors: monripayments
 Tags: monri, credit card, payment, woocommerce
 Requires at least: 5.3
 Tested up to: 6.4.2
