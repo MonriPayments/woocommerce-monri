@@ -32,13 +32,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		// @todo: check if we can use parse_request here in older Woo? Are gateways loaded?
 		add_action( 'parse_request', [ $this, 'parse_request' ] );
 
-		// load installments fee logic if installments enabled
-		if ( $this->payment->get_option( 'paying_in_installments' ) ) {
-			require_once __DIR__ . '/installments-fee.php';
-			( new Monri_WC_Installments_Fee() )->init();
-		}
-
-		// reset installments on checkout load
+		// load components.js on frontend checkout
 		add_action( 'template_redirect', function () {
 			if ( is_checkout() ) {
 				$script_url = $this->payment->get_option_bool( 'test_mode' ) ? self::SCRIPT_ENDPOINT_TEST : self::SCRIPT_ENDPOINT;
@@ -46,18 +40,17 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			}
 		} );
 
-		//@todo: can we do better to just load on checkout editing?
-		add_action('enqueue_block_editor_assets', function () {
-			$script_url = $this->payment->get_option_bool( 'test_mode' ) ? self::SCRIPT_ENDPOINT_TEST : self::SCRIPT_ENDPOINT;
-			wp_enqueue_script( 'monri-components', $script_url, array(), MONRI_WC_VERSION );
-		});
-
+		// load installments fee logic if installments enabled
+		if ( $this->payment->get_option( 'paying_in_installments' ) ) {
+			require_once __DIR__ . '/installments-fee.php';
+			( new Monri_WC_Installments_Fee() )->init();
+		}
 	}
 
 	/**
 	 * @return void
 	 */
-	// @todo why we have this? Can't we go back to thankyou page right away and regulate there?
+	// @todo can't we go back to thankyou page right away and regulate there?
 	public function parse_request() {
 
 		$uri = parse_url( site_url() . $_SERVER['REQUEST_URI'], PHP_URL_PATH );
@@ -130,7 +123,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 
 		$order_total = (float) WC()->cart->get_total( 'edit' );
 
-		//$installments key/value array to template
+		// installments key/value array for template
 		$installments = array();
 
 		if ( $this->payment->get_option_bool( 'paying_in_installments' ) ) {
@@ -197,12 +190,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		//Check if paying in installments, if yes set transaction_type to purchase
 		if ( $number_of_installments > 1 ) {
 			$transaction_type = 'purchase';
-			/*
-			$installment = (float) $this->payment->get_option("price_increase_$number_of_installments", 0);
-			if ($installment != 0) {
-				$amount = $order->get_total() + ($order->get_total() * $installment / 100);
-			}
-			*/
 		}
 
 		//Convert order amount to number without decimals

@@ -27,23 +27,19 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 	public function initialize() {
 		$this->settings = get_option( 'woocommerce_monri_settings', [] );
 		$gateways       = WC()->payment_gateways->payment_gateways();
+
+		/** @var Monri_WC_Gateway $this->gateway */
 		$this->gateway  = $gateways[ $this->name ];
 
-		/* moved to gateway
-		woocommerce_store_api_register_update_callback(
-			[
-				'namespace' => 'monri-payments',
-				'callback'  => function ( $data ) {
-					if ( ! isset( $data['installments'] ) ) {
-						return;
-					}
-
-					$installments = $data['installments'];
-					WC()->session->set( 'monri_installments', $installments );
-				}
-			]
-		);
-		*/
+		// load components.js on admin edit page to make components visible in checkout page builder
+		if (is_admin() && $this->gateway->get_adapter_id() === 'webpay_components') {
+			add_action('enqueue_block_editor_assets', function () {
+				$script_url = $this->get_setting( 'test_mode' ) ?
+					Monri_WC_Gateway_Adapter_Webpay_Components::SCRIPT_ENDPOINT_TEST :
+					Monri_WC_Gateway_Adapter_Webpay_Components::SCRIPT_ENDPOINT;
+				wp_enqueue_script( 'monri-components', $script_url, array(), MONRI_WC_VERSION );
+			});
+		}
 	}
 
 	/**
@@ -69,7 +65,7 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 				'dependencies' => array(),
 				'version'      => MONRI_WC_VERSION
 			);
-		$script_url        = MONRI_WC_PLUGIN_URL . $script_path;
+		$script_url = MONRI_WC_PLUGIN_URL . $script_path;
 
 		if ( $this->get_setting( 'monri_payment_gateway_service' ) === 'monri-web-pay' &&
 		     $this->get_setting( 'monri_web_pay_integration_type' ) === 'components'
@@ -114,7 +110,7 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 
 		// @todo not aware of bottom limit
 
-		if ( $data['service'] === 'monri-web-pay' &&$data['integration_type'] === 'components' && $this->get_setting( 'paying_in_installments' ) ) {
+		if ( $data['service'] === 'monri-web-pay' && $data['integration_type'] === 'components' && $this->get_setting( 'paying_in_installments' ) ) {
 			$data['installments'] = $this->get_setting( 'number_of_allowed_installments' );
 		} else {
 			$data['installments'] = 0;

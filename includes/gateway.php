@@ -35,7 +35,7 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 
 		$this->adapter->init($this);
 
-		// @todo: not here
+		// @todo: maybe not here?
         require_once __DIR__ . '/callback.php';
         $callback = new Monri_WC_Callback();
         $callback->init();
@@ -46,6 +46,18 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 		}
 	}
 
+	/**
+	 * @return string
+	 */
+	public function get_adapter_id() {
+		return $this->adapter::ADAPTER_ID;
+	}
+
+	/**
+	 * Forward to adapter
+	 *
+	 * @inheritDoc
+	 */
 	public function process_payment( $order_id ) {
 		if(method_exists($this->adapter, 'process_payment')) {
 			return $this->adapter->process_payment( $order_id );
@@ -53,6 +65,11 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 		return parent::process_payment( $order_id );
 	}
 
+	/**
+	 * Forward to adapter
+	 *
+	 * @inheritDoc
+	 */
 	public function process_refund( $order_id, $amount = null, $reason = '' ) {
 		if(method_exists($this->adapter, 'process_refund')) {
 			return $this->adapter->process_refund( $order_id, $amount, $reason );
@@ -60,6 +77,11 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 		return parent::process_refund( $order_id, $amount, $reason );
 	}
 
+	/**
+	 * Forward to adapter
+	 *
+	 * @inheritDoc
+	 */
 	public function validate_fields() {
 		if(method_exists($this->adapter, 'validate_fields')) {
 			return $this->adapter->validate_fields();
@@ -67,6 +89,11 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 		return parent::validate_fields();
 	}
 
+	/**
+	 * Forward to adapter
+	 *
+	 * @inheritDoc
+	 */
 	public function payment_fields() {
 		parent::payment_fields();
 		if(method_exists($this->adapter, 'payment_fields')) {
@@ -74,10 +101,16 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 		}
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function init_form_fields() {
 		$this->form_fields =  Monri_WC_Settings::instance()->get_form_fields();
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function admin_options()
 	{
 		parent::admin_options();
