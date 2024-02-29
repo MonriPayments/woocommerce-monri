@@ -8,19 +8,19 @@ $installments_price_increase = false;
 <?php if ($installments): ?>
 <div id="monri-installments" class="monri-installments">
 
-	<label for="monri-card-installments"><?php esc_html_e(__('Number of installments: ', 'monri')) ?></label>
+	<label for="monri-card-installments"><?php esc_html_e('Number of installments: ', 'monri') ?></label>
 	<select id="monri-card-installments" name="monri-card-installments" class="input-text">
 		<?php foreach ($installments as $installment): ?>
-			<option value="<?php echo $installment['value'] ?>"
+			<option value="<?php echo esc_attr ( $installment['value'] ) ?>"
 					<?php if ($installment['selected']): ?>selected<?php endif ?>
-			><?php esc_html_e($installment['label']) ?></option>
+			><?php echo esc_html($installment['label']) ?></option>
 			<?php $installments_price_increase = $installments_price_increase || ($installment['price_increase'] !== 0); ?>
 		<?php endforeach; ?>
 	</select>
 
 	<?php if ($installments_price_increase): ?>
 	<p>
-		<?php esc_html_e(__('Fees may be applied for installments','monri')) ?>
+		<?php esc_html_e('Fees may be applied for installments','monri') ?>
 	</p>
 	<?php endif; ?>
 	<br/>
@@ -57,11 +57,11 @@ $installments_price_increase = false;
 <script type="text/javascript">
 	(function($) {
 
-        var monri = Monri('<?php echo $config['authenticity_token'] ?>', {locale: '<?php echo $config['locale'] ?>'});
+        var monri = Monri('<?php echo esc_js( $config['authenticity_token'] ) ?>', {locale: '<?php echo esc_js( $config['locale'] ) ?>'});
         var components = monri.components(
-            '<?php echo $config['random_token'] ?>',
-            '<?php echo $config['digest'] ?>',
-            '<?php echo $config['timestamp'] ?>'
+            '<?php echo esc_js( $config['random_token'] ) ?>',
+            '<?php echo esc_js( $config['digest'] ) ?>',
+            '<?php echo esc_js( $config['timestamp'] ) ?>'
         );
 
         var style = {invalid: {color: 'red'}};

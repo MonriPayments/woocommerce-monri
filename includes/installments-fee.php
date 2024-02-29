@@ -1,8 +1,6 @@
 <?php
 
 class Monri_WC_Installments_Fee {
-	public const NAME = 'Installments fee';
-
 	public const CODE = 'monri_installments_fee';
 
 	/**
@@ -106,7 +104,7 @@ class Monri_WC_Installments_Fee {
 
 		$cart->fees_api()->add_fee( array(
 			'id'        => self::CODE,
-			'name'      => __( self::NAME, 'monri' ),
+			'name'      => __( 'Installments fee', 'monri' ),
 			'taxable'   => false,
 			'tax_class' => '',
 			'amount'    => $installments_fee,

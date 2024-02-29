@@ -28,7 +28,7 @@ class Monri_WC_Callback {
 		$this->http_status( $status );
 		header( 'Content-Type: text/plain' );
 
-		echo $message;
+		echo esc_html($message);
 		exit( (int) $status[0] );
 	}
 

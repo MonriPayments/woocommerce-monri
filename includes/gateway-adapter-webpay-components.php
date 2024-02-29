@@ -53,7 +53,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	// @todo can't we go back to thankyou page right away and regulate there?
 	public function parse_request() {
 
-		$uri = parse_url( site_url() . $_SERVER['REQUEST_URI'], PHP_URL_PATH );
+		$uri = wp_parse_url( site_url() . $_SERVER['REQUEST_URI'], PHP_URL_PATH );
 
 		if ( $uri !== '/monri-3ds-payment-result' ) {
 			return;
@@ -175,7 +175,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		$monri_token = $_POST['monri-token'] ?? '';
 
 		if ( empty( $monri_token ) ) {
-			throw new Exception( __( 'Missing Monri token.', 'monri' ) );
+			throw new Exception( esc_html( __( 'Missing Monri token.', 'monri' ) ) );
 		}
 
 		$number_of_installments = isset( $_POST['monri-card-installments'] ) ? (int) $_POST['monri-card-installments'] : 1;
@@ -216,7 +216,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			'ch_email'     => $order->get_billing_email(),
 
 			'order_number' => $order_number,
-			'order_info'   => $order_number . '_' . date( 'dmy' ),
+			'order_info'   => $order_number . '_' . gmdate( 'dmy' ),
 			'amount'       => $amount,
 			'currency'     => $currency,
 
@@ -247,7 +247,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			$thank_you_page = $this->payment->get_return_url( $order );
 
 			$payment_token = $this->base64url_encode(
-				json_encode( [ $result['authenticity_token'], $order_number, $thank_you_page ] )
+				wp_json_encode( [ $result['authenticity_token'], $order_number, $thank_you_page ] )
 			);
 
 			$urlEncode = array(
@@ -299,8 +299,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 
 		throw new Exception(
 			isset( $result['errors'] ) && ! empty( $result['errors'] ) ?
-				implode( '; ', $result['errors'] ) :
-				__( 'Missing Monri token.', 'monri' )
+				esc_html( implode( '; ', $result['errors'] ) ) :
+				esc_html( __( 'Missing Monri token.', 'monri' ) )
 		);
 	}
 
@@ -313,7 +313,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		$url                          = $this->payment->get_option_bool( 'test_mode' ) ? self::TRANSACTION_ENDPOINT_TEST : self::TRANSACTION_ENDPOINT;
 		$requestParams['transaction'] = $params;
 		$result                       = wp_remote_post( $url, [
-				'body'      => json_encode( $requestParams ),
+				'body'      => wp_json_encode( $requestParams ),
 				'headers'   => [
 					'Accept'       => 'application/json',
 					'Content-Type' => 'application/json'

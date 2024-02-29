@@ -127,7 +127,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 				$tokens   = $this->payment->get_tokens();
 
 				if ( ! isset( $tokens[ $token_id ] ) ) {
-					throw new Exception( __( 'Token does not exist.', 'monri' ) );
+					throw new Exception( esc_html( __( 'Token does not exist.', 'monri' ) ) );
 				}
 
 				/** @var Monri_WC_Payment_Token_Wspay $use_token */
@@ -207,7 +207,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		}
 
 		Monri_WC_Logger::log( $response, __METHOD__ );
-		throw new Exception( __( 'Gateway currently not available.', 'monri' ) );
+		throw new Exception( esc_html( __( 'Gateway currently not available.', 'monri' ) ) );
 	}
 
 
@@ -345,7 +345,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$url .= $path;
 
 		$result = wp_remote_post( $url, [
-				'body'      => json_encode( $params ),
+				'body'      => wp_json_encode( $params ),
 				'headers'   => [
 					'Accept'       => 'application/json',
 					'Content-Type' => 'application/json'

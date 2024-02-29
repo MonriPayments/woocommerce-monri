@@ -93,7 +93,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			'ch_email'     => wc_trim_string( $order->get_billing_email(), 100, '' ),
 
 			'order_number'    => $order_id,
-			'order_info'      => $order_id . '_' . date( 'dmy' ),
+			'order_info'      => $order_id . '_' . gmdate( 'dmy' ),
 			'amount'          => $order_total,
 			'currency'        => $currency,
 			'original_amount' => $order->get_total(),
