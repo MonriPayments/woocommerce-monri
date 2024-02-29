@@ -1,4 +1,4 @@
-=== Monri Payment Gateway for WooCommerce ===
+=== Monri Payments Gateway for WooCommerce ===
 Contributors: monripayments
 Tags: monri, credit card, payment, woocommerce
 Requires at least: 5.3
