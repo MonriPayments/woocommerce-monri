@@ -206,6 +206,16 @@ class Monri_WC_Settings {
 				'options'     => $yes_or_no,
 				'desc_tip'    => true,
 			),
+			'logging' => array(
+				'title'       => __( 'Logging', 'monri' ),
+				'label'       => __( 'Log debug messages', 'monri' ),
+				'description' => __( 'Save debug messages to the WooCommerce System Status log.', 'monri' ),
+				'type'        => 'select',
+				'class'       => 'wc-enhanced-select',
+				'default'     => 0,
+				'options'     => $yes_or_no,
+				'desc_tip'    => true,
+			),
 			'transaction_type' => array(
 				'title'       => __( 'Transaction type', 'monri' ),
 				'type'        => 'select',
