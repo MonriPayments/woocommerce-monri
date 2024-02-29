@@ -33,6 +33,11 @@ You can find additional information regarding Monri payments on WooCommerce at
 3. Payment on checkout using Monri Components with additional installments fee
 4. Admin settings showing different options for configuring the Monri payment module
 
+== Development ==
+
+You can find more details about the development of this plugin here:
+https://github.com/MonriPayments/woocommerce-monri
+
 == Changelog ==
 
 = 3.0.0 - 2024-02-29 =
