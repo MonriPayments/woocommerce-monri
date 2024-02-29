@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: Monri
+Plugin Name: Monri Payments
 Description: Monri - Payment gateway for WooCommerce
 Version: 3.0.0
 Author: Monri Payments d.o.o.
