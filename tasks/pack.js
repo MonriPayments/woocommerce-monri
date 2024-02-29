@@ -23,6 +23,7 @@ const filesToCopy = [
     'Monri_woocommerce_postavke_wspay.pdf',
     'readme.txt',
     'version.php',
+    'index.php',
 ];
 
 // start with a clean release folder
