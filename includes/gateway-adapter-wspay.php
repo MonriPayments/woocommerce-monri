@@ -194,6 +194,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$req['customerPhone']     = $order->get_billing_phone();
 		$req['customerEmail']     = $order->get_billing_email();
 
+        Monri_WC_Logger::log( "Request data: " . print_r( $req, true ), __METHOD__ );
+
 		$response = $this->api( '/api/create-transaction', $req );
 
 		if ( isset( $response['PaymentFormUrl'] ) ) {
@@ -219,7 +221,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	public function thankyou_page() {
 
 		//echo $this->show_message('wqewqeqe', 'woocommerce_message woocommerce_error');
-
+        Monri_WC_Logger::log( "Response data: " . print_r( $_REQUEST, true ), __METHOD__ );
 		$order_id = $_REQUEST['ShoppingCartID'];
 		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
 			$order_id = $this->payment->resolve_real_order_id( $order_id );
