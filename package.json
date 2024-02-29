@@ -6,7 +6,10 @@
   "scripts": {
     "build:webpack": "wp-scripts build blocks/index.js",
     "start:webpack": "wp-scripts start blocks/index.js",
-    "build": "rimraf assets/js/blocks/* && npm run build:webpack"
+    "make:release": "node tasks/pack.js",
+    "build": "rimraf assets/js/blocks/* && npm run build:webpack",
+    "pack": "npm run build && npm run make:release",
+    "bump-version": "bash tasks/bump-version.sh"
   },
   "author": "",
   "license": "ISC",
@@ -17,6 +20,9 @@
   "devDependencies": {
     "@woocommerce/dependency-extraction-webpack-plugin": "^2.3.0",
     "@wordpress/scripts": "^27.2.0",
+    "archiver": "^6.0.1",
+    "colors": "^1.4.0",
+    "shelljs": "^0.8.5",
     "rimraf": "^5.0.5",
     "webpack": "^5.90.3"
   }
