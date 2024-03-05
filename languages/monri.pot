@@ -1,0 +1,364 @@
+# Copyright (C) 2024 Monri Payments d.o.o.
+# This file is distributed under the same license as the Monri plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Monri 3.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/woocommerce-monri\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2024-02-22T11:23:34+01:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.10.0\n"
+
+#. Plugin Name of the plugin
+#: monri.php
+#: includes/gateway.php:11
+#: includes/gateway.php:17
+#: includes/gateway.php:133
+#: includes/settings.php:90
+#: assets/js/blocks/index.js:3
+msgid "Monri"
+msgstr ""
+
+#: blocks/integration/installments.js:42
+msgid "An additional installments fee has been applied"
+msgstr ""
+
+#: blocks/integration/installments.js:52
+msgid "No installments"
+msgstr ""
+
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+#: monri.php
+msgid "http://www.monri.com"
+msgstr ""
+
+#. Description of the plugin
+#: monri.php
+msgid "Monri - Payment gateway for WooCommerce"
+msgstr ""
+
+#. Author of the plugin
+#: monri.php
+msgid "Monri Payments d.o.o."
+msgstr ""
+
+#: includes/gateway-adapter-webpay-components.php:80
+#: includes/gateway-adapter-webpay-components.php:277
+msgid "Monri payment completed."
+msgstr ""
+
+#: includes/gateway-adapter-webpay-components.php:165
+#: includes/gateway-adapter-webpay-components.php:303
+msgid "Transaction failed."
+msgstr ""
+
+#: includes/gateway-adapter-webpay-components.php:170
+msgid "Token is not provided"
+msgstr ""
+
+#: includes/gateway-adapter-webpay-components.php:281
+msgid "Monri - Order amount: "
+msgstr ""
+
+#: includes/gateway-adapter-webpay-components.php:284
+msgid "Number of installments: "
+msgstr ""
+
+#: includes/gateway-adapter-webpay-form.php:58
+msgid "First name must have between 3 and 11 characters"
+msgstr ""
+
+#: includes/gateway-adapter-webpay-form.php:61
+msgid "Last name must have between 3 and 28 characters"
+msgstr ""
+
+#: includes/gateway-adapter-webpay-form.php:64
+msgid "Address must have between 3 and 300 characters"
+msgstr ""
+
+#: includes/gateway-adapter-webpay-form.php:67
+msgid "City must have between 3 and 30 characters"
+msgstr ""
+
+#: includes/gateway-adapter-webpay-form.php:70
+msgid "ZIP must have between 3 and 30 characters"
+msgstr ""
+
+#: includes/gateway-adapter-webpay-form.php:73
+msgid "Phone must have between 3 and 30 characters"
+msgstr ""
+
+#: includes/gateway-adapter-webpay-form.php:76
+msgid "Email must have between 3 and 30 characters"
+msgstr ""
+
+#: includes/gateway-adapter-webpay-form.php:225
+#: includes/gateway-adapter-wspay.php:261
+msgid "Monri payment successful<br/>Approval code: "
+msgstr ""
+
+#: includes/gateway-adapter-webpay-form.php:226
+#: includes/gateway-adapter-wspay.php:247
+#: includes/gateway-adapter-wspay.php:257
+msgid "Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon."
+msgstr ""
+
+#: includes/gateway-adapter-webpay-form.php:237
+msgid "Monri payment status is pending<br/>Approval code: "
+msgstr ""
+
+#: includes/gateway-adapter-webpay-form.php:238
+msgid "Thank you for shopping with us. Right now your payment status is pending, We will keep you posted regarding the status of your order through e-mail"
+msgstr ""
+
+#: includes/gateway-adapter-webpay-form.php:250
+msgid "Transaction Declined: "
+msgstr ""
+
+#: includes/gateway-adapter-wspay.php:128
+msgid "Token does not exist."
+msgstr ""
+
+#: includes/gateway-adapter-wspay.php:201
+msgid "Gateway currently not available."
+msgstr ""
+
+#: includes/gateway-adapter-wspay.php:273
+msgid "Thank you for shopping with us. However, the transaction has been declined."
+msgstr ""
+
+#: includes/installments-fee.php:64
+msgid "Installments fee"
+msgstr ""
+
+#: includes/gateway.php:12
+msgid "Monri Payment Gateway Plug-in for WooCommerce"
+msgstr ""
+
+#: includes/gateway.php:114
+#: includes/settings.php:70
+msgid "Enable/Disable"
+msgstr ""
+
+#: includes/gateway.php:116
+#: includes/settings.php:72
+msgid "Enable Monri"
+msgstr ""
+
+#: includes/gateway.php:120
+#: includes/settings.php:76
+msgid "Payment Gateway Service:"
+msgstr ""
+
+#: includes/gateway.php:129
+#: includes/settings.php:86
+msgid "Title"
+msgstr ""
+
+#: includes/gateway.php:131
+msgid "Title which the customer sees during checkout."
+msgstr ""
+
+#: includes/gateway.php:136
+#: includes/settings.php:93
+msgid "Description"
+msgstr ""
+
+#: includes/gateway.php:138
+msgid "Description which the customer sees during checkout."
+msgstr ""
+
+#: includes/gateway.php:139
+#: includes/settings.php:96
+msgid "Pay quick and easy via Monri"
+msgstr ""
+
+#: includes/gateway.php:142
+#: includes/settings.php:99
+msgid "Instructions"
+msgstr ""
+
+#: includes/gateway.php:144
+#: includes/settings.php:101
+msgid "Instructions that will be added to the thank you page."
+msgstr ""
+
+#: includes/gateway.php:145
+#: includes/settings.php:102
+msgid "Instructions for Monri."
+msgstr ""
+
+#: includes/gateway.php:148
+#: includes/settings.php:147
+msgid "Monri Key"
+msgstr ""
+
+#: includes/gateway.php:156
+#: includes/settings.php:155
+msgid "Monri authenticity token"
+msgstr ""
+
+#: includes/gateway.php:164
+#: includes/settings.php:163
+msgid "Monri WsPay Form ShopId"
+msgstr ""
+
+#: includes/gateway.php:172
+#: includes/settings.php:171
+msgid "Monri WsPay Form Secret"
+msgstr ""
+
+#: includes/gateway.php:180
+#: includes/settings.php:179
+msgid "Monri WsPay Form Tokenization Enabled"
+msgstr ""
+
+#: includes/gateway.php:188
+#: includes/settings.php:187
+msgid "Monri WsPay Form Tokenization ShopId"
+msgstr ""
+
+#: includes/gateway.php:196
+#: includes/settings.php:195
+msgid "Monri WsPay Form Tokenization Secret"
+msgstr ""
+
+#: includes/gateway.php:204
+msgid "Integration type"
+msgstr ""
+
+#: includes/gateway.php:213
+msgid "Test mode"
+msgstr ""
+
+#: includes/gateway.php:222
+msgid "Transaction type"
+msgstr ""
+
+#: includes/gateway.php:231
+msgid "Form language"
+msgstr ""
+
+#: includes/gateway.php:240
+#: includes/settings.php:259
+msgid "Allow paying in installments"
+msgstr ""
+
+#: includes/gateway.php:249
+#: includes/settings.php:269
+msgid "Number of allowed installments"
+msgstr ""
+
+#: includes/gateway.php:258
+#: includes/settings.php:279
+msgid "Price limit for paying in installments"
+msgstr ""
+
+#: includes/gateway.php:260
+#: includes/settings.php:281
+msgid "This controls the bottom price limit on which the installments can be used."
+msgstr ""
+
+#: includes/gateway.php:271
+#: includes/settings.php:292
+msgid "This controls the price increase when paying with installments."
+msgstr ""
+
+#. translators: 1: credit card type 2: last 4 digits 3: expiry month 4: expiry year
+#: includes/payment-token-wspay.php:34
+msgid "%1$s ending in %2$s (expires %3$s/%4$s)"
+msgstr ""
+
+#: includes/settings.php:88
+msgid "This controls the title which the user sees during checkout."
+msgstr ""
+
+#: includes/settings.php:95
+msgid "This controls the description which the user sees during checkout."
+msgstr ""
+
+#: includes/settings.php:105
+msgid "Success page"
+msgstr ""
+
+#: includes/settings.php:107
+msgid "Suceess URL must be copied to Monri Account in responding field!"
+msgstr ""
+
+#: includes/settings.php:112
+msgid "Callback URL endpoint"
+msgstr ""
+
+#: includes/settings.php:114
+msgid "Callback URL endpoint which receives POST request from Monri Gateway."
+msgstr ""
+
+#: includes/settings.php:120
+msgid "Success URL override"
+msgstr ""
+
+#: includes/settings.php:122
+msgid "Success URL you would like to use for transaction. (HTTPS)"
+msgstr ""
+
+#: includes/settings.php:129
+msgid "Cancel URL override"
+msgstr ""
+
+#: includes/settings.php:131
+msgid "Cancel URL you would like to use for transaction. (HTTPS)"
+msgstr ""
+
+#: includes/settings.php:138
+msgid "Callback URL override"
+msgstr ""
+
+#: includes/settings.php:140
+msgid "Callback URL you would like to use for transaction. (HTTPS)"
+msgstr ""
+
+#: includes/settings.php:219
+msgid "Integration type:"
+msgstr ""
+
+#: includes/settings.php:229
+msgid "Test mode enabled:"
+msgstr ""
+
+#: includes/settings.php:239
+msgid "Transaction type:"
+msgstr ""
+
+#: includes/settings.php:249
+msgid "Form language:"
+msgstr ""
+
+#: includes/settings.php:290
+msgid "Price increase when paying in %d installments"
+msgstr ""
+
+#: monri.php:45
+msgid "Settings"
+msgstr ""
+
+#: templates/components.php:23
+msgid "Fees may be applied for installments"
+msgstr ""
+
+#: templates/redirect-form.php:13
+msgid "Pay via Monri"
+msgstr ""
+
+#: templates/redirect-form.php:15
+msgid "Cancel order &amp; restore cart"
+msgstr ""
+
+#: templates/redirect-form.php:26
+msgid ""
+"Thank you for your order. You are being redirected to Monri so you can complete payment."
+msgstr ""
