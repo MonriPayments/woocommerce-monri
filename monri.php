@@ -104,21 +104,46 @@ function monri_legacy_migrate() {
 		return;
 	}
 
-	if ( isset( $old_settings['pikpaykey'] ) ) {
-		$old_settings['monri_merchant_key'] = $old_settings['pikpaykey'];
-		unset( $old_settings['pikpaykey'] );
+	$old_to_new_map = [
+		'enabled'                        => 'enabled',
+		'title'                          => 'title',
+		'description'                    => 'description',
+		'instructions'                   => 'instructions',
+		'pikpaykey'                      => 'monri_merchant_key',
+		'pikpayauthtoken'                => 'monri_authenticity_token',
+		'test_mode'                      => 'test_mode',
+		'transaction_type'               => 'transaction_type',
+		'form_language'                  => 'form_language',
+		'paying_in_installments'         => 'paying_in_installments',
+		'number_of_allowed_installments' => 'number_of_allowed_installments',
+		'bottom_limit'                   => 'bottom_limit'
+	];
+
+	for ( $i = 2; $i < 24; $i ++ ) {
+		$old_to_new_map["price_increase_$i"] = "price_increase_$i";
 	}
 
-	if ( isset( $old_settings['pikpayauthtoken'] ) ) {
-		$old_settings['monri_authenticity_token'] = $old_settings['pikpayauthtoken'];
-		unset( $old_settings['pikpayauthtoken'] );
+	$new_settings = [];
+	foreach ( $old_to_new_map as $old => $new ) {
+		if ( isset( $old_settings[ $old ] ) ) {
+			$new_settings[ $new ] = $old_settings[ $old ];
+		}
 	}
 
-	unset( $old_settings['pickpay_methods'] );
+	if ( ! $new_settings ) {
+		return;
+	}
 
-	add_option( 'woocommerce_monri_settings', $old_settings );
+	$new_settings['monri_payment_gateway_service'] = 'monri-web-pay';
 
+	if ( isset( $old_settings['pickpay_methods'] ) && $old_settings['pickpay_methods'] ) {
+		$new_settings['monri_web_pay_integration_type'] = 'components';
+	} else {
+		$new_settings['monri_web_pay_integration_type'] = 'form';
+	}
+
+	add_option( Monri_WC_Settings::SETTINGS_KEY, $new_settings );
 }
 
-add_action( 'upgrader_process_complete', 'monri_legacy_migrate' );
+//add_action( 'upgrader_process_complete', 'monri_legacy_migrate' );
 register_activation_hook( __FILE__, 'monri_legacy_migrate' );
