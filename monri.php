@@ -94,7 +94,7 @@ function monri_legacy_migrate() {
 		deactivate_plugins( 'woocommerce-monri/monri.php' );
 	}
 
-	$monri_settings = get_option( 'woocommerce_monri_settings' );
+	$monri_settings = get_option( Monri_WC_Settings::SETTINGS_KEY );
 	if ( $monri_settings && is_array( $monri_settings ) ) {
 		return;
 	}
@@ -119,7 +119,7 @@ function monri_legacy_migrate() {
 		'bottom_limit'                   => 'bottom_limit'
 	];
 
-	for ( $i = 2; $i < 24; $i ++ ) {
+	for ( $i = 2; $i <= 24; $i ++ ) {
 		$old_to_new_map["price_increase_$i"] = "price_increase_$i";
 	}
 
@@ -145,5 +145,4 @@ function monri_legacy_migrate() {
 	add_option( Monri_WC_Settings::SETTINGS_KEY, $new_settings );
 }
 
-//add_action( 'upgrader_process_complete', 'monri_legacy_migrate' );
 register_activation_hook( __FILE__, 'monri_legacy_migrate' );
