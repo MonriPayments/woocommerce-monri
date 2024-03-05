@@ -81,3 +81,68 @@ function monri_wc_block_support() {
 	}
 }
 add_action( 'woocommerce_blocks_loaded', 'monri_wc_block_support' );
+
+
+// Migrate settings from older version to new option settings, disable deprecated modules
+function monri_legacy_migrate() {
+
+	// deactivate legacy plugins if active
+	if ( is_plugin_active( 'woocommerce-monri/pikpay.php' ) ) {
+		deactivate_plugins( 'woocommerce-monri/pikpay.php' );
+	}
+	if ( is_plugin_active( 'woocommerce-monri/monri.php' ) ) {
+		deactivate_plugins( 'woocommerce-monri/monri.php' );
+	}
+
+	$monri_settings = get_option( Monri_WC_Settings::SETTINGS_KEY );
+	if ( $monri_settings && is_array( $monri_settings ) ) {
+		return;
+	}
+
+	$old_settings = get_option( 'woocommerce_pikpay_settings' );
+	if ( ! $old_settings || ! is_array( $old_settings ) ) {
+		return;
+	}
+
+	$old_to_new_map = [
+		'enabled'                        => 'enabled',
+		'title'                          => 'title',
+		'description'                    => 'description',
+		'instructions'                   => 'instructions',
+		'pikpaykey'                      => 'monri_merchant_key',
+		'pikpayauthtoken'                => 'monri_authenticity_token',
+		'test_mode'                      => 'test_mode',
+		'transaction_type'               => 'transaction_type',
+		'form_language'                  => 'form_language',
+		'paying_in_installments'         => 'paying_in_installments',
+		'number_of_allowed_installments' => 'number_of_allowed_installments',
+		'bottom_limit'                   => 'bottom_limit'
+	];
+
+	for ( $i = 2; $i <= 24; $i ++ ) {
+		$old_to_new_map["price_increase_$i"] = "price_increase_$i";
+	}
+
+	$new_settings = [];
+	foreach ( $old_to_new_map as $old => $new ) {
+		if ( isset( $old_settings[ $old ] ) ) {
+			$new_settings[ $new ] = $old_settings[ $old ];
+		}
+	}
+
+	if ( ! $new_settings ) {
+		return;
+	}
+
+	$new_settings['monri_payment_gateway_service'] = 'monri-web-pay';
+
+	if ( isset( $old_settings['pickpay_methods'] ) && $old_settings['pickpay_methods'] ) {
+		$new_settings['monri_web_pay_integration_type'] = 'components';
+	} else {
+		$new_settings['monri_web_pay_integration_type'] = 'form';
+	}
+
+	add_option( Monri_WC_Settings::SETTINGS_KEY, $new_settings );
+}
+
+register_activation_hook( __FILE__, 'monri_legacy_migrate' );

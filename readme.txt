@@ -17,9 +17,12 @@ maximum security.
 
 == Installation ==
 
-You will first need to register with Monri in order to use this extension on your site. Additional fees apply. Please
+You will first need to register with Monri in order to use this plugin on your site. Additional fees apply. Please
 complete the [inquiry form](https://monri.com/contact/), and we will contact you regarding setup and any information
 you will need.
+
+If you used older Monri plugin, it is best to remove it first before using this new version. Old settings will be
+migrated but make sure to recheck them and test new integration.
 
 == Documentation ==
 
@@ -47,4 +50,5 @@ https://github.com/MonriPayments/woocommerce-monri
 * major code cleanup and refactoring to follow WordPress/WooCommerce standards with multiple bugfixes
 * translation improvements
 * tested on latest PHP versions
+* settings migration from old plugin
 * WordPress Plugins release
