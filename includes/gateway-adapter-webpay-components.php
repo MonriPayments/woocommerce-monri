@@ -137,7 +137,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 
 				for ( $i = 1; $i <= (int) $this->payment->get_option( 'number_of_allowed_installments', 12 ); $i ++ ) {
 					$installments[] = [
-						'label'          => (string) $i,
+						'label'          => ( $i === 1 ) ? __('No installments', 'monri') : (string) $i,
 						'value'          => (string) $i,
 						'selected'       => ( $selected === $i ),
 						'price_increase' => $this->payment->get_option( "price_increase_$i", 0 )

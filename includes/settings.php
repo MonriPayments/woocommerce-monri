@@ -101,7 +101,7 @@ class Monri_WC_Settings {
 			'monri_web_pay_integration_type' => array(
 				'title'       => __( 'Integration type', 'monri' ),
 				'type'        => 'select',
-				'class'       => 'wc-enhanced-select woocommerce-monri-dynamic-option monri-web-pay-option',
+				'class'       => 'wc-enhanced-select',
 				'default'     => true,
 				'options'     => $integration_types,
 				'desc_tip'    => true,
@@ -116,7 +116,6 @@ class Monri_WC_Settings {
 				'type'        => 'text',
 				'desc_tip'    => true,
 				'default'     => '',
-				'class'       => 'woocommerce-monri-dynamic-option monri-web-pay-option',
 				'custom_attributes' => [
 					'data-depends' => '{
 						"monri_payment_gateway_service":"monri-web-pay"
@@ -128,7 +127,6 @@ class Monri_WC_Settings {
 				'type'        => 'text',
 				'desc_tip'    => true,
 				'default'     => '',
-				'class'       => 'woocommerce-monri-dynamic-option monri-web-pay-option',
 				'custom_attributes' => [
 					'data-depends' => '{
 						"monri_payment_gateway_service":"monri-web-pay"
@@ -140,7 +138,6 @@ class Monri_WC_Settings {
 				'type'        => 'text',
 				'desc_tip'    => true,
 				'default'     => '',
-				'class'       => 'woocommerce-monri-dynamic-option monri-ws-pay-option',
 				'custom_attributes' => [
 					'data-depends' => '{
 						"monri_payment_gateway_service":"monri-ws-pay"
@@ -152,7 +149,6 @@ class Monri_WC_Settings {
 				'type'        => 'text',
 				'desc_tip'    => true,
 				'default'     => '',
-				'class'       => 'woocommerce-monri-dynamic-option monri-ws-pay-option',
 				'custom_attributes' => [
 					'data-depends' => '{
 						"monri_payment_gateway_service":"monri-ws-pay"
@@ -165,7 +161,6 @@ class Monri_WC_Settings {
 				'label'   => __( 'Enable Tokenization', 'monri' ),
 				'desc_tip'    => true,
 				'default'     => 'no',
-				'class'       => 'woocommerce-monri-dynamic-option monri-ws-pay-option',
 				'custom_attributes' => [
 					'data-depends' => '{
 						"monri_payment_gateway_service":"monri-ws-pay"
@@ -177,7 +172,6 @@ class Monri_WC_Settings {
 				'type'        => 'text',
 				'desc_tip'    => true,
 				'default'     => '',
-				'class'       => 'woocommerce-monri-dynamic-option',
 				'custom_attributes' => [
 					'data-depends' => '{
 						"monri_ws_pay_form_tokenization_enabled":"1"
@@ -190,7 +184,6 @@ class Monri_WC_Settings {
 				'description' => '',
 				'desc_tip'    => true,
 				'default'     => '',
-				'class'       => 'woocommerce-monri-dynamic-option',
 				'custom_attributes' => [
 					'data-depends' => '{
 						"monri_ws_pay_form_tokenization_enabled":"1"
@@ -199,17 +192,16 @@ class Monri_WC_Settings {
 			),
 			'test_mode' => array(
 				'title'       => __( 'Test mode', 'monri' ),
+				'description' => __( 'Just test the gateway, no real orders will be placed on the gateway side.' ),
 				'type'        => 'select',
 				'class'       => 'wc-enhanced-select',
 				'default'     => 0,
-				'description' => '',
 				'options'     => $yes_or_no,
 				'desc_tip'    => true,
 			),
-			'logging' => array(
-				'title'       => __( 'Logging', 'monri' ),
-				'label'       => __( 'Log debug messages', 'monri' ),
-				'description' => __( 'Save debug messages to the WooCommerce System Status log.', 'monri' ),
+			'debug_mode' => array(
+				'title'       => __( 'Debug mode', 'monri' ),
+				'description' => __( 'Save detailed messages, error messages and API requests to the WooCommerce Status log.', 'monri' ),
 				'type'        => 'select',
 				'class'       => 'wc-enhanced-select',
 				'default'     => 0,
@@ -237,7 +229,7 @@ class Monri_WC_Settings {
 			'paying_in_installments' => array(
 				'title'       => __( 'Allow paying in installments', 'monri' ),
 				'type'        => 'select',
-				'class'       => 'wc-enhanced-select woocommerce-monri-dynamic-option monri-web-pay-option',
+				'class'       => 'wc-enhanced-select',
 				'default'     => 0,
 				'description' => '',
 				'options'     => $yes_or_no,
@@ -251,7 +243,7 @@ class Monri_WC_Settings {
 			'number_of_allowed_installments' => array(
 				'title'       => __( 'Number of allowed installments', 'monri' ),
 				'type'        => 'select',
-				'class'       => 'wc-enhanced-select woocommerce-monri-dynamic-option monri-web-pay-option',
+				'class'       => 'wc-enhanced-select',
 				'default'     => '12',
 				'description' => '',
 				'options'     => $number_of_allowed_installments,
@@ -263,12 +255,11 @@ class Monri_WC_Settings {
 				]
 			),
 			'bottom_limit' => array(
-				'title'       => __( 'Price limit for paying in installments:', 'monri' ),
+				'title'       => __( 'Price limit for paying in installments', 'monri' ),
 				'type'        => 'price',
 				'description' => __( 'This controls the bottom price limit on which the installments can be used.', 'monri' ),
 				'desc_tip'    => true,
 				'default' => '',
-				'class'       => 'woocommerce-monri-dynamic-option monri-web-pay-option',
 				'custom_attributes' => [
 					'data-depends' => '{
 						"paying_in_installments":"1"
@@ -285,7 +276,6 @@ class Monri_WC_Settings {
 				'description' => __( 'This controls the price increase when paying with installments.', 'monri' ),
 				'desc_tip'    => true,
 				'default'     => __( '0', 'monri' ),
-				'class'       => 'woocommerce-monri-dynamic-option monri-web-pay-option',
 				'custom_attributes' => [
 					'data-depends' => '{
 						"paying_in_installments":"1"
