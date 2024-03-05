@@ -50,4 +50,5 @@ https://github.com/MonriPayments/woocommerce-monri
 * major code cleanup and refactoring to follow WordPress/WooCommerce standards with multiple bugfixes
 * translation improvements
 * tested on latest PHP versions
+* settings migration from old plugin
 * WordPress Plugins release
