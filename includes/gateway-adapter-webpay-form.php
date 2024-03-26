@@ -104,7 +104,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			'digest'                => $digest,
 			'success_url_override'  => $this->payment->get_return_url( $order ), // from
 			'cancel_url_override'   => $order->get_cancel_order_url(),
-			'callback_url_override' => add_query_arg( 'wc-api', 'monri_callback', get_home_url() )
+			//'callback_url_override' => add_query_arg( 'wc-api', 'monri_callback', get_home_url() )
 		);
 
 		Monri_WC_Logger::log( "Request data: " . print_r( $args, true ), __METHOD__ );
