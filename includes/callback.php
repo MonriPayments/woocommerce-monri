@@ -92,7 +92,9 @@ class Monri_WC_Callback {
 				return;
 			}
 
-			if ( $payload['status'] === 'approved' ) {
+            $valid_response_code = isset( $payload['response_code'] ) && $payload['response_code'] === "0000";
+
+			if ( $payload['status'] === 'approved' && $valid_response_code ) {
 				$order->payment_complete();
 			} else {
 				$order->update_status( 'cancelled' );
