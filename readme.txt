@@ -4,7 +4,7 @@ Tags: monri, credit card, payment, woocommerce
 Requires at least: 5.3
 Tested up to: 6.4.2
 Requires PHP: 7.3
-Stable tag: 3.0.0
+Stable tag: 3.0.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -42,6 +42,9 @@ You can find more details about the development of this plugin here:
 https://github.com/MonriPayments/woocommerce-monri
 
 == Changelog ==
+
+= 3.0.1 - 2024-03-29 =
+* Improvements in callback validation - adding response code check together with status check
 
 = 3.0.0 - 2024-02-29 =
 * WooCommerce blocks support (new checkout support)
