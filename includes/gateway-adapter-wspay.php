@@ -66,8 +66,10 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			}, 0, 2 );
 		}
 
-		add_action( 'woocommerce_before_thankyou', [ $this, 'thankyou_page_before' ] );
+		add_action( 'woocommerce_before_thankyou', [ $this, 'process_return' ] );
 		add_action( 'woocommerce_thankyou_monri', [ $this, 'thankyou_page' ] );
+
+		//add_action ('woocommerce_view_order', [ $this, 'thankyou_page' ] );
 	}
 
 	public function use_tokenization_credentials() {
@@ -207,6 +209,11 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		throw new Exception( esc_html( __( 'Gateway currently not available.', 'monri' ) ) );
 	}
 
+	/**
+	 * @param int $order_id
+	 *
+	 * @return void
+	 */
 	public function thankyou_page( $order_id ) {
 		$order = wc_get_order( $order_id );
 
@@ -225,9 +232,11 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	}
 
 	/**
+	 * @param int $order_id
+	 *
 	 * @return void
 	 */
-	public function thankyou_page_before( $order_id ) {
+	public function process_return( $order_id ) {
 
 		if ( ! isset( $_REQUEST['ShoppingCartID'] ) ) {
 			return;
