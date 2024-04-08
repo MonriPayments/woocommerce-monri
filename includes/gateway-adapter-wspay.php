@@ -2,6 +2,10 @@
 
 /**
  * @todo: thankyou messages and error handling
+ *
+ * woocommerce_thankyou_monri - echo additional info
+ * woocommerce_before_thankyou - status needs changing at least here
+ * template_redirect -> for cart redirect + status change
  */
 class Monri_WC_Gateway_Adapter_Wspay {
 
@@ -58,7 +62,10 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			}, 0, 2 );
 		}
 
+		add_action( 'woocommerce_before_thankyou', [ $this, 'thankyou_page_before' ] );
 		add_action( 'woocommerce_thankyou_monri', [ $this, 'thankyou_page' ] );
+
+		add_action( 'template_redirect', [ $this, 'process_return' ] );
 
 		/*
 		add_filter( 'woocommerce_thankyou_order_received_text', function() {
@@ -112,7 +119,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$order_id = (string) $order->get_id();
 
 		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
-			$order_id = $this->payment->get_test_order_id( $order_id );
+			$order_id = Monri_WC_Utils::get_test_order_id( $order_id );
 		}
 
 		$req = [];
@@ -194,7 +201,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$req['customerPhone']     = $order->get_billing_phone();
 		$req['customerEmail']     = $order->get_billing_email();
 
-        Monri_WC_Logger::log( "Request data: " . print_r( $req, true ), __METHOD__ );
+		Monri_WC_Logger::log( "Request data: " . print_r( $req, true ), __METHOD__ );
 
 		$response = $this->api( '/api/create-transaction', $req );
 
@@ -210,27 +217,58 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		throw new Exception( esc_html( __( 'Gateway currently not available.', 'monri' ) ) );
 	}
 
-
 	public function show_message( $message, $class = '' ) {
 		return '<div class="box ' . $class . '-box">' . $message . '</div>';
 	}
 
-	/**
-	 * @return void
-	 */
-	public function thankyou_page() {
-
-		//echo $this->show_message('wqewqeqe', 'woocommerce_message woocommerce_error');
-        Monri_WC_Logger::log( "Response data: " . print_r( $_REQUEST, true ), __METHOD__ );
-		$order_id = $_REQUEST['ShoppingCartID'];
-		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
-			$order_id = $this->payment->resolve_real_order_id( $order_id );
-		}
-		//$order_id = wc_get_order_id_by_order_key($_REQUEST['key']); // possible to load by wp key
-
+	public function thankyou_page( $order_id ) {
 		$order = wc_get_order( $order_id );
 
 		if ( ! $order || $order->get_payment_method() !== $this->payment->id ) {
+			return;
+		}
+
+		wc_get_template( 'transaction-info.php', [
+			'order'            => $order,
+			'transaction_info' => $order->get_meta( '_monri_transaction_info' )
+		], basename( MONRI_WC_PLUGIN_PATH ), MONRI_WC_PLUGIN_PATH . 'templates/' );
+	}
+
+	public function process_return() {
+		if ( ! is_wc_endpoint_url( 'order-received' ) || ! isset( $_GET['key'] ) ) {
+			return;
+		}
+
+		$a = is_page( wc_get_page_id( 'thanks' ) );
+
+		global $wp;
+		$order = new WC_Order( $wp->query_vars['order-received'] );
+		$b     = is_checkout();
+	}
+
+
+	/**
+	 * @return void
+	 */
+	public function thankyou_page_before( $order_id ) {
+
+		if ( ! isset( $_REQUEST['ShoppingCartID'] ) ) {
+			return;
+		}
+
+		$order = wc_get_order( $order_id );
+		if ( ! $order || $order->get_payment_method() !== $this->payment->id ) {
+			return;
+		}
+
+		Monri_WC_Logger::log( "Response data: " . print_r( $_REQUEST, true ), __METHOD__ );
+
+		$requested_order_id = $_REQUEST['ShoppingCartID'];
+		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
+			$requested_order_id = Monri_WC_Utils::resolve_real_order_id( $order_id );
+		}
+
+		if ( $order_id != $requested_order_id ) {
 			return;
 		}
 
@@ -240,45 +278,38 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		}
 
 		if ( ! $this->validate_return( $_REQUEST ) ) {
-			// throw error? redirect to error?
 			return;
 		}
 
-		//wp_enqueue_style('thankyou-page', plugins_url() . '/woocommerce-monri/assets/style/thankyou-page.css');
-
 		if ( $order->get_status() === 'completed' ) {
+			return;
+		}
 
-			$this->msg['message'] = __( 'Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.', 'monri' );
-			$this->msg['class']   = 'woocommerce_message';
+		$success        = $_REQUEST['Success'] ?? '0';
+		$approval_code  = $_REQUEST['ApprovalCode'] ?? null;
+		$trx_authorized = $success === '1' && ! empty( $approval_code );
+
+		if ( $trx_authorized ) {
+
+			$order->payment_complete( $_REQUEST['WsPayOrderId'] ?? '' );
+			$order->add_order_note( __( "Monri payment successful<br/>Approval code: ", 'monri' ) . $approval_code );
+			WC()->cart->empty_cart();
+
+			if ( $this->tokenization_enabled() && $order->get_user_id() ) {
+				$this->save_user_token( $order->get_user_id(), $_REQUEST );
+			}
+
+			// save transaction info
+			$order->update_meta_data( '_monri_transaction_info', array_intersect_key(
+				$_REQUEST,
+				array_flip(['DateTime', 'WsPayOrderId', 'PaymentType', 'ApprovalCode', 'PaymentPlan'])
+			));
+			$order->save_meta_data();
 
 		} else {
 
-			$success        = $_REQUEST['Success'] ?? '0';
-			$approval_code  = $_REQUEST['ApprovalCode'] ?? null;
-			$trx_authorized = $success === '1' && ! empty( $approval_code );
-
-			if ( $trx_authorized ) {
-				$this->msg['message'] = __( 'Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.', 'monri' );
-				$this->msg['class']   = 'woocommerce_message';
-
-				$order->payment_complete();
-				$order->add_order_note( __( "Monri payment successful<br/>Approval code: ", 'monri' ) . $approval_code );
-				//$order->add_order_note($this->msg['message']);
-				WC()->cart->empty_cart();
-
-				if ( $this->tokenization_enabled() && $order->get_user_id() ) {
-					$this->save_user_token( $order->get_user_id(), $_REQUEST );
-				}
-
-			} else {
-				$this->msg['class']   = 'woocommerce_error';
-				$this->msg['message'] = __( 'Thank you for shopping with us. However, the transaction has been declined.', 'monri' );
-
-				$order->update_status( 'failed' );
-				$order->add_order_note( 'Failed' );
-				//$order->add_order_note($message);
-			}
-
+			$order->update_status( 'failed' );
+			$order->add_order_note( 'Failed' );
 		}
 
 	}

@@ -265,7 +265,16 @@ class Monri_WC_Settings {
 						"paying_in_installments":"1"
 					}'
 				]
-			)
+			),
+			'order_show_transaction_info' => array(
+				'title'       => __( 'Transaction info in order', 'monri' ),
+				'description' => __( 'Show Monri transaction info in order.' ),
+				'type'        => 'select',
+				'class'       => 'wc-enhanced-select',
+				'default'     => 0,
+				'options'     => $yes_or_no,
+				'desc_tip'    => true,
+			),
 		);
 
 		for ( $i = 2; $i <= 24; $i ++ ) {
