@@ -84,6 +84,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		/** @var SimpleXmlElement $result */
 		$result = Monri_WC_Api::instance()->orders_show( $order_number );
 
+        Monri_WC_Logger::log( "Response body : " . $result->asXML(), __METHOD__ );
 		if ( is_wp_error( $result ) ) {
 			return;
 		}
