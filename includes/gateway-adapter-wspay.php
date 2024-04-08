@@ -1,12 +1,5 @@
 <?php
 
-/**
- * @todo: thankyou messages and error handling
- *
- * woocommerce_thankyou_monri - echo additional info
- * woocommerce_before_thankyou - status needs changing at least here
- * template_redirect -> for cart redirect + status change
- */
 class Monri_WC_Gateway_Adapter_Wspay {
 
 	/**
@@ -31,6 +24,17 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	 * @var string
 	 */
 	private $secret;
+
+	/**
+	 * @var string[]
+	 */
+	private $transaction_info_map = [
+		'WsPayOrderId' => 'Transaction ID',
+		'ApprovalCode' => 'Approval code',
+		'PaymentType'  => 'Credit cart type',
+		'PaymentPlan'  => 'Payment plan',
+		'DateTime'     => 'Date/Time',
+	];
 
 	/**
 	 * @param Monri_WC_Gateway $payment
@@ -64,14 +68,6 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 		add_action( 'woocommerce_before_thankyou', [ $this, 'thankyou_page_before' ] );
 		add_action( 'woocommerce_thankyou_monri', [ $this, 'thankyou_page' ] );
-
-		add_action( 'template_redirect', [ $this, 'process_return' ] );
-
-		/*
-		add_filter( 'woocommerce_thankyou_order_received_text', function() {
-			return 'test';
-		}, 10, 2 );
-		*/
 	}
 
 	public function use_tokenization_credentials() {
@@ -180,13 +176,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 		$req['signature'] = $this->sign_transaction( $order_id, $amount );
 
-		//$req['returnURL'] = site_url() . '/ws-pay-redirect'; // directly to success
-		$req['returnURL'] = $order->get_checkout_order_received_url();
-
-		// TODO: implement this in a different way
-		//$req['returnErrorURL'] = $order->get_cancel_endpoint();
-		//$req['cancelURL']      = $order->get_cancel_endpoint();
-
+		$req['returnURL']      = $order->get_checkout_order_received_url();
 		$cancel_url            = str_replace( '&amp;', '&', $order->get_cancel_order_url() );
 		$req['returnErrorURL'] = $cancel_url;
 		$req['cancelURL']      = $cancel_url;
@@ -217,10 +207,6 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		throw new Exception( esc_html( __( 'Gateway currently not available.', 'monri' ) ) );
 	}
 
-	public function show_message( $message, $class = '' ) {
-		return '<div class="box ' . $class . '-box">' . $message . '</div>';
-	}
-
 	public function thankyou_page( $order_id ) {
 		$order = wc_get_order( $order_id );
 
@@ -228,24 +214,15 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return;
 		}
 
-		wc_get_template( 'transaction-info.php', [
-			'order'            => $order,
-			'transaction_info' => $order->get_meta( '_monri_transaction_info' )
-		], basename( MONRI_WC_PLUGIN_PATH ), MONRI_WC_PLUGIN_PATH . 'templates/' );
-	}
-
-	public function process_return() {
-		if ( ! is_wc_endpoint_url( 'order-received' ) || ! isset( $_GET['key'] ) ) {
+		if ( ! $this->payment->get_option_bool( 'order_show_transaction_info' ) ) {
 			return;
 		}
 
-		$a = is_page( wc_get_page_id( 'thanks' ) );
-
-		global $wp;
-		$order = new WC_Order( $wp->query_vars['order-received'] );
-		$b     = is_checkout();
+		wc_get_template( 'transaction-info.php', [
+			'order'            => $order,
+			'transaction_info' => $this->get_transaction_info_formatted( $order )
+		], basename( MONRI_WC_PLUGIN_PATH ), MONRI_WC_PLUGIN_PATH . 'templates/' );
 	}
-
 
 	/**
 	 * @return void
@@ -302,8 +279,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			// save transaction info
 			$order->update_meta_data( '_monri_transaction_info', array_intersect_key(
 				$_REQUEST,
-				array_flip(['DateTime', 'WsPayOrderId', 'PaymentType', 'ApprovalCode', 'PaymentPlan'])
-			));
+				$this->transaction_info_map
+			) );
 			$order->save_meta_data();
 
 		} else {
@@ -419,6 +396,30 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$wc_token->set_expiry_month( substr( $data['TokenExp'], 2, 2 ) );
 
 		$wc_token->save();
+	}
+
+	/**
+	 * @param WC_Order $order
+	 *
+	 * @return array
+	 */
+	private function get_transaction_info_formatted( $order ) {
+		$transaction_info = $order->get_meta( '_monri_transaction_info' );
+		if ( ! $transaction_info || ! is_array( $transaction_info ) ) {
+			return [];
+		}
+
+		$formatted = [];
+		foreach ( $this->transaction_info_map as $key => $value ) {
+			if ( ! empty( $transaction_info[ $key ] ) ) {
+				$formatted[ $key ] = [
+					'label' => $value,
+					'value' => $transaction_info[ $key ]
+				];
+			}
+		}
+
+		return $formatted;
 	}
 
 }
