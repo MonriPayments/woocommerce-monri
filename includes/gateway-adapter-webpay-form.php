@@ -62,7 +62,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		$order = wc_get_order( $order_id );
 
 		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
-			$order_id = $this->payment->get_test_order_id( $order_id );
+			$order_id = Monri_WC_Utils::get_test_order_id( $order_id );
 		}
 
 		$key   = $this->payment->get_option( 'monri_merchant_key' );
@@ -150,12 +150,12 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		}
 
 		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
-			$order_id = $this->payment->resolve_real_order_id( $order_id );
+			$order_id = Monri_WC_Utils::resolve_real_order_id( $order_id );
 		}
 
 		$order = wc_get_order( $order_id );
 
-		if ( $order->get_payment_method() !== $this->payment->id ) {
+		if ( !$order || $order->get_payment_method() !== $this->payment->id ) {
 			return;
 		}
 

@@ -357,3 +357,27 @@ msgstr ""
 msgid ""
 "Thank you for your order. You are being redirected to Monri so you can complete payment."
 msgstr ""
+
+#: templates/transaction-info.php:7
+msgid "Transaction info"
+msgstr ""
+
+#: templates/transaction-info.php:11
+msgid "Transaction ID"
+msgstr ""
+
+#: templates/transaction-info.php:11
+msgid "Approval code"
+msgstr ""
+
+#: templates/transaction-info.php:11
+msgid "Credit cart type"
+msgstr ""
+
+#: templates/transaction-info.php:11
+msgid "Payment plan"
+msgstr ""
+
+#: templates/transaction-info.php:11
+msgid "Date/Time"
+msgstr ""

@@ -84,6 +84,9 @@ class Monri_WC_Callback {
 		}
 
 		$order_number = $payload['order_number'];
+		if (Monri_WC_Settings::instance()->get_option( 'test_mode' )) {
+			$order_number = Monri_WC_Utils::resolve_real_order_id($order_number);
+		}
 
 		try {
 			$order = wc_get_order( $order_number );

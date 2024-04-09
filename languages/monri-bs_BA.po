@@ -347,3 +347,27 @@ msgid ""
 msgstr ""
 "Hvala na narudžbi. Sada Vas preusmjeravamo na Monri kako bi završili "
 "plaćanje."
+
+#: templates/transaction-info.php:7
+msgid "Transaction info"
+msgstr "Detalji transakcije"
+
+#: templates/transaction-info.php:11
+msgid "Transaction ID"
+msgstr "ID transakcije"
+
+#: templates/transaction-info.php:11
+msgid "Approval code"
+msgstr "Broj odobrenja"
+
+#: templates/transaction-info.php:11
+msgid "Credit cart type"
+msgstr "Tip kreditne kartice"
+
+#: templates/transaction-info.php:11
+msgid "Payment plan"
+msgstr "Rate"
+
+#: templates/transaction-info.php:11
+msgid "Date/Time"
+msgstr "Datum/Vrijeme"

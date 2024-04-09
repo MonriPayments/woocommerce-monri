@@ -265,7 +265,21 @@ class Monri_WC_Settings {
 						"paying_in_installments":"1"
 					}'
 				]
-			)
+			),
+			'order_show_transaction_info' => array(
+				'title'       => __( 'Transaction info in order', 'monri' ),
+				'description' => __( 'Show Monri transaction info on Thank You page. Required by some banks.' ),
+				'type'        => 'select',
+				'class'       => 'wc-enhanced-select',
+				'default'     => 0,
+				'options'     => $yes_or_no,
+				'desc_tip'    => true,
+				'custom_attributes' => [
+					'data-depends' => '{
+						"monri_payment_gateway_service":"monri-ws-pay"
+					}'
+				]
+			),
 		);
 
 		for ( $i = 2; $i <= 24; $i ++ ) {
