@@ -4,7 +4,7 @@ Tags: monri, credit card, payment, woocommerce
 Requires at least: 5.3
 Tested up to: 6.4.2
 Requires PHP: 7.3
-Stable tag: 3.0.1
+Stable tag: 3.0.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -42,6 +42,11 @@ You can find more details about the development of this plugin here:
 https://github.com/MonriPayments/woocommerce-monri
 
 == Changelog ==
+
+= 3.0.2 - 2024-04-09 =
+* Show transaction info on Thank You page, required by some banks. (currently WsPay only)
+* Callback resolves order id correctly in test mode
+* Correct file extension for Bosnian translations
 
 = 3.0.1 - 2024-03-29 =
 * Improvements in callback validation - adding response code check together with status check
