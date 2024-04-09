@@ -4,7 +4,7 @@
 ?>
 <?php if ( ! empty( $transaction_info ) ): ?>
 <section class="woocommerce-order-monri-transaction-info">
-	<h2><?php esc_html_e( 'Transaction info', 'monri' ) ?></h2>
+	<strong><?php esc_html_e( 'Transaction info', 'monri' ) ?></strong>
 	<ul>
 
 		<?php foreach ( $transaction_info as $info ): ?>
