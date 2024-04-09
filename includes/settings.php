@@ -268,12 +268,17 @@ class Monri_WC_Settings {
 			),
 			'order_show_transaction_info' => array(
 				'title'       => __( 'Transaction info in order', 'monri' ),
-				'description' => __( 'Show Monri transaction info in order.' ),
+				'description' => __( 'Show Monri transaction info on Thank You page. Required by some banks.' ),
 				'type'        => 'select',
 				'class'       => 'wc-enhanced-select',
 				'default'     => 0,
 				'options'     => $yes_or_no,
 				'desc_tip'    => true,
+				'custom_attributes' => [
+					'data-depends' => '{
+						"monri_payment_gateway_service":"monri-ws-pay"
+					}'
+				]
 			),
 		);
 

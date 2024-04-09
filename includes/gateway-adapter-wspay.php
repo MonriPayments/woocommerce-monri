@@ -68,11 +68,11 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 		add_action( 'woocommerce_before_thankyou', [ $this, 'process_return' ] );
 		add_action( 'woocommerce_thankyou_monri', [ $this, 'thankyou_page' ] );
-
-		//add_action( 'woocommerce_email_customer_details', [ $this, 'thankyou_page' ], 100, 3 );
-		//add_action ('woocommerce_view_order', [ $this, 'thankyou_page' ] );
 	}
 
+	/**
+	 * @return void
+	 */
 	public function use_tokenization_credentials() {
 		$this->shop_id = $this->payment->get_option(
 			$this->tokenization_enabled() ?
