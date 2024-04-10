@@ -192,7 +192,7 @@ class Monri_WC_Settings {
 			),
 			'test_mode' => array(
 				'title'       => __( 'Test mode', 'monri' ),
-				'description' => __( 'Just test the gateway, no real orders will be placed on the gateway side.' ),
+				'description' => __( 'Just test the gateway, no real orders will be placed on the gateway side.', 'monri' ),
 				'type'        => 'select',
 				'class'       => 'wc-enhanced-select',
 				'default'     => 0,

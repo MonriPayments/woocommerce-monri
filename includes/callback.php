@@ -63,7 +63,7 @@ class Monri_WC_Callback {
 
 		// Strip-out the 'WP3-callback' part from the Authorization header.
 		$authorization = trim(
-			str_replace( 'WP3-callback', '', $_SERVER['HTTP_AUTHORIZATION'] )
+			str_replace( 'WP3-callback', '', sanitize_text_field( $_SERVER['HTTP_AUTHORIZATION'] ) )
 		);
 		// Calculating the digest...
 		$digest = hash( 'sha512', $merchant_key . $json );

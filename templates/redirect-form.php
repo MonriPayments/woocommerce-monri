@@ -1,4 +1,6 @@
 <?php
+
+if ( ! defined( 'ABSPATH' ) ) exit;
 /** @var $order WC_Order */
 /** @var $action string */
 /** @var $options array */

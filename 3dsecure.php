@@ -9,14 +9,14 @@ if ( ! isset( $_GET['acsUrl'], $_GET['pareq'], $_GET['returnUrl'], $_GET['token'
 <!DOCTYPE html>
 <html>
 	<head>
-        <title><?php esc_html_e( 'Monri 3D Secure Verification' ) ?></title>
+        <title><?php esc_html_e( 'Monri 3D Secure Verification', 'monri' ) ?></title>
 	</head>
 	<body style="display:none">
         <p><?php esc_html_e( 'Invoking 3-D secure form, please wait ...', 'monri' ); ?></p>
-		<form id="3ds-redirect" name="form" action="<?php echo esc_url($_GET['acsUrl']) ?>" method="post">
-			<input  class="form-control" type="hidden" name="PaReq" value="<?php echo esc_attr( $_GET['pareq'] ) ?>">
-			<input  class="form-control" type="hidden" name="TermUrl" value="<?php echo esc_attr( $_GET['returnUrl'] ) ?>">
-			<input  class="form-control" type="hidden" name="MD" value="<?php echo esc_attr( $_GET['token'] ) ?>">
+		<form id="3ds-redirect" name="form" action="<?php echo esc_url( sanitize_url( $_GET['acsUrl'] ) ) ?>" method="post">
+			<input  class="form-control" type="hidden" name="PaReq" value="<?php echo esc_attr( sanitize_text_field( $_GET['pareq'] ) ) ?>">
+			<input  class="form-control" type="hidden" name="TermUrl" value="<?php echo esc_attr( sanitize_url( $_GET['returnUrl'] ) ) ?>">
+			<input  class="form-control" type="hidden" name="MD" value="<?php echo esc_attr( sanitize_text_field( $_GET['token'] ) ) ?>">
 
 			<noscript>
 				<input type="submit"/>

@@ -1,5 +1,6 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) exit;
 require_once __DIR__ . '/api.php';
 
 class Monri_WC_Gateway_Adapter_Webpay_Components {
@@ -53,13 +54,13 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	// @todo can't we go back to thankyou page right away and regulate there?
 	public function parse_request() {
 
-		$uri = wp_parse_url( site_url() . $_SERVER['REQUEST_URI'], PHP_URL_PATH );
+		$uri = wp_parse_url( site_url() . sanitize_text_field( $_SERVER['REQUEST_URI'] ), PHP_URL_PATH );
 
 		if ( $uri !== '/monri-3ds-payment-result' ) {
 			return;
 		}
 
-		$payment_token = isset( $_GET['payment_token'] ) ? $_GET['payment_token'] : null;
+		$payment_token = sanitize_text_field( $_GET['payment_token'] ) ?? null;
 
 		if ( ! $payment_token ) {
 			return;
@@ -173,7 +174,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	 */
 	public function process_payment( $order_id ) {
 
-		$monri_token = $_POST['monri-token'] ?? '';
+		$monri_token = sanitize_text_field( $_POST['monri-token'] ) ?? '';
 
 		if ( empty( $monri_token ) ) {
 			throw new Exception( esc_html( __( 'Missing Monri token.', 'monri' ) ) );

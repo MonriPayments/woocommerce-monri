@@ -122,7 +122,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	 * @return string
 	 */
 	private function get_query_string() {
-		$arr = explode( '?', $_SERVER['REQUEST_URI'] );
+		$arr = explode( '?', sanitize_text_field( $_SERVER['REQUEST_URI'] ) );
 		// If there's more than one '?' shift and join with ?, it's special case of having '?' in success url
 		// eg http://testiranjeintegracija.net/?page_id=6order-recieved?
 
@@ -143,7 +143,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	public function process_return() {
 
 		Monri_WC_Logger::log( "Response data: " . print_r( $_REQUEST, true ), __METHOD__ );
-		$order_id = $_REQUEST['order_number'];
+		$order_id = sanitize_text_field( $_REQUEST['order_number'] );
 
 		if ( ! $order_id ) {
 			return;
@@ -173,8 +173,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 		try {
 
-			$digest        = $_REQUEST['digest'];
-			$response_code = $_REQUEST['response_code'];
+			$digest        = sanitize_text_field( $_REQUEST['digest'] );
+			$response_code = sanitize_text_field( $_REQUEST['response_code'] );
 
 			$thankyou_page = $this->payment->get_return_url( $order );
 			$url           = strtok( $thankyou_page, '?' );
@@ -196,24 +196,24 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 				if ( $order->get_status() !== 'processing' ) {
 					$order->payment_complete();
-					$order->add_order_note( __( "Monri payment successful<br/>Approval code: ", 'monri' ) . $_REQUEST['approval_code'] );
+					$order->add_order_note( __( "Monri payment successful<br/>Approval code: ", 'monri' ) . sanitize_text_field( $_REQUEST['approval_code'] ) );
 					$order->add_order_note( __( 'Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.', 'monri' ) );
-					$order->add_order_note( "Issuer: " . $_REQUEST['issuer'] );
+					$order->add_order_note( "Issuer: " . sanitize_text_field( $_REQUEST['issuer'] ) );
 
 					if ( $_REQUEST['number_of_installments'] > 1 ) {
-						$order->add_order_note( __( 'Number of installments: ', 'monri' ) . $_REQUEST['number_of_installments'] );
+						$order->add_order_note( __( 'Number of installments: ', 'monri' ) . (int) $_REQUEST['number_of_installments'] );
 					}
 
 					WC()->cart->empty_cart();
 				}
 
 			} else if ( $response_code === "pending" ) {
-				$order->add_order_note( __( "Monri payment status is pending<br/>Approval code: ", 'monri' ) . $_REQUEST['approval_code'] );
+				$order->add_order_note( __( "Monri payment status is pending<br/>Approval code: ", 'monri' ) . sanitize_text_field( $_REQUEST['approval_code'] ) );
 				$order->add_order_note( __( 'Thank you for shopping with us. Right now your payment status is pending, We will keep you posted regarding the status of your order through e-mail', 'monri' ) );
-				$order->add_order_note( "Issuer: " . $_REQUEST['issuer'] );
+				$order->add_order_note( "Issuer: " . sanitize_text_field( $_REQUEST['issuer'] ) );
 
 				if ( $_REQUEST['number_of_installments'] > 1 ) {
-					$order->add_order_note( __( 'Number of installments:', 'monri' ) . ": " . $_REQUEST['number_of_installments'] );
+					$order->add_order_note( __( 'Number of installments:', 'monri' ) . ": " . (int) $_REQUEST['number_of_installments'] );
 				}
 
 				$order->update_status( 'on-hold' );
@@ -221,7 +221,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 			} else {
 				$order->update_status( 'failed', 'Response not authorized' );
-				$order->add_order_note( __( 'Transaction Declined: ', 'monri' ) . $_REQUEST['Error'] );
+				$order->add_order_note( __( 'Transaction Declined: ', 'monri' ) . sanitize_text_field( $_REQUEST['Error'] ) );
 			}
 
 		} catch ( Exception $e ) {
