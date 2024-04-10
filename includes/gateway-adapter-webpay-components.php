@@ -60,7 +60,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			return;
 		}
 
-		$payment_token = sanitize_text_field( $_GET['payment_token'] ) ?? null;
+		$payment_token = sanitize_text_field( $_GET['payment_token'] ?? null );
 
 		if ( ! $payment_token ) {
 			return;
