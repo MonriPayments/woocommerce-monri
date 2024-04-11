@@ -29,9 +29,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		$this->payment             = $payment;
 		$this->payment->has_fields = true;
 
-		// @todo: check if we can use parse_request here in older Woo? Are gateways loaded?
-		add_action( 'parse_request', [ $this, 'parse_request' ] );
-
 		// load components.js on frontend checkout
 		add_action( 'template_redirect', function () {
 			if ( is_checkout() ) {
@@ -47,75 +44,74 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		}
 	}
 
-	/**
-	 * @return void
-	 */
-	// @todo can't we go back to thankyou page right away and regulate there?
-	public function parse_request() {
+	public function request_authorize( ) {
 
-		$uri = wp_parse_url( site_url() . $_SERVER['REQUEST_URI'], PHP_URL_PATH );
+		$order_total = (float)WC()->cart->get_total( 'edit' );
 
-		if ( $uri !== '/monri-3ds-payment-result' ) {
-			return;
+		/*
+		if ( $currency === 'KM' ) {
+			$currency = 'BAM';
 		}
+		*/
 
-		$payment_token = isset( $_GET['payment_token'] ) ? $_GET['payment_token'] : null;
+		$data = [
+			'amount' => (int)round($order_total * 100),
+			'order_number' => wp_generate_uuid4(), //uniqid('woocommerce-', true),
+			'currency' => get_woocommerce_currency(),
+			'transaction_type' => 'purchase',
+			'order_info' => 'woocommerce order',
+			//'scenario' => 'charge'
+		];
 
-		if ( ! $payment_token ) {
-			return;
-		}
+		//$x = wp_generate_uuid4();
 
-		// @todo regulate error below (empty return), redirect to cart/cancel?
+		$body_as_string = json_encode($data);
 
-		try {
-			$arr    = json_decode( $this->base64url_decode( $payment_token ), true );
-			$parsed = [
-				'authenticity_token' => $arr[0],
-				'order_number'       => $arr[1],
-				'return_url'         => $arr[2]
-			];
-		} catch ( Exception $exception ) {
-			//error_log("Error while parsing payment token: " . $exception->getMessage());
-			return;
-		}
+		$base_url = 'https://ipgtest.monri.com'; // parametrize this value
 
-		$order_number = $parsed['order_number'];
+		$ch = curl_init($base_url . '/v2/payment/new');
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $body_as_string);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 
-		/** @var SimpleXmlElement $result */
-		$result = Monri_WC_Api::instance()->orders_show( $order_number );
+		$timestamp = time();
+		$digest = hash('sha512',
+			$this->payment->get_option( 'monri_merchant_key' ) .
+			$timestamp .
+			$this->payment->get_option( 'monri_authenticity_token' ) .
+			$body_as_string
+		);
+		$authorization = "WP3-v2 {$this->payment->get_option( 'monri_authenticity_token' )} $timestamp $digest";
 
-        Monri_WC_Logger::log( "Response body : " . $result->asXML(), __METHOD__ );
-		if ( is_wp_error( $result ) ) {
-			return;
-		}
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+				'Content-Type: application/json',
+				'Content-Length: ' . strlen($body_as_string),
+				'Authorization: ' . $authorization
+			)
+		);
 
-		$order = wc_get_order( $order_number );
+		$result = curl_exec($ch);
 
-		if ( isset( $result->status ) && trim( $result->status ) === 'approved' ) {
-			// Payment has been successful
-			$order->payment_complete();
-
-			// Empty the cart (Very important step)
-			WC()->cart->empty_cart();
-
-			//wp_safe_redirect() ??
-			wp_redirect( $parsed['return_url'] );
-
+		if (curl_errno($ch)) {
+			$response = ['status' => 'declined', 'error' => curl_error($ch)];
 		} else {
-			$order->update_status( 'failed' );
-			$order->add_order_note( 'Failed' );
-			//$order->add_order_note('Thank you for shopping with us. However, the transaction has been declined.');
-
-			wp_redirect( wc_get_cart_url() );
+			$response = json_decode($result, true);
 		}
+		curl_close($ch);
 
-		exit;
+		return $response;
 	}
 
 	/**
 	 * @return void
 	 */
 	public function payment_fields() {
+
+		$initialize = $this->request_authorize();
+
+		//if ($initialize['client_secret'])
 
 		$script_url = $this->payment->get_option_bool( 'test_mode' ) ? self::SCRIPT_ENDPOINT_TEST : self::SCRIPT_ENDPOINT;
 
@@ -149,16 +145,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 
 		}
 
-		$radnom_token = wp_generate_uuid4();
-		$timestamp    = ( new DateTime() )->format( 'c' );
-		$digest       = hash( 'SHA512', $this->payment->get_option( 'monri_merchant_key' ) . $radnom_token . $timestamp );
-
 		wc_get_template( 'components.php', array(
-			'config'       => array(
+			'config' => array(
 				'authenticity_token' => $this->payment->get_option( 'monri_authenticity_token' ),
-				'random_token'       => $radnom_token,
-				'digest'             => $digest,
-				'timestamp'          => $timestamp,
+				'client_secret' => $initialize['client_secret'],
 				'locale'             => $this->payment->get_option( 'form_language' ),
 			),
 			'installments' => $installments
@@ -173,136 +163,55 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	 */
 	public function process_payment( $order_id ) {
 
+		/*
 		$monri_token = $_POST['monri-token'] ?? '';
 
 		if ( empty( $monri_token ) ) {
 			throw new Exception( esc_html( __( 'Missing Monri token.', 'monri' ) ) );
 		}
+		*/
 
-		$number_of_installments = isset( $_POST['monri-card-installments'] ) ? (int) $_POST['monri-card-installments'] : 1;
-		$number_of_installments = min( max( $number_of_installments, 1 ), 24 );
+		// monri-transaction + validate order_number
+		// min that needs to be saved here is _monri_components_order_number -> callback needs to load by that meta
+
+		//Monri_WC_Logger::log( "Request data: " . print_r( $params, true ), __METHOD__ );
 
 		$order  = wc_get_order( $order_id );
 		$amount = $order->get_total();
 
-		//Check transaction type
-		$transaction_type = $this->payment->get_option( 'transaction_type' ) ? 'authorize' : 'purchase';
-
-		//Check if paying in installments, if yes set transaction_type to purchase
-		if ( $number_of_installments > 1 ) {
-			$transaction_type = 'purchase';
+		//Payment has been successful
+		/*
+		$order->add_order_note( __( 'Monri payment completed.', 'monri' ) );
+		$monri_order_amount1 = $transactionResult['amount'] / 100;
+		$monri_order_amount2 = number_format( $monri_order_amount1, 2 );
+		if ( $monri_order_amount2 != $order->get_total() ) {
+			$order->add_order_note( __( 'Monri - Order amount: ', 'monri' ) . $monri_order_amount2, true );
 		}
-
-		//Convert order amount to number without decimals
-		$amount = ceil( $amount * 100 );
-
-		$currency = $order->get_currency();
-		if ( $currency === 'KM' ) {
-			$currency = 'BAM';
+		if ( isset( $params['number_of_installments'] ) && $params['number_of_installments'] > 1 ) {
+			$order->add_order_note( __( 'Number of installments: ', 'monri' ) . $params['number_of_installments'] );
 		}
+		*/
 
-		//Generate digest key
-		$digest = hash( 'sha512', $this->payment->get_option( 'monri_merchant_key' ) . $order->get_id() . $amount . $currency );
+		// Mark order as Paid
+		//$order->payment_complete();
 
-		//Array of order information
-		$order_number = $order->get_id();
+		// Empty the cart (Very important step)
+		WC()->cart->empty_cart();
 
-		$params = array(
-			'ch_full_name' => $order->get_billing_first_name() . " " . $order->get_billing_last_name(),
-			'ch_address'   => $order->get_billing_address_1(),
-			'ch_city'      => $order->get_billing_city(),
-			'ch_zip'       => $order->get_billing_postcode(),
-			'ch_country'   => $order->get_billing_country(),
-			'ch_phone'     => $order->get_billing_phone(),
-			'ch_email'     => $order->get_billing_email(),
-
-			'order_number' => $order_number,
-			'order_info'   => $order_number . '_' . gmdate( 'dmy' ),
-			'amount'       => $amount,
-			'currency'     => $currency,
-
-			'ip'                    => $_SERVER['REMOTE_ADDR'],
-			'language'              => $this->payment->get_option( 'form_language' ),
-			'transaction_type'      => $transaction_type,
-			'authenticity_token'    => $this->payment->get_option( 'monri_authenticity_token' ),
-			'digest'                => $digest,
-			'temp_card_id'          => $monri_token,
-			'callback_url_override' => add_query_arg( 'wc-api', 'monri_callback', get_home_url() )
+		// Redirect to thank you page
+		return array(
+			'result'   => 'success',
+			'redirect' => $this->payment->get_return_url( $order ),
 		);
 
-		if ( $number_of_installments > 1 ) {
-			$params['number_of_installments'] = $number_of_installments;
-		}
 
-		Monri_WC_Logger::log( "Request data: " . print_r( $params, true ), __METHOD__ );
-
-		$result = $this->request( $params );
-
-		//check if cc have 3Dsecure validation
-		if ( isset( $result['secure_message'] ) ) {
-			//this is 3dsecure card
-			//show user 3d secure form the
-			$result = $result['secure_message'];
-
-			//$order->get_checkout_order_received_url()
-			$thank_you_page = $this->payment->get_return_url( $order );
-
-			$payment_token = $this->base64url_encode(
-				wp_json_encode( [ $result['authenticity_token'], $order_number, $thank_you_page ] )
-			);
-
-			$urlEncode = array(
-				'acsUrl'    => $result['acs_url'],
-				'pareq'     => $result['pareq'],
-				'returnUrl' => site_url() . '/monri-3ds-payment-result?payment_token=' . $payment_token,
-				'token'     => $result['authenticity_token']
-			);
-
-			// we can use payment page + template here, but it will be refactored anyway
-			$redirect = MONRI_WC_PLUGIN_URL . '3dsecure.php?' . http_build_query( $urlEncode );
-
-			return array(
-				'result'   => 'success',
-				'redirect' => $redirect,
-			);
-
-		}
-
-		if ( isset( $result['transaction'] ) && $result['transaction']['status'] === 'approved' ) {
-
-			$transactionResult = $result['transaction'];
-
-			//$order = wc_get_order($transactionResult['order_number']); //@todo: recheck
-
-			//Payment has been successful
-			$order->add_order_note( __( 'Monri payment completed.', 'monri' ) );
-			$monri_order_amount1 = $transactionResult['amount'] / 100;
-			$monri_order_amount2 = number_format( $monri_order_amount1, 2 );
-			if ( $monri_order_amount2 != $order->get_total() ) {
-				$order->add_order_note( __( 'Monri - Order amount: ', 'monri' ) . $monri_order_amount2, true );
-			}
-			if ( isset( $params['number_of_installments'] ) && $params['number_of_installments'] > 1 ) {
-				$order->add_order_note( __( 'Number of installments: ', 'monri' ) . $params['number_of_installments'] );
-			}
-
-			// Mark order as Paid
-			$order->payment_complete();
-
-			// Empty the cart (Very important step)
-			WC()->cart->empty_cart();
-
-			// Redirect to thank you page
-			return array(
-				'result'   => 'success',
-				'redirect' => $this->payment->get_return_url( $order ),
-			);
-		}
-
+			/*
 		throw new Exception(
 			isset( $result['errors'] ) && ! empty( $result['errors'] ) ?
 				esc_html( implode( '; ', $result['errors'] ) ) :
 				esc_html( __( 'Missing Monri token.', 'monri' ) )
 		);
+			*/
 	}
 
 	/**

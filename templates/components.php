@@ -3,6 +3,7 @@
 /** @var array $installments */
 
 $installments_price_increase = false;
+$installments = false;
 ?>
 
 <?php if ($installments): ?>
@@ -30,7 +31,7 @@ $installments_price_increase = false;
 
 <div id="monri-components"></div>
 <p id="monri-components-error" style="color:red;" role="alert"></p>
-<input type="hidden" id="monri-token" name="monri-token" />
+<input type="hidden" id="monri-transaction" name="monri-transaction" />
 
 <?php if ($installments_price_increase): /* installments are changing total */ ?>
 <script type="text/javascript">
@@ -58,44 +59,78 @@ $installments_price_increase = false;
 	(function($) {
 
         var monri = Monri('<?php echo esc_js( $config['authenticity_token'] ) ?>', {locale: '<?php echo esc_js( $config['locale'] ) ?>'});
-        var components = monri.components(
-            '<?php echo esc_js( $config['random_token'] ) ?>',
-            '<?php echo esc_js( $config['digest'] ) ?>',
-            '<?php echo esc_js( $config['timestamp'] ) ?>'
-        );
+        var components = monri.components({clientSecret: '<?php echo esc_js( $config['client_secret'] ) ?>'});
 
         var style = {invalid: {color: 'red'}};
 
-        // Add an instance of the card Component into the `card-element` <div>.
-        var card = components.create('card', {style: style});
+        var card = components.create('card', {style: style, showInstallmentsSelection: true});
         card.mount('monri-components');
 
-        // handle card errors
         card.onChange(function (event) {
             if (event.error) {
                 $('#monri-components-error').text(event.error.message);
-                $('#monri-token').val('');
+                $('#monri-token').val(''); // !!!!!!!!
             } else {
                 $('#monri-components-error').empty();
             }
         });
 
+        var selected = 1;
+        card.addChangeListener('installments', function (event) {
+            console.log(event);
+            console.log(event.data)
+            console.log(event.data.selectedInstallment)
+            console.log(event.message)
+            console.log(event.valid)
+
+			if (selected !== event.data.selectedInstallment) {
+                selected = event.data.selectedInstallment;
+                //$( 'form.checkout' ).trigger('update_checkout');
+			}
+
+            //
+        });
+
         $('form.checkout').on('checkout_place_order_monri', function () {
-            if ($('#monri-token').val()) {
+            if ($('#monri-transaction').val()) {
                 return true;
             }
 
-			monri.createToken(card).then(function (result) {
-				if (result.error) {
-					$('#monri-components-error').text(result.error.message);
-				} else {
-					$('#monri-token').val(result.result.id);
+            const transactionParams = {
+                address: $('#_billing_address_1').val(),
+                fullName: $('#_billing_first_name').val() + ' ' + $('#_billing_last_name').val(),
+                city: $('#_billing_city').val(),
+                zip: $('#_billing_postcode').val(),
+                phone: $('#_billing_phone').val(),
+                country: $('#_billing_country').val(),
+                email: $('#_billing_email').val(),
+                orderInfo: "Testna trx"
+            }
+
+            console.log(transactionParams);
+
+            monri.confirmPayment(card, transactionParams).then(function (response) {
+                console.log(response);
+
+                if (response.error) {
+                    $('#monri-components-error').text(response.error.message);
+                    return;
+                }
+
+				// handle declined on 3DS Cancel
+				if (response.result.status === 'approved') {
+                    $('#monri-transaction').val(JSON.stringify(response.result));
                     $('form.checkout').submit();
+
+				} else {
+					$('#monri-components-error').text('Transaction declined.');
 				}
-			});
+
+            });
 
 			return false;
         });
 
     })(jQuery);
+
 </script>
