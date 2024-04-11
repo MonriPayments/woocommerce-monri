@@ -272,13 +272,13 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return;
 		}
 
-		$success        = sanitize_text_field( $_REQUEST['Success'] ) ?? '0';
-		$approval_code  = sanitize_text_field( $_REQUEST['ApprovalCode'] ) ?? null;
+		$success        = sanitize_text_field( $_REQUEST['Success'] ?? '0' );
+		$approval_code  = sanitize_text_field( $_REQUEST['ApprovalCode'] ?? null );
 		$trx_authorized = $success === '1' && ! empty( $approval_code );
 
 		if ( $trx_authorized ) {
 
-			$order->payment_complete( sanitize_text_field( $_REQUEST['WsPayOrderId'] ) ?? '' );
+			$order->payment_complete( sanitize_text_field( $_REQUEST['WsPayOrderId'] ?? '' ) );
 			$order->add_order_note( __( "Monri payment successful<br/>Approval code: ", 'monri' ) . $approval_code );
 			WC()->cart->empty_cart();
 

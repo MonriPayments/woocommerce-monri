@@ -174,7 +174,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	 */
 	public function process_payment( $order_id ) {
 
-		$monri_token = sanitize_text_field( $_POST['monri-token'] ) ?? '';
+		$monri_token = sanitize_text_field( $_POST['monri-token'] ?? '' ) ;
 
 		if ( empty( $monri_token ) ) {
 			throw new Exception( esc_html( __( 'Missing Monri token.', 'monri' ) ) );
