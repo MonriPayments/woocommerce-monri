@@ -1,7 +1,5 @@
 <?php
 
-require_once __DIR__ . '/api.php';
-
 class Monri_WC_Gateway_Adapter_Webpay_Components {
 
 	/**
@@ -9,8 +7,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	 */
 	public const ADAPTER_ID = 'webpay_components';
 
-	public const TRANSACTION_ENDPOINT_TEST = 'https://ipgtest.monri.com/v2/transaction';
-	public const TRANSACTION_ENDPOINT = 'https://ipg.monri.com/v2/transaction';
+	public const AUTHORIZATION_ENDPOINT_TEST = 'https://ipgtest.monri.com/v2/payment/new';
+	public const AUTHORIZATION_ENDPOINT = 'https://ipg.monri.com/v2/payment/new';
 
 	public const SCRIPT_ENDPOINT_TEST = 'https://ipgtest.monri.com/dist/components.js';
 	public const SCRIPT_ENDPOINT = 'https://ipg.monri.com/dist/components.js';
@@ -42,66 +40,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			require_once __DIR__ . '/installments-fee.php';
 			( new Monri_WC_Installments_Fee() )->init();
 		}
-	}
-
-	public function request_authorize( ) {
-
-		$order_total = (float)WC()->cart->get_total( 'edit' );
-
-		/*
-		if ( $currency === 'KM' ) {
-			$currency = 'BAM';
-		}
-		*/
-
-		$data = [
-			'amount' => (int)round($order_total * 100),
-			'order_number' => wp_generate_uuid4(), //uniqid('woocommerce-', true),
-			'currency' => get_woocommerce_currency(),
-			'transaction_type' => 'purchase',
-			'order_info' => 'woocommerce order',
-			//'scenario' => 'charge'
-		];
-
-		//$x = wp_generate_uuid4();
-
-		$body_as_string = json_encode($data);
-
-		$base_url = 'https://ipgtest.monri.com'; // parametrize this value
-
-		$ch = curl_init($base_url . '/v2/payment/new');
-		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $body_as_string);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-
-		$timestamp = time();
-		$digest = hash('sha512',
-			$this->payment->get_option( 'monri_merchant_key' ) .
-			$timestamp .
-			$this->payment->get_option( 'monri_authenticity_token' ) .
-			$body_as_string
-		);
-		$authorization = "WP3-v2 {$this->payment->get_option( 'monri_authenticity_token' )} $timestamp $digest";
-
-		curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-				'Content-Type: application/json',
-				'Content-Length: ' . strlen($body_as_string),
-				'Authorization: ' . $authorization
-			)
-		);
-
-		$result = curl_exec($ch);
-
-		if (curl_errno($ch)) {
-			$response = ['status' => 'declined', 'error' => curl_error($ch)];
-		} else {
-			$response = json_decode($result, true);
-		}
-		curl_close($ch);
-
-		return $response;
 	}
 
 	/**
@@ -219,52 +157,60 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	 *
 	 * @return array
 	 */
-	protected function request( $params ) {
-		$url                          = $this->payment->get_option_bool( 'test_mode' ) ? self::TRANSACTION_ENDPOINT_TEST : self::TRANSACTION_ENDPOINT;
-		$requestParams['transaction'] = $params;
-		$result                       = wp_remote_post( $url, [
-				'body'      => wp_json_encode( $requestParams ),
+	private function request_authorize() {
+
+		$url = $this->payment->get_option_bool( 'test_mode' ) ?
+			self::AUTHORIZATION_ENDPOINT_TEST :
+			self::AUTHORIZATION_ENDPOINT;
+
+		$order_total = (float)WC()->cart->get_total( 'edit' );
+
+		/*
+		if ( $currency === 'KM' ) {
+			$currency = 'BAM';
+		}
+		*/
+
+		$data = [
+			'amount' => (int)round($order_total * 100),
+			'order_number' => wp_generate_uuid4(), //uniqid('woocommerce-', true),
+			'currency' => get_woocommerce_currency(),
+			'transaction_type' => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
+			'order_info' => 'woocommerce order',
+			//'scenario' => 'charge'
+		];
+
+		$data = wp_json_encode( $data );
+
+		$timestamp = time();
+		$digest = hash('sha512',
+			$this->payment->get_option( 'monri_merchant_key' ) .
+			$timestamp .
+			$this->payment->get_option( 'monri_authenticity_token' ) .
+			$data
+		);
+
+		$authorization = "WP3-v2 {$this->payment->get_option( 'monri_authenticity_token' )} $timestamp $digest";
+
+		$response = wp_remote_post( $url, [
+				'body'      => $data,
 				'headers'   => [
-					'Accept'       => 'application/json',
-					'Content-Type' => 'application/json'
+					'Content-Type' => 'application/json',
+					'Content-Length' => strlen($data),
+					'Authorization' => $authorization
 				],
-				'timeout'   => 15,
-				'sslverify' => false
+				'timeout'   => 10,
+				'sslverify' => true
 			]
 		);
 
-		if ( is_array( $result ) ) {
-			if ( isset( $result['body'] ) ) {
-
-				$body_response = json_decode( $result['body'], true );
-
-				Monri_WC_Logger::log( "Response body : " . print_r( $body_response, true ), __METHOD__ );
-			}
-
-			if ( isset( $result['response'] ) ) {
-				Monri_WC_Logger::log( "Response data : " . print_r( $result['response'], true ), __METHOD__ );
-			}
+		if (is_wp_error( $response ) ) {
+			//return $response;
+			$response = ['status' => 'error', 'error' => $response->get_error_message()];
 		}
 
-		return json_decode( $result['body'], true );
-	}
-
-	/**
-	 * @param string $data
-	 *
-	 * @return string
-	 */
-	private function base64url_encode( $data ) {
-		return rtrim( strtr( base64_encode( $data ), '+/', '-_' ), '=' );
-	}
-
-	/**
-	 * @param string $data
-	 *
-	 * @return false|string
-	 */
-	private function base64url_decode( $data ) {
-		return base64_decode( str_pad( strtr( $data, '-_', '+/' ), strlen( $data ) % 4, '=' ) );
+		$body = wp_remote_retrieve_body( $response );
+		return json_decode( $body, true );
 	}
 
 }

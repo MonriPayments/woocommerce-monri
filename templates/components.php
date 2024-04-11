@@ -97,14 +97,14 @@ $installments = false;
             }
 
             const transactionParams = {
-                address: $('#_billing_address_1').val(),
-                fullName: $('#_billing_first_name').val() + ' ' + $('#_billing_last_name').val(),
-                city: $('#_billing_city').val(),
-                zip: $('#_billing_postcode').val(),
-                phone: $('#_billing_phone').val(),
-                country: $('#_billing_country').val(),
-                email: $('#_billing_email').val(),
-                orderInfo: "Testna trx"
+                address: $('#billing_address_1').val(),
+                fullName: $('#billing_first_name').val() + ' ' + $('#billing_last_name').val(),
+                city: $('#billing_city').val(),
+                zip: $('#billing_postcode').val(),
+                phone: $('#billing_phone').val(),
+                country: $('#billing_country').val(),
+                email: $('#billing_email').val(),
+                //orderInfo: "Testna trx"
             }
 
             console.log(transactionParams);
