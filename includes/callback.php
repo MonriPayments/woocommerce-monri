@@ -44,9 +44,13 @@ class Monri_WC_Callback {
 			$this->error( 'Invalid request method.', [ 400, 'Bad Request' ] );
 		}
 
-		if ( ! isset( $_SERVER['HTTP_AUTHORIZATION'] ) ) {
+		if ( empty( $_SERVER['HTTP_AUTHORIZATION'] ) ) {
 			$this->error( 'Authorization header missing.', [ 400, 'Bad Request' ] );
 		}
+
+		$authorization = sanitize_text_field( $_SERVER['HTTP_AUTHORIZATION'] );
+		// Strip-out the 'WP3-callback' part from the Authorization header.
+		$authorization = trim( str_replace( 'WP3-callback', '', $authorization ) );
 
 		$merchant_key = Monri_WC_Settings::instance()->get_option( 'monri_merchant_key' );
 
@@ -61,10 +65,6 @@ class Monri_WC_Callback {
 
 		Monri_WC_Logger::log( "Request data: " . $json, __METHOD__ );
 
-		// Strip-out the 'WP3-callback' part from the Authorization header.
-		$authorization = trim(
-			str_replace( 'WP3-callback', '', sanitize_text_field( $_SERVER['HTTP_AUTHORIZATION'] ) )
-		);
 		// Calculating the digest...
 		$digest = hash( 'sha512', $merchant_key . $json );
 
