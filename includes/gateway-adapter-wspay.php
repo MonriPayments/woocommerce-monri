@@ -233,6 +233,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	}
 
 	/**
+	 * Monri returns on thankyou page
+	 *
 	 * @param int $order_id
 	 *
 	 * @return void

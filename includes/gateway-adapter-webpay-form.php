@@ -24,7 +24,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		$this->payment = $payment;
 
 		add_action( 'woocommerce_receipt_' . $this->payment->id, [ $this, 'process_redirect' ] );
-		add_action( 'woocommerce_thankyou', [ $this, 'process_return' ] );
+		add_action( 'woocommerce_before_thankyou', [ $this, 'process_return' ] );
 
 		// load installments fee logic if installments enabled
 		if ( $this->payment->get_option( 'paying_in_installments' ) ) {
@@ -156,21 +156,13 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	}
 
 	/**
-	 * Monri server callback on thankyou page
+	 * Monri returns on thankyou page
+	 *
+	 * @param int $order_id
 	 *
 	 * @return void
 	 */
 	public function process_return( $order_id ) {
-
-		$requested_order_id = sanitize_text_field( $_GET['order_number'] );
-
-		if ( ! $order_id ) {
-			return;
-		}
-
-		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
-			$requested_order_id = Monri_WC_Utils::resolve_real_order_id( $order_id );
-		}
 
 		$order = wc_get_order( $order_id );
 		if ( ! $order || $order->get_payment_method() !== $this->payment->id ) {
@@ -178,6 +170,15 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		}
 
 		Monri_WC_Logger::log( "Response data: " . print_r( $_GET, true ), __METHOD__ );
+
+		$requested_order_id = sanitize_text_field( $_GET['order_number'] );
+		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
+			$requested_order_id = Monri_WC_Utils::resolve_real_order_id( $order_id );
+		}
+
+		if ( $order_id != $requested_order_id ) {
+			return;
+		}
 
 		if ( ! $this->validate_monri_response( $order ) ) {
 			return;
