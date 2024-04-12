@@ -1,4 +1,7 @@
 <?php
+
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 /** @var $order WC_Order */
 /** @var $transaction_info array */
 ?>

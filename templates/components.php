@@ -1,8 +1,10 @@
 <?php
+
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 /** @var array $config */
 /** @var array $installments */
 
-if ( ! defined( 'ABSPATH' ) ) exit;
 $installments_price_increase = false;
 ?>
 

@@ -127,12 +127,14 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			return false;
 		}
 
+		/**
+		 * @note: GET/SERVER params are not sanitized here because values are used for hash compare
+		 */
 		$digest = $_GET['digest'];
 
 		$calculated_url = $this->payment->get_return_url( $order ); // use current url?
 		$calculated_url = strtok( $calculated_url, '?' );
 
-		// sanitization is skipped because value is used in hash calculation
 		$arr = explode( '?', $_SERVER['REQUEST_URI'] );
 
 		// If there's more than one '?' shift and join with ?, it's special case of having '?' in success url
@@ -151,7 +153,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		$check_digest = hash( 'sha512', $this->payment->get_option( 'monri_merchant_key' ) . $calculated_url );
 
 		return hash_equals( $check_digest, $digest );
-		//return ( $digest === $check_digest );
 	}
 
 	/**
@@ -159,20 +160,19 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	 *
 	 * @return void
 	 */
-	public function process_return() {
+	public function process_return( $order_id ) {
 
-		$order_id = sanitize_text_field( $_GET['order_number'] );
+		$requested_order_id = sanitize_text_field( $_GET['order_number'] );
 
 		if ( ! $order_id ) {
 			return;
 		}
 
 		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
-			$order_id = Monri_WC_Utils::resolve_real_order_id( $order_id );
+			$requested_order_id = Monri_WC_Utils::resolve_real_order_id( $order_id );
 		}
 
 		$order = wc_get_order( $order_id );
-
 		if ( ! $order || $order->get_payment_method() !== $this->payment->id ) {
 			return;
 		}
@@ -211,7 +211,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 		} else {
 			$order->update_status( 'failed', 'Response not authorized' );
-			$order->add_order_note( __( 'Transaction Declined: ', 'monri' ) . sanitize_text_field( $_GET['Error'] ) );
+			//$order->add_order_note( __( 'Transaction Declined: ', 'monri' ) . sanitize_text_field( $_GET['Error'] ) );
 		}
 
 	}

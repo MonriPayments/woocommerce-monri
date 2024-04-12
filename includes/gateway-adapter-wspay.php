@@ -239,7 +239,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	 */
 	public function process_return( $order_id ) {
 
-		if ( ! isset( $_REQUEST['ShoppingCartID'] ) ) {
+		if ( ! isset( $_GET['ShoppingCartID'] ) ) {
 			return;
 		}
 
@@ -248,9 +248,9 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return;
 		}
 
-		Monri_WC_Logger::log( "Response data: " . print_r( $_REQUEST, true ), __METHOD__ );
+		Monri_WC_Logger::log( "Response data: " . print_r( $_GET, true ), __METHOD__ );
 
-		$requested_order_id = sanitize_text_field( $_REQUEST['ShoppingCartID'] );
+		$requested_order_id = sanitize_text_field( $_GET['ShoppingCartID'] );
 		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
 			$requested_order_id = Monri_WC_Utils::resolve_real_order_id( $order_id );
 		}
@@ -268,35 +268,49 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return;
 		}
 
-		if ( $order->get_status() === 'completed' ) {
+		if ( $order->get_status() !== 'pending' ) {
 			return;
 		}
 
-		$success        = sanitize_text_field( $_REQUEST['Success'] ?? '0' );
-		$approval_code  = sanitize_text_field( $_REQUEST['ApprovalCode'] ?? null );
-		$trx_authorized = $success === '1' && ! empty( $approval_code );
+		$success        = (isset( $_GET['Success'] ) && $_GET['Success'] === '1') ? '1' : '0';
+		$approval_code  = ! empty( $_GET['ApprovalCode'] ) ? sanitize_text_field( $_GET['ApprovalCode'] ) : '';
+
+		$trx_authorized = ($success === '1') && ! empty( $approval_code );
 
 		if ( $trx_authorized ) {
 
-			$order->payment_complete( sanitize_text_field( $_REQUEST['WsPayOrderId'] ?? '' ) );
-			$order->add_order_note( __( "Monri payment successful<br/>Approval code: ", 'monri' ) . $approval_code );
+			$transaction_id = ! empty( $_GET['WsPayOrderId'] ) ? sanitize_text_field( $_GET['WsPayOrderId'] ) : '';
+			$order->payment_complete( $transaction_id );
+
+			$order->add_order_note( __( 'Monri payment successful<br/>Approval code: ', 'monri' ) . $approval_code );
+
 			WC()->cart->empty_cart();
 
+			// save token if needed
 			if ( $this->tokenization_enabled() && $order->get_user_id() ) {
-				$this->save_user_token( $order->get_user_id() );
+				$token_data = array_intersect_key(
+					$_GET,
+					[ 'Token', 'TokenNumber', 'TokenExp', 'PaymentType', 'CreditCardName' ]
+				);
+
+				$token_data = array_map( 'sanitize_text_field', $token_data );
+				$this->save_user_token( $order->get_user_id(), $token_data );
 			}
 
 			// save transaction info
-			$order->update_meta_data( '_monri_transaction_info', array_intersect_key(
-				$_REQUEST,
+			$transaction_data = array_intersect_key(
+				$_GET,
 				$this->transaction_info_map
-			) );
+			);
+			$transaction_data = array_map( 'sanitize_text_field', $transaction_data );
+
+			$order->update_meta_data( '_monri_transaction_info', $transaction_data );
 			$order->save_meta_data();
 
 		} else {
 
 			$order->update_status( 'failed' );
-			$order->add_order_note( 'Failed' );
+			//$order->add_order_note( 'Failed' );
 		}
 
 	}
@@ -316,20 +330,23 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	}
 
 	/**
-	 * @param array $request
+	 * Validates that return came from Monri
 	 *
 	 * @return bool
 	 */
 	private function validate_return() {
 
-		if ( ! isset( $_REQUEST['ShoppingCartID'], $_REQUEST['Signature'] ) ) {
+		if ( ! isset( $_GET['ShoppingCartID'], $_GET['Signature'] ) ) {
 			return false;
 		}
 
-		$order_id      = $_REQUEST['ShoppingCartID'];
-		$digest        = $_REQUEST['Signature'];
-		$success       = $_REQUEST['Success'] ?? '0';
-		$approval_code = $_REQUEST['ApprovalCode'] ?? '';
+		/**
+		 * @note: GET params are not sanitized here because values are used for hash compare
+		 */
+		$order_id      = $_GET['ShoppingCartID'];
+		$digest        = $_GET['Signature'];
+		$success       = $_GET['Success'] ?? '0';
+		$approval_code = $_GET['ApprovalCode'] ?? '';
 
 		$shop_id    = $this->shop_id;
 		$secret_key = $this->secret;
@@ -346,7 +363,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		);
 		$check_digest = hash( 'sha512', implode( '', $digest_parts ) );
 
-		return $digest === $check_digest;
+		return hash_equals( $check_digest, $digest );
 	}
 
 	/**
@@ -383,26 +400,27 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 	/**
 	 * @param int $user_id
+	 * @param $data
 	 *
 	 * @return void
 	 */
-	private function save_user_token( $user_id ) {
+	private function save_user_token( $user_id, $data ) {
 
-		if ( ! isset( $_REQUEST['Token'], $_REQUEST['TokenNumber'], $_REQUEST['TokenExp'] ) ) {
+		if ( ! isset( $data['Token'], $data['TokenNumber'], $data['TokenExp'] ) ) {
 			return null;
 		}
 
 		$wc_token = new Monri_WC_Payment_Token_Wspay();
 
 		$wc_token->set_gateway_id( $this->payment->id );
-		$wc_token->set_token( sanitize_text_field( $_REQUEST['Token'] ) );
+		$wc_token->set_token( $data['Token'] );
 		$wc_token->set_user_id( $user_id );
 
-		$wc_token->set_last4( sanitize_text_field( $_REQUEST['TokenNumber'] ) );
-		$ccType = $_REQUEST['PaymentType'] ?? ( $_REQUEST['CreditCardName'] ?? '' );
-		$wc_token->set_card_type( sanitize_text_field( $ccType ) );
-		$wc_token->set_expiry_year( substr( sanitize_text_field( $_REQUEST['TokenExp'] ), 0, 2 ) );
-		$wc_token->set_expiry_month( substr( sanitize_text_field( $_REQUEST['TokenExp'] ), 2, 2 ) );
+		$wc_token->set_last4( $data['TokenNumber'] );
+		$ccType = $data['PaymentType'] ?? ( $data['CreditCardName'] ?? '' );
+		$wc_token->set_card_type( $ccType );
+		$wc_token->set_expiry_year( substr( $data['TokenExp'], 0, 2 ) );
+		$wc_token->set_expiry_month( substr( $data['TokenExp'], 2, 2 ) );
 
 		$wc_token->save();
 	}
