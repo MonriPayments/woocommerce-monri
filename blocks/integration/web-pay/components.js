@@ -2,7 +2,6 @@ import { decodeEntities } from '@wordpress/html-entities';
 import { useMonriData } from "../use-monri-data";
 import {Fragment, useEffect, useRef, useId } from "react";
 import Monri from "../../monri";
-import { Installments } from "../installments";
 import { getDefaultPaymentMethod } from "../default-payment-method";
 
 export const WebPayComponents = (props) => {
