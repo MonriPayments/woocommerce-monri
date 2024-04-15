@@ -21,35 +21,47 @@ export const WebPayComponents = (props) => {
             locale: settings.components.locale
         });
 
-        const components = monriRef.current.components(
-            settings.components.random_token,
-            settings.components.digest,
-            settings.components.timestamp,
-        );
+        const components = monriRef.current.components({clientSecret: settings.components.client_secret});
 
         cardRef.current = components.create('card', {style: {invalid: {color: 'red'}}});
         cardRef.current.mount(monriWrapperId);
     }, []);
 
-    const useComponentsToken = async () => {
-        const result = await monriRef.current.createToken(cardRef.current);
+    const useComponentsTransaction = async () => {
+
+        // @todo: get dynamically from billing addr
+        const transactionParams = {
+            address: 'test',
+            fullName: 'test',
+            city: 'test',
+            zip: '31000',
+            phone: '123456',
+            country: 'HR',
+            email: 'test@test.com'
+        };
+
+        const result = await monriRef.current.confirmPayment(cardRef.current, transactionParams);
+
         if (result.error) {
             throw new Error(result.error.message);
+        } else if(result.result.status === 'approved') {
+            return result.result;
+        // handle declined on 3DS Cancel
         } else {
-            return result.result.id;
+            throw new Error('Transaction declined. Please reload page.');
         }
     };
 
     useEffect( () => {
         const unsubscribe = onPaymentSetup( async () => {
             try {
-                const token = await useComponentsToken();
+                const transaction = await useComponentsTransaction();
 
                 return {
                     type: emitResponse.responseTypes.SUCCESS,
                     meta: {
                         paymentMethodData: {
-                            'monri-token': token,
+                            'monri-transaction': JSON.stringify(transaction),
                         }
                     }
                 };
@@ -72,8 +84,6 @@ export const WebPayComponents = (props) => {
 
     return <Fragment>
         {decodeEntities( settings.description || '' )}
-        <br />
-        <Installments />
         <br />
         <div id={monriWrapperId} />
     </Fragment>;

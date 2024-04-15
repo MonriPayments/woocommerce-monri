@@ -111,8 +111,6 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 			return $this->adapter->prepare_blocks_data();
 		}
 
-		// service, integration_type
-
 		return [];
 	}
 

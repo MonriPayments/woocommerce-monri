@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 <div id="monri-components"></div>
 <p id="monri-components-error" style="color:red;" role="alert"></p>
-<input type="hidden" id="monri-transaction" name="monri-transaction" />
+<input type="hidden" id="monri-transaction" name="monri-transaction" autocomplete="off" value=""/>
 
 <script type="text/javascript">
 	(function($) {
@@ -46,8 +46,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             }
 
             monri.confirmPayment(card, transactionParams).then(function (response) {
-                console.log(response);
-
+                //console.log(response);
                 if (response.error) {
                     $('#monri-components-error').text(response.error.message);
                     return;
@@ -57,11 +56,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 				if (response.result.status === 'approved') {
                     $('#monri-transaction').val(JSON.stringify(response.result));
                     $('form.checkout').submit();
-
 				} else {
-					$('#monri-components-error').text('Transaction declined.');
+					$('#monri-components-error').text('Transaction declined. Please reload page.');
 				}
-
             });
 
 			return false;
