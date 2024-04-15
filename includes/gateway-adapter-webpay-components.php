@@ -45,7 +45,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		$initialize = $this->request_authorize();
 
 		if ( empty( $initialize['client_secret'] ) ) {
-			esc_html_e('Error occured', 'monri');
+			esc_html_e( 'Initialization error occurred.', 'monri' );
 			return;
 		}
 
@@ -53,7 +53,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		//$script_url = $this->payment->get_option_bool( 'test_mode' ) ? self::SCRIPT_ENDPOINT_TEST : self::SCRIPT_ENDPOINT;
 		//wp_enqueue_script( 'monri-components', $script_url, array( 'jquery' ), MONRI_WC_VERSION );
 
-		$order_total = (float) WC()->cart->get_total( 'edit' );
+		$order_total  = (float) WC()->cart->get_total( 'edit' );
 		$installments = false;
 		if ( $this->payment->get_option_bool( 'paying_in_installments' ) ) {
 			$bottom_limit           = (float) $this->payment->get_option( 'bottom_limit', 0 );
@@ -65,9 +65,9 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		}
 
 		wc_get_template( 'components.php', array(
-			'config' => array(
+			'config'       => array(
 				'authenticity_token' => $this->payment->get_option( 'monri_authenticity_token' ),
-				'client_secret' => $initialize['client_secret'],
+				'client_secret'      => $initialize['client_secret'],
 				'locale'             => $this->payment->get_option( 'form_language' ),
 			),
 			'installments' => $installments
@@ -79,8 +79,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 
 		return [
 			'authenticity_token' => $this->payment->get_option( 'monri_authenticity_token' ),
-			'client_secret' => $initialize['client_secret'],
-			'locale' => $this->payment->get_option( 'form_language' ),
+			'client_secret'      => $initialize['client_secret'],
+			'locale'             => $this->payment->get_option( 'form_language' ),
 		];
 	}
 
@@ -93,7 +93,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	public function process_payment( $order_id ) {
 
 		$transaction = $_POST['monri-transaction'] ?? '{}';
-		$transaction = json_decode( wp_unslash($transaction), true );
+		$transaction = json_decode( wp_unslash( $transaction ), true );
 
 		Monri_WC_Logger::log( "Response data: " . print_r( $transaction, true ), __METHOD__ );
 
@@ -104,8 +104,12 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		// monri-transaction + validate order_number vs one in session
 		// min that needs to be saved here is _monri_components_order_number
 
-		$order  = wc_get_order( $order_id );
-		$order->payment_complete( $transaction['transaction_response']['id'] ?? '' );
+		$order = wc_get_order( $order_id );
+		$order->payment_complete(
+			isset( $transaction['transaction_response']['id'] ) ?
+				sanitize_key( (string) $transaction['transaction_response']['id'] ) :
+				''
+		);
 
 		WC()->cart->empty_cart();
 
@@ -125,24 +129,24 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			self::AUTHORIZATION_ENDPOINT_TEST :
 			self::AUTHORIZATION_ENDPOINT;
 
-		$order_total = (float)WC()->cart->get_total( 'edit' );
-		$currency = get_woocommerce_currency();
+		$order_total = (float) WC()->cart->get_total( 'edit' );
+		$currency    = get_woocommerce_currency();
 		if ( $currency === 'KM' ) {
 			$currency = 'BAM';
 		}
 
 		$data = [
-			'amount' => (int)round($order_total * 100),
-			'order_number' => wp_generate_uuid4(), //uniqid('woocommerce-', true),
-			'currency' => $currency,
+			'amount'           => (int) round( $order_total * 100 ),
+			'order_number'     => wp_generate_uuid4(), //uniqid('woocommerce-', true),
+			'currency'         => $currency,
 			'transaction_type' => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
-			'order_info' => 'woocommerce order'
+			'order_info'       => 'woocommerce order'
 		];
 
 		$data = wp_json_encode( $data );
 
 		$timestamp = time();
-		$digest = hash('sha512',
+		$digest    = hash( 'sha512',
 			$this->payment->get_option( 'monri_merchant_key' ) .
 			$timestamp .
 			$this->payment->get_option( 'monri_authenticity_token' ) .
@@ -154,20 +158,21 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		$response = wp_remote_post( $url, [
 				'body'      => $data,
 				'headers'   => [
-					'Content-Type' => 'application/json',
-					'Content-Length' => strlen($data),
-					'Authorization' => $authorization
+					'Content-Type'   => 'application/json',
+					'Content-Length' => strlen( $data ),
+					'Authorization'  => $authorization
 				],
 				'timeout'   => 10,
 				'sslverify' => true
 			]
 		);
 
-		if (is_wp_error( $response ) ) {
-			$response = ['status' => 'error', 'error' => $response->get_error_message()];
+		if ( is_wp_error( $response ) ) {
+			$response = [ 'status' => 'error', 'error' => $response->get_error_message() ];
 		}
 
 		$body = wp_remote_retrieve_body( $response );
+
 		return json_decode( $body, true );
 	}
 

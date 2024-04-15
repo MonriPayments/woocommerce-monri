@@ -194,19 +194,19 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$req['customerPhone']     = $order->get_billing_phone();
 		$req['customerEmail']     = $order->get_billing_email();
 
-		Monri_WC_Logger::log( "Request data: " . print_r( $req, true ), __METHOD__ );
+		$req = apply_filters( 'monri_wspay_request', $req );
 
+		Monri_WC_Logger::log( "Request data: " . print_r( $req, true ), __METHOD__ );
 		$response = $this->api( '/api/create-transaction', $req );
+		Monri_WC_Logger::log( $response, __METHOD__ );
 
 		if ( isset( $response['PaymentFormUrl'] ) ) {
 			return [
 				'result'   => 'success',
 				'redirect' => $response['PaymentFormUrl']
 			];
-
 		}
 
-		Monri_WC_Logger::log( $response, __METHOD__ );
 		throw new Exception( esc_html( __( 'Gateway currently not available.', 'monri' ) ) );
 	}
 

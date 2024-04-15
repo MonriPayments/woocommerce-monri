@@ -1,6 +1,7 @@
 <?php
 
 class Monri_WC_Installments_Fee {
+
 	public const CODE = 'monri_installments_fee';
 
 	/**
@@ -22,7 +23,6 @@ class Monri_WC_Installments_Fee {
 		}
 
 		add_action( 'woocommerce_after_calculate_totals', array( $this, 'after_calculate_totals' ) );
-
 		add_action( 'woocommerce_checkout_update_order_review', [ $this, 'update_order_review' ] );
 
 		if ( function_exists( 'woocommerce_store_api_register_update_callback' ) ) {
@@ -37,7 +37,8 @@ class Monri_WC_Installments_Fee {
 		// reset installments on checkout load
 		add_action( 'template_redirect', function () {
 			if ( is_checkout() || is_cart() ) {
-				WC()->session->set( 'monri_installments', 0 );
+				//WC()->session->set( 'monri_installments', 0 );
+				unset( WC()->session->monri_installments );
 			}
 		} );
 
@@ -69,6 +70,11 @@ class Monri_WC_Installments_Fee {
 	public function update_order_review( $posted_data ) {
 		parse_str( $posted_data, $posted_data );
 
+		if ( isset ( $posted_data['payment_method'] ) && $posted_data['payment_method'] !== 'monri' ) {
+			unset ( WC()->session->monri_installments );
+			return;
+		}
+
 		/** @var array $posted_data */
 		if ( isset( $posted_data['monri-card-installments'] ) ) {
 			WC()->session->set( 'monri_installments', (int) $posted_data['monri-card-installments'] );
@@ -84,7 +90,9 @@ class Monri_WC_Installments_Fee {
 			$cart = WC()->cart;
 		}
 
-		// monri_installments, how to set on cart? get from post? set on wc session?
+		//@note: payment is not set on session on new checkout, so we can't check selected payment here
+
+		// get installments from session
 		$installments = (int) WC()->session->get( 'monri_installments' );
 
 		if ( $installments <= 1 || $installments > 24 ) {
@@ -94,7 +102,7 @@ class Monri_WC_Installments_Fee {
 		$total = (float) $cart->get_total( 'edit' );
 
 		$installments_fee_percent = (float) $this->settings->get_option( "price_increase_$installments", 0 );
-		$installments_fee = round( $total * $installments_fee_percent / 100, 2 );
+		$installments_fee         = round( $total * $installments_fee_percent / 100, 2 );
 
 		if ( $installments_fee < 0.01 ) {
 			return;
