@@ -2,8 +2,6 @@
 
 class Monri_WC_Settings {
 
-	// process admin options here?
-
 	const CODE = 'monri';
 
 	const SETTINGS_KEY = 'woocommerce_monri_settings';
@@ -35,7 +33,7 @@ class Monri_WC_Settings {
 
 		$integration_types = array(
 			'form'       => __( 'Form', 'monri' ),
-			'components' => __( 'Components', 'monri' )
+			'components' => __( 'Components (beta)', 'monri' )
 		);
 
 		$transaction_type = array(
@@ -192,7 +190,7 @@ class Monri_WC_Settings {
 			),
 			'test_mode' => array(
 				'title'       => __( 'Test mode', 'monri' ),
-				'description' => __( 'Just test the gateway, no real orders will be placed on the gateway side.' ),
+				'description' => __( 'Just test the gateway, no real orders will be placed on the gateway side.', 'monri' ),
 				'type'        => 'select',
 				'class'       => 'wc-enhanced-select',
 				'default'     => 0,
@@ -250,6 +248,7 @@ class Monri_WC_Settings {
 				'desc_tip'    => true,
 				'custom_attributes' => [
 					'data-depends' => '{
+						"monri_web_pay_integration_type":"form",
 						"paying_in_installments":"1"
 					}'
 				]
@@ -292,6 +291,7 @@ class Monri_WC_Settings {
 				'default'     => __( '0', 'monri' ),
 				'custom_attributes' => [
 					'data-depends' => '{
+						"monri_web_pay_integration_type":"form",
 						"paying_in_installments":"1"
 					}'
 				]

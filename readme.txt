@@ -29,6 +29,9 @@ migrated but make sure to recheck them and test new integration.
 You can find additional information regarding Monri payments on WooCommerce at
 [Monri's official documentation](https://ipg.monri.com/en/documentation/ecomm-plugins-woocommerce)
 
+You can find additional information regarding Privacy policy of Monri payments on WooCommerce at
+[Monri's privacy policy page](https://ipg.monri.com/en/privacy-policy).
+
 == Screenshots ==
 
 1. Payment on checkout using Monri WebPay Form

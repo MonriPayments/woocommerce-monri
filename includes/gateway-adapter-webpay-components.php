@@ -34,12 +34,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 				wp_enqueue_script( 'monri-components', $script_url, array(), MONRI_WC_VERSION );
 			}
 		} );
-
-		// load installments fee logic if installments enabled
-		if ( $this->payment->get_option( 'paying_in_installments' ) ) {
-			require_once __DIR__ . '/installments-fee.php';
-			( new Monri_WC_Installments_Fee() )->init();
-		}
 	}
 
 	/**
@@ -47,40 +41,24 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	 */
 	public function payment_fields() {
 
+		// @todo: cache based on timestamp/amount for expire?
 		$initialize = $this->request_authorize();
 
 		//if ($initialize['client_secret'])
 
-		$script_url = $this->payment->get_option_bool( 'test_mode' ) ? self::SCRIPT_ENDPOINT_TEST : self::SCRIPT_ENDPOINT;
-
-		wp_enqueue_script( 'monri-components', $script_url, array( 'jquery' ), MONRI_WC_VERSION );
-		//wp_enqueue_script('monri-installments', MONRI_WC_PLUGIN_URL . 'assets/js/installments.js', array('jquery'), MONRI_WC_VERSION);
+		// @todo: is this needed?
+		//$script_url = $this->payment->get_option_bool( 'test_mode' ) ? self::SCRIPT_ENDPOINT_TEST : self::SCRIPT_ENDPOINT;
+		//wp_enqueue_script( 'monri-components', $script_url, array( 'jquery' ), MONRI_WC_VERSION );
 
 		$order_total = (float) WC()->cart->get_total( 'edit' );
-
-		// installments key/value array for template
-		$installments = array();
-
+		$installments = false;
 		if ( $this->payment->get_option_bool( 'paying_in_installments' ) ) {
-
 			$bottom_limit           = (float) $this->payment->get_option( 'bottom_limit', 0 );
 			$bottom_limit_satisfied = ( $bottom_limit < 0.01 ) || ( $order_total >= $bottom_limit );
 
 			if ( $bottom_limit_satisfied ) {
-
-				$selected = (int) WC()->session->get( 'monri_installments' );
-
-				for ( $i = 1; $i <= (int) $this->payment->get_option( 'number_of_allowed_installments', 12 ); $i ++ ) {
-					$installments[] = [
-						'label'          => ( $i === 1 ) ? __('No installments', 'monri') : (string) $i,
-						'value'          => (string) $i,
-						'selected'       => ( $selected === $i ),
-						'price_increase' => $this->payment->get_option( "price_increase_$i", 0 )
-					];
-				}
-
+				$installments = true;
 			}
-
 		}
 
 		wc_get_template( 'components.php', array(
@@ -133,7 +111,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		// Mark order as Paid
 		//$order->payment_complete();
 
-		// Empty the cart (Very important step)
 		WC()->cart->empty_cart();
 
 		// Redirect to thank you page
@@ -153,7 +130,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	}
 
 	/**
-	 * @param array $params
 	 *
 	 * @return array
 	 */
