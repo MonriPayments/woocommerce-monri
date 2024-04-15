@@ -143,6 +143,15 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			'callback_url_override' => add_query_arg( 'wc-api', 'monri_callback', get_home_url() )
 		);
 
+		// @todo: should this read from session for new checkout
+		$number_of_installments = isset( $_POST['monri-card-installments'] ) ? (int) $_POST['monri-card-installments'] : 1;
+		$number_of_installments = min( max( $number_of_installments, 1 ), 24 );
+		if ( $number_of_installments > 1 ) {
+			$args['number_of_installments'] = $number_of_installments;
+		}
+
+		$args = apply_filters( 'monri_webpay_form_request', $args );
+
 		Monri_WC_Logger::log( "Request data: " . print_r( $args, true ), __METHOD__ );
 
 		wc_get_template( 'redirect-form.php', [
