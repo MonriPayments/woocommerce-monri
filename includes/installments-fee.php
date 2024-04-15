@@ -1,6 +1,7 @@
 <?php
 
 class Monri_WC_Installments_Fee {
+
 	public const CODE = 'monri_installments_fee';
 
 	/**
@@ -22,7 +23,6 @@ class Monri_WC_Installments_Fee {
 		}
 
 		add_action( 'woocommerce_after_calculate_totals', array( $this, 'after_calculate_totals' ) );
-
 		add_action( 'woocommerce_checkout_update_order_review', [ $this, 'update_order_review' ] );
 
 		if ( function_exists( 'woocommerce_store_api_register_update_callback' ) ) {
@@ -90,9 +90,9 @@ class Monri_WC_Installments_Fee {
 			$cart = WC()->cart;
 		}
 
-		// payment is not set on session on new checkout, so we can't check selected payment here
+		//@note: payment is not set on session on new checkout, so we can't check selected payment here
 
-		// monri_installments, how to set on cart? get from post? set on wc session?
+		// get installments from session
 		$installments = (int) WC()->session->get( 'monri_installments' );
 
 		if ( $installments <= 1 || $installments > 24 ) {
