@@ -48,7 +48,7 @@ export const WebPayComponents = (props) => {
             return result.result;
         // handle declined on 3DS Cancel
         } else {
-            throw new Error('Transaction declined. Please reload page.');
+            throw new Error(__('Transaction declined, please reload the page.', 'monri'));
         }
     };
 
