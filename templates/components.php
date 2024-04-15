@@ -42,11 +42,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
                 zip: $('#billing_postcode').val(),
                 phone: $('#billing_phone').val(),
                 country: $('#billing_country').val(),
-                email: $('#billing_email').val(),
-                //orderInfo: "Testna trx"
+                email: $('#billing_email').val()
             }
-
-            console.log(transactionParams);
 
             monri.confirmPayment(card, transactionParams).then(function (response) {
                 console.log(response);

@@ -36,7 +36,7 @@ class Monri_WC_Installments_Fee {
 
 		// reset installments on checkout load
 		add_action( 'template_redirect', function () {
-			if ( is_checkout() || is_cart() ) {
+			if ( ( is_checkout() && ! is_checkout_pay_page() ) || is_cart() ) {
 				//WC()->session->set( 'monri_installments', 0 );
 				unset( WC()->session->monri_installments );
 			}
@@ -72,6 +72,7 @@ class Monri_WC_Installments_Fee {
 
 		if ( isset ( $posted_data['payment_method'] ) && $posted_data['payment_method'] !== 'monri' ) {
 			unset ( WC()->session->monri_installments );
+
 			return;
 		}
 
