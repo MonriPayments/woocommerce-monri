@@ -92,20 +92,20 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	 */
 	public function process_payment( $order_id ) {
 
-		/*
-		$monri_token = $_POST['monri-token'] ?? '';
+		$transaction = $_POST['monri-transaction'] ?? '{}';
+		$transaction = json_decode($transaction);
 
-		if ( empty( $monri_token ) ) {
-			throw new Exception( esc_html( __( 'Missing Monri token.', 'monri' ) ) );
+		if ( empty( $transaction ) ) {
+			throw new Exception( esc_html( __( 'Missing Monri transaction.', 'monri' ) ) );
 		}
-		*/
+
+		Monri_WC_Logger::log( "Response data: " . print_r( $transaction, true ), __METHOD__ );
 
 		// monri-transaction + validate order_number vs one in session
 		// min that needs to be saved here is _monri_components_order_number
 
+		// @todo: add number of installments note
 		// $order->add_order_note( __( 'Number of installments: ', 'monri' ) . $params['number_of_installments'] );
-
-		//Monri_WC_Logger::log( "Request data: " . print_r( $params, true ), __METHOD__ );
 
 		$order  = wc_get_order( $order_id );
 		$amount = $order->get_total();
@@ -124,14 +124,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			'result'   => 'success',
 			'redirect' => $this->payment->get_return_url( $order ),
 		);
-
-		/*
-		throw new Exception(
-			isset( $result['errors'] ) && ! empty( $result['errors'] ) ?
-				esc_html( implode( '; ', $result['errors'] ) ) :
-				esc_html( __( 'Missing Monri token.', 'monri' ) )
-		);
-			*/
 	}
 
 	/**
