@@ -248,7 +248,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			WC()->cart->empty_cart();
 
 		} else {
-			$order->update_status( 'failed', 'Response not authorized' );
+			$order->update_status( 'failed', "Response not authorized - response code is $response_code." );
 			//$order->add_order_note( __( 'Transaction Declined: ', 'monri' ) . sanitize_text_field( $_GET['Error'] ) );
 		}
 

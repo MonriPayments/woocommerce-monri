@@ -292,7 +292,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			if ( $this->tokenization_enabled() && $order->get_user_id() ) {
 				$token_data = array_intersect_key(
 					$_GET,
-					[ 'Token', 'TokenNumber', 'TokenExp', 'PaymentType', 'CreditCardName' ]
+					array_fill_keys( [ 'Token', 'TokenNumber', 'TokenExp', 'PaymentType', 'CreditCardName' ], null )
 				);
 
 				$token_data = array_map( 'sanitize_text_field', $token_data );
