@@ -93,31 +93,20 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	public function process_payment( $order_id ) {
 
 		$transaction = $_POST['monri-transaction'] ?? '{}';
-		$transaction = json_decode($transaction);
+		$transaction = json_decode( wp_unslash($transaction), true );
+
+		Monri_WC_Logger::log( "Response data: " . print_r( $transaction, true ), __METHOD__ );
 
 		if ( empty( $transaction ) ) {
 			throw new Exception( esc_html( __( 'Missing Monri transaction.', 'monri' ) ) );
 		}
 
-		Monri_WC_Logger::log( "Response data: " . print_r( $transaction, true ), __METHOD__ );
-
 		// monri-transaction + validate order_number vs one in session
 		// min that needs to be saved here is _monri_components_order_number
 
-		// @todo: add number of installments note
-		// $order->add_order_note( __( 'Number of installments: ', 'monri' ) . $params['number_of_installments'] );
-
 		$order  = wc_get_order( $order_id );
-		$amount = $order->get_total();
+		$order->payment_complete( $transaction['transaction_response']['id'] ?? '' );
 
-		//Payment has been successful
-		/*
-		if ( isset( $params['number_of_installments'] ) && $params['number_of_installments'] > 1 ) {
-			$order->add_order_note( __( 'Number of installments: ', 'monri' ) . $params['number_of_installments'] );
-		}
-		*/
-
-		$order->payment_complete();
 		WC()->cart->empty_cart();
 
 		return array(
