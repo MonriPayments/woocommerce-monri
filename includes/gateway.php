@@ -102,6 +102,21 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Forward to adapter, prepare blocks data for new checkout
+	 *
+	 * @return array
+	 */
+	public function prepare_blocks_data() {
+		if(method_exists($this->adapter, 'prepare_blocks_data')) {
+			return $this->adapter->prepare_blocks_data();
+		}
+
+		// service, integration_type
+
+		return [];
+	}
+
+	/**
 	 * @inheritDoc
 	 */
 	public function init_form_fields() {

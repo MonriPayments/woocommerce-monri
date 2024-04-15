@@ -44,7 +44,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		// @todo: cache based on timestamp/amount for expire?
 		$initialize = $this->request_authorize();
 
-		//if ($initialize['client_secret'])
+		if ( empty( $initialize['client_secret'] ) ) {
+			esc_html_e('Error occured', 'monri');
+			return;
+		}
 
 		// @todo: is this needed?
 		//$script_url = $this->payment->get_option_bool( 'test_mode' ) ? self::SCRIPT_ENDPOINT_TEST : self::SCRIPT_ENDPOINT;
@@ -69,6 +72,16 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			),
 			'installments' => $installments
 		), basename( MONRI_WC_PLUGIN_PATH ), MONRI_WC_PLUGIN_PATH . 'templates/' );
+	}
+
+	public function prepare_blocks_data() {
+		$initialize = $this->request_authorize();
+
+		return [
+			'authenticity_token' => $this->payment->get_option( 'monri_authenticity_token' ),
+			'client_secret' => $initialize['client_secret'],
+			'locale' => $this->payment->get_option( 'form_language' ),
+		];
 	}
 
 	/**
