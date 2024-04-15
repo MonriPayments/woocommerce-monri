@@ -31,7 +31,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		add_action( 'template_redirect', function () {
 			if ( is_checkout() ) {
 				$script_url = $this->payment->get_option_bool( 'test_mode' ) ? self::SCRIPT_ENDPOINT_TEST : self::SCRIPT_ENDPOINT;
-				wp_enqueue_script( 'monri-components', $script_url, array(), MONRI_WC_VERSION );
+				wp_enqueue_script( 'monri-components', $script_url, [], MONRI_WC_VERSION );
 			}
 		} );
 	}
@@ -87,8 +87,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		}
 		*/
 
-		// monri-transaction + validate order_number
-		// min that needs to be saved here is _monri_components_order_number -> callback needs to load by that meta
+		// monri-transaction + validate order_number vs one in session
+		// min that needs to be saved here is _monri_components_order_number
+
+		// $order->add_order_note( __( 'Number of installments: ', 'monri' ) . $params['number_of_installments'] );
 
 		//Monri_WC_Logger::log( "Request data: " . print_r( $params, true ), __METHOD__ );
 
@@ -97,30 +99,20 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 
 		//Payment has been successful
 		/*
-		$order->add_order_note( __( 'Monri payment completed.', 'monri' ) );
-		$monri_order_amount1 = $transactionResult['amount'] / 100;
-		$monri_order_amount2 = number_format( $monri_order_amount1, 2 );
-		if ( $monri_order_amount2 != $order->get_total() ) {
-			$order->add_order_note( __( 'Monri - Order amount: ', 'monri' ) . $monri_order_amount2, true );
-		}
 		if ( isset( $params['number_of_installments'] ) && $params['number_of_installments'] > 1 ) {
 			$order->add_order_note( __( 'Number of installments: ', 'monri' ) . $params['number_of_installments'] );
 		}
 		*/
 
-		// Mark order as Paid
-		//$order->payment_complete();
-
+		$order->payment_complete();
 		WC()->cart->empty_cart();
 
-		// Redirect to thank you page
 		return array(
 			'result'   => 'success',
 			'redirect' => $this->payment->get_return_url( $order ),
 		);
 
-
-			/*
+		/*
 		throw new Exception(
 			isset( $result['errors'] ) && ! empty( $result['errors'] ) ?
 				esc_html( implode( '; ', $result['errors'] ) ) :
@@ -140,20 +132,17 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			self::AUTHORIZATION_ENDPOINT;
 
 		$order_total = (float)WC()->cart->get_total( 'edit' );
-
-		/*
+		$currency = get_woocommerce_currency();
 		if ( $currency === 'KM' ) {
 			$currency = 'BAM';
 		}
-		*/
 
 		$data = [
 			'amount' => (int)round($order_total * 100),
 			'order_number' => wp_generate_uuid4(), //uniqid('woocommerce-', true),
-			'currency' => get_woocommerce_currency(),
+			'currency' => $currency,
 			'transaction_type' => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
-			'order_info' => 'woocommerce order',
-			//'scenario' => 'charge'
+			'order_info' => 'woocommerce order'
 		];
 
 		$data = wp_json_encode( $data );
@@ -181,7 +170,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		);
 
 		if (is_wp_error( $response ) ) {
-			//return $response;
 			$response = ['status' => 'error', 'error' => $response->get_error_message()];
 		}
 
