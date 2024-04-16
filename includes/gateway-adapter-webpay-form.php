@@ -80,7 +80,12 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	public function process_payment( $order_id ) {
 		$order = wc_get_order( $order_id );
 
-		//@todo: remember installments on order?
+        $number_of_installments = WC()->session->get( 'monri_installments' );
+
+        if ( isset( $number_of_installments ) ) {
+            $order->add_meta_data('monri_installments', $number_of_installments );
+            $order->save();
+        }
 
 		return [
 			'result'   => 'success',
@@ -145,9 +150,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			'callback_url_override' => add_query_arg( 'wc-api', 'monri_callback', get_home_url() )
 		);
 
-		// @todo: we should read from meta on the long run
-		//$number_of_installments = isset( $_POST['monri-card-installments'] ) ? (int) $_POST['monri-card-installments'] : 1;
-		$number_of_installments = WC()->session->get( 'monri_installments' ) ? (int)WC()->session->get( 'monri_installments' ) : 1;
+		$number_of_installments = $order->get_meta('monri_installments' ) ? (int) $order->get_meta('monri_installments' ) : 1;
 		$number_of_installments = min( max( $number_of_installments, 1 ), 24 );
 		if ( $number_of_installments > 1 ) {
 			$args['number_of_installments'] = $number_of_installments;
@@ -233,7 +236,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			return;
 		}
 
-		if ( $order->get_status() !== 'pending' ) {
+        if ( ! in_array( $order->get_status(), [ 'pending', 'failed' ] ) ) {
 			return;
 		}
 

@@ -103,13 +103,29 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		// min that needs to be saved here is _monri_components_order_number
 
 		$order = wc_get_order( $order_id );
-		$order->payment_complete(
-			isset( $transaction['transaction_response']['id'] ) ?
-				sanitize_key( (string) $transaction['transaction_response']['id'] ) :
-				''
-		);
 
-		WC()->cart->empty_cart();
+        $response_code = ! empty( $transaction['transaction_response']['response_code'] ) ?
+            sanitize_text_field( $transaction['transaction_response']['response_code'] ) :
+            '';
+
+        if ( $response_code === '0000' ) {
+            $order->payment_complete(
+                isset( $transaction['transaction_response']['id'] ) ?
+                    sanitize_key( (string) $transaction['transaction_response']['id'] ) :
+                    ''
+            );
+
+            $monri_order_number = $transaction['transaction_response']['order_number'] ?
+                sanitize_key( $transaction['transaction_response']['order_number'] ) :
+                '';
+
+            $order->add_order_note( sprintf( __( 'Order number in Monri administration: %s', 'monri' ), $monri_order_number ) );
+
+            WC()->cart->empty_cart();
+
+        } else {
+            $order->update_status( 'failed', "Response not authorized - response code is $response_code." );
+        }
 
 		return array(
 			'result'   => 'success',
