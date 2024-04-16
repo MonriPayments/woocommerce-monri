@@ -102,17 +102,17 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 
 		if ( $data['service'] === 'monri-web-pay' ) {
 			$data['integration_type'] = $this->get_setting( 'monri_web_pay_integration_type' );
-
-			if ( $data['integration_type'] === 'components' ) {
-				//$data['components'] = $this->prepare_components_data();
-				$data['components'] = $this->gateway->prepare_blocks_data();
-			}
 		}
+
+		// mostly for components config for now
+		$data = array_merge( $data, $this->gateway->prepare_blocks_data() );
 
 		// @todo not aware of bottom limit
 
-		if ( $data['service'] === 'monri-web-pay' && $data['integration_type'] === 'components' && $this->get_setting( 'paying_in_installments' ) ) {
+		if ( $data['service'] === 'monri-web-pay' && $data['integration_type'] === 'form' && $this->get_setting( 'paying_in_installments' ) ) {
 			$data['installments'] = $this->get_setting( 'number_of_allowed_installments' );
+		} else if ($data['service'] === 'monri-web-pay' && $data['integration_type'] === 'components' && $this->get_setting( 'paying_in_installments' )) {
+			$data['installments'] = true;
 		} else {
 			$data['installments'] = 0;
 		}

@@ -57,11 +57,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		$installments = false;
 		if ( $this->payment->get_option_bool( 'paying_in_installments' ) ) {
 			$bottom_limit           = (float) $this->payment->get_option( 'bottom_limit', 0 );
-			$bottom_limit_satisfied = ( $bottom_limit < 0.01 ) || ( $order_total >= $bottom_limit );
-
-			if ( $bottom_limit_satisfied ) {
-				$installments = true;
-			}
+			$installments = ( $bottom_limit < 0.01 ) || ( $order_total >= $bottom_limit );
 		}
 
 		wc_get_template( 'components.php', array(
@@ -78,9 +74,11 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		$initialize = $this->request_authorize();
 
 		return [
-			'authenticity_token' => $this->payment->get_option( 'monri_authenticity_token' ),
-			'client_secret'      => $initialize['client_secret'],
-			'locale'             => $this->payment->get_option( 'form_language' ),
+			'components' => [
+				'authenticity_token' => $this->payment->get_option( 'monri_authenticity_token' ),
+				'client_secret'      => $initialize['client_secret'],
+				'locale'             => $this->payment->get_option( 'form_language' ),
+			]
 		];
 	}
 
@@ -129,7 +127,12 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			self::AUTHORIZATION_ENDPOINT_TEST :
 			self::AUTHORIZATION_ENDPOINT;
 
-		$order_total = (float) WC()->cart->get_total( 'edit' );
+		if (is_admin()) { // admin page editor
+			$order_total = 10;
+		} else {
+			$order_total = (float) WC()->cart->get_total( 'edit' );
+		}
+
 		$currency    = get_woocommerce_currency();
 		if ( $currency === 'KM' ) {
 			$currency = 'BAM';

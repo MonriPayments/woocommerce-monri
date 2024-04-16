@@ -80,6 +80,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	public function process_payment( $order_id ) {
 		$order = wc_get_order( $order_id );
 
+		//@todo: remember installments on order?
+
 		return [
 			'result'   => 'success',
 			'redirect' => $order->get_checkout_payment_url( true )
@@ -143,8 +145,9 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			'callback_url_override' => add_query_arg( 'wc-api', 'monri_callback', get_home_url() )
 		);
 
-		// @todo: should this read from session for new checkout
-		$number_of_installments = isset( $_POST['monri-card-installments'] ) ? (int) $_POST['monri-card-installments'] : 1;
+		// @todo: we should read from meta on the long run
+		//$number_of_installments = isset( $_POST['monri-card-installments'] ) ? (int) $_POST['monri-card-installments'] : 1;
+		$number_of_installments = WC()->session->get( 'monri_installments' ) ? (int)WC()->session->get( 'monri_installments' ) : 1;
 		$number_of_installments = min( max( $number_of_installments, 1 ), 24 );
 		if ( $number_of_installments > 1 ) {
 			$args['number_of_installments'] = $number_of_installments;

@@ -7,8 +7,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 ?>
 
 <div id="monri-components"></div>
-<p id="monri-components-error" style="color:red;" role="alert"></p>
-<input type="hidden" id="monri-transaction" name="monri-transaction" />
+<p id="monri-error" style="color:red;" role="alert"></p>
+<input type="hidden" id="monri-transaction" name="monri-transaction" autocomplete="off" value=""/>
 
 <script type="text/javascript">
 	(function($) {
@@ -23,10 +23,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
         card.onChange(function (event) {
             if (event.error) {
-                $('#monri-components-error').text(event.error.message);
-                $('#monri-token').val(''); // !!!!!!!!
+                $('#monri-error').text(event.error.message);
             } else {
-                $('#monri-components-error').empty();
+                $('#monri-error').empty();
             }
         });
 
@@ -42,17 +41,13 @@ if ( ! defined( 'ABSPATH' ) ) exit;
                 zip: $('#billing_postcode').val(),
                 phone: $('#billing_phone').val(),
                 country: $('#billing_country').val(),
-                email: $('#billing_email').val(),
-                //orderInfo: "Testna trx"
+                email: $('#billing_email').val()
             }
 
-            console.log(transactionParams);
-
             monri.confirmPayment(card, transactionParams).then(function (response) {
-                console.log(response);
-
+                //console.log(response);
                 if (response.error) {
-                    $('#monri-components-error').text(response.error.message);
+                    $('#monri-error').text(response.error.message);
                     return;
                 }
 
@@ -60,11 +55,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 				if (response.result.status === 'approved') {
                     $('#monri-transaction').val(JSON.stringify(response.result));
                     $('form.checkout').submit();
-
 				} else {
-					$('#monri-components-error').text('Transaction declined.');
+					$('#monri-error').text('Transaction declined, please reload the page.');
 				}
-
             });
 
 			return false;
