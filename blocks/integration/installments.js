@@ -1,10 +1,9 @@
 import { useState, useEffect, useMemo, useId } from 'react';
 import { useMonriData } from "./use-monri-data";
+import { useCartData } from "./use-cart-data";
 import { __ } from '@wordpress/i18n';
-import { useSelect } from '@wordpress/data';
 
 const { extensionCartUpdate } = wc.blocksCheckout;
-const { CART_STORE_KEY } = wc.wcBlocksData;
 
 const useMaximumInstallments = () => {
     const data = useMonriData();
@@ -18,14 +17,6 @@ const updateInstallments = (installments) => {
         data: {
             installments
         }
-    });
-};
-
-const useCartData = () => {
-    return useSelect((select) => {
-        const store = select(CART_STORE_KEY);
-
-        return store.getCartData();
     });
 };
 

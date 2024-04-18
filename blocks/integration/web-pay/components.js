@@ -1,11 +1,15 @@
-import { decodeEntities } from '@wordpress/html-entities';
-import { useMonriData } from "../use-monri-data";
 import {Fragment, useEffect, useRef, useId } from "react";
+import { decodeEntities } from '@wordpress/html-entities';
+import { __, sprintf } from '@wordpress/i18n';
+import { useMonriData } from "../use-monri-data";
+import { useCartData } from "../use-cart-data";
 import Monri from "../../monri";
 import { getDefaultPaymentMethod } from "../default-payment-method";
 
 export const WebPayComponents = (props) => {
     const settings = useMonriData();
+
+    const cartData = useCartData();
 
     const { eventRegistration, emitResponse } = props;
     const { onPaymentSetup } = eventRegistration;
@@ -26,18 +30,29 @@ export const WebPayComponents = (props) => {
         cardRef.current.mount(monriWrapperId);
     }, []);
 
-    const useComponentsTransaction = async () => {
-
-        // @todo: get dynamically from billing addr
+    const useComponentsTransaction = async (billingAddress) => {
         const transactionParams = {
-            address: 'test',
-            fullName: 'test',
-            city: 'test',
-            zip: '31000',
-            phone: '123456',
-            country: 'HR',
-            email: 'test@test.com'
+            address: billingAddress.address_1,
+            fullName: `${billingAddress.first_name} ${billingAddress.last_name}`,
+            city: billingAddress.city,
+            zip: billingAddress.postcode,
+            phone: billingAddress.phone,
+            country: billingAddress.country,
+            email: billingAddress.email,
         };
+
+        for (const [field, value] of Object.entries(transactionParams)) {
+            if (!Object.prototype.hasOwnProperty.call(transactionParams, field)) {
+                continue;
+            }
+
+            if (value.toString().trim().length < 1) {
+                throw new Error(sprintf(
+                    __('%s is a required field', 'woocommerce'),
+                    translatedFieldName(field)
+                ));
+            }
+        }
 
         const result = await monriRef.current.confirmPayment(cardRef.current, transactionParams);
 
@@ -54,7 +69,7 @@ export const WebPayComponents = (props) => {
     useEffect( () => {
         const unsubscribe = onPaymentSetup( async () => {
             try {
-                const transaction = await useComponentsTransaction();
+                const transaction = await useComponentsTransaction(cartData.billingAddress);
 
                 return {
                     type: emitResponse.responseTypes.SUCCESS,
@@ -78,6 +93,7 @@ export const WebPayComponents = (props) => {
     }, [
         emitResponse.responseTypes.ERROR,
         emitResponse.responseTypes.SUCCESS,
+        cartData,
         onPaymentSetup,
     ] );
 
@@ -86,6 +102,35 @@ export const WebPayComponents = (props) => {
         <br />
         <div id={monriWrapperId} />
     </Fragment>;
+};
+
+const translatedFieldName = (fieldName) => {
+    let field = fieldName;
+    switch (fieldName) {
+        case 'address':
+            field = __( 'Address', 'woocommerce' );
+            break;
+        case 'fullName':
+            field = __( 'Name.', 'woocommerce' );
+            break;
+        case 'city':
+            field = __( 'City', 'woocommerce' );
+            break;
+        case 'zip':
+            field = __( 'Postal code', 'woocommerce' );
+            break;
+        case 'phone':
+            field = __( 'Phone', 'woocommerce' );
+            break;
+        case 'country':
+            field = __( 'Country/Region', 'woocommerce' );
+            break;
+        case 'email':
+            field = __( 'Email address', 'woocommerce' );
+            break;
+    }
+
+    return field;
 };
 
 export const getPaymentMethod = () => {
