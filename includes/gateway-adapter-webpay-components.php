@@ -119,6 +119,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
                 sanitize_key( $transaction['transaction_response']['order_number'] ) :
                 '';
 
+            /* translators: %s: generated id which represents order number */
             $order->add_order_note( sprintf( __( 'Order number in Monri administration: %s', 'monri' ), $monri_order_number ) );
 
             WC()->cart->empty_cart();

@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 define( 'MONRI_WC_VERSION', '3.0.2' );
 define( 'MONRI_WC_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'MONRI_WC_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
+define( 'MONRI_WC_PLUGIN_INDEX', __FILE__ );
 
 require_once __DIR__ . '/includes/settings.php';
 require_once __DIR__ . '/includes/utils.php';
