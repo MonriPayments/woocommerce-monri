@@ -21,6 +21,10 @@ msgstr ""
 msgid "Monri"
 msgstr "Monri"
 
+#: blocks/integration/web-pay/components.js:50
+msgid "Transaction declined, please reload the page."
+msgstr "Transakcija odbijena, molimo Vas da osvježite stranicu."
+
 #: blocks/integration/installments.js:42
 msgid "An additional installments fee has been applied"
 msgstr "Primijenjena je naknada za dodatne rate"
@@ -49,6 +53,10 @@ msgstr "Monri Payments d.o.o."
 #: includes/gateway-adapter-webpay-components.php:277
 msgid "Monri payment completed."
 msgstr "Monri plaćanje uspješno."
+
+#: includes/gateway-adapter-webpay-components.php:122
+msgid "Order number in Monri administration: %s"
+msgstr "Broj narudžbe u Monri administraciji: %s"
 
 #: includes/gateway-adapter-webpay-components.php:165
 #: includes/gateway-adapter-webpay-components.php:303

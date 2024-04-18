@@ -114,6 +114,8 @@ class Monri_WC_Installments_Fee {
 			'name'      => __( 'Installments fee', 'monri' ),
 			'taxable'   => false,
 			'tax_class' => '',
+            'tax'       => '',
+            'tax_data'  => '',
 			'amount'    => $installments_fee,
 			'total'     => $installments_fee
 		) );

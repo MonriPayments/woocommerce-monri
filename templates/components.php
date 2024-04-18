@@ -56,7 +56,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
                     $('#monri-transaction').val(JSON.stringify(response.result));
                     $('form.checkout').submit();
 				} else {
-					$('#monri-error').text('Transaction declined, please reload the page.');
+					$('#monri-error').text( "<?= __('Transaction declined, please reload the page.', 'monri'); ?>" );
 				}
             });
 
