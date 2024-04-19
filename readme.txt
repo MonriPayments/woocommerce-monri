@@ -4,7 +4,7 @@ Tags: monri, credit card, payment, woocommerce
 Requires at least: 5.3
 Tested up to: 6.4.2
 Requires PHP: 7.3
-Stable tag: 3.0.2
+Stable tag: 3.1.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -45,6 +45,15 @@ You can find more details about the development of this plugin here:
 https://github.com/MonriPayments/woocommerce-monri
 
 == Changelog ==
+
+= 3.1.0 - 2024-04-19 =
+* New components implementation - customer never leaves checkout, 3D secure check is done in lightbox
+* Webpay implementation sends installments data to redirect form - number of installments is preselected
+* Preventing direct access to files
+* Improvements in data validation, reducing input which is being processed - better plugin performance
+* Code refactor and cleanup, adding response code to failed order note
+* Adding transaction ID to orders created with components implementation - easier to find order in Monri administration
+* Translation improvements
 
 = 3.0.2 - 2024-04-09 =
 * Show transaction info on Thank You page, required by some banks. (currently WsPay only)
