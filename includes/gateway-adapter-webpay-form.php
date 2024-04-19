@@ -236,7 +236,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			return;
 		}
 
-        if ( ! in_array( $order->get_status(), [ 'pending', 'failed' ] ) ) {
+        if ( ! in_array( $order->get_status(), [ 'pending', 'failed' ], true ) ) {
 			return;
 		}
 
