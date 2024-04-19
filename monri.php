@@ -91,14 +91,6 @@ add_action( 'woocommerce_blocks_loaded', 'monri_wc_block_support' );
 // Migrate settings from older version to new option settings, disable deprecated modules
 function monri_legacy_migrate() {
 
-	// deactivate legacy plugins if active
-	if ( is_plugin_active( 'woocommerce-monri/pikpay.php' ) ) {
-		deactivate_plugins( 'woocommerce-monri/pikpay.php' );
-	}
-	if ( is_plugin_active( 'woocommerce-monri/monri.php' ) ) {
-		deactivate_plugins( 'woocommerce-monri/monri.php' );
-	}
-
 	$monri_settings = get_option( Monri_WC_Settings::SETTINGS_KEY );
 	if ( $monri_settings && is_array( $monri_settings ) ) {
 		return;
