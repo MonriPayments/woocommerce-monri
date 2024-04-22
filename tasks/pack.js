@@ -17,7 +17,6 @@ const filesToCopy = [
     'includes',
     'languages',
     'templates',
-    '3dsecure.php',
     'monri.php',
     'Monri_woocommerce_postavke.pdf',
     'Monri_woocommerce_postavke_wspay.pdf',
