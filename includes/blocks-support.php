@@ -68,7 +68,8 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 		$script_url = MONRI_WC_PLUGIN_URL . $script_path;
 
 		if ( $this->get_setting( 'monri_payment_gateway_service' ) === 'monri-web-pay' &&
-		     $this->get_setting( 'monri_web_pay_integration_type' ) === 'components'
+		     $this->get_setting( 'monri_web_pay_integration_type' ) === 'components' &&
+             wp_script_is( 'monri-components' )
 		) {
 			$script_asset['dependencies'][] = 'monri-components';
 		}
@@ -102,16 +103,17 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 
 		if ( $data['service'] === 'monri-web-pay' ) {
 			$data['integration_type'] = $this->get_setting( 'monri_web_pay_integration_type' );
-
-			if ( $data['integration_type'] === 'components' ) {
-				$data['components'] = $this->prepare_components_data();
-			}
 		}
+
+		// mostly for components config for now
+		$data = array_merge( $data, $this->gateway->prepare_blocks_data() );
 
 		// @todo not aware of bottom limit
 
-		if ( $data['service'] === 'monri-web-pay' && $data['integration_type'] === 'components' && $this->get_setting( 'paying_in_installments' ) ) {
+		if ( $data['service'] === 'monri-web-pay' && $data['integration_type'] === 'form' && $this->get_setting( 'paying_in_installments' ) ) {
 			$data['installments'] = $this->get_setting( 'number_of_allowed_installments' );
+		} else if ($data['service'] === 'monri-web-pay' && $data['integration_type'] === 'components' && $this->get_setting( 'paying_in_installments' )) {
+			$data['installments'] = true;
 		} else {
 			$data['installments'] = 0;
 		}
@@ -119,21 +121,4 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 		return $data;
 	}
 
-	/**
-	 * @return array
-	 */
-	private function prepare_components_data() {
-		// @see Monri_WC_Gateway_Adapter_Webpay_Components::payment_fields
-		$randomToken = wp_generate_uuid4();
-		$timestamp   = ( new DateTime() )->format( 'c' );
-		$digest      = hash( 'SHA512', $this->get_setting( 'monri_merchant_key' ) . $randomToken . $timestamp );
-
-		return array(
-			'authenticity_token' => $this->get_setting( 'monri_authenticity_token' ),
-			'random_token'       => $randomToken,
-			'digest'             => $digest,
-			'timestamp'          => $timestamp,
-			'locale'             => $this->get_setting( 'form_language' ),
-		);
-	}
 }

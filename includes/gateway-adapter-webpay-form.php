@@ -23,14 +23,50 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	public function init( $payment ) {
 		$this->payment = $payment;
 
-		//$this->check_response();
 		add_action( 'woocommerce_receipt_' . $this->payment->id, [ $this, 'process_redirect' ] );
-		add_action( 'woocommerce_thankyou', [ $this, 'process_return' ] );
+		add_action( 'woocommerce_before_thankyou', [ $this, 'process_return' ] );
 
 		// load installments fee logic if installments enabled
 		if ( $this->payment->get_option( 'paying_in_installments' ) ) {
 			require_once __DIR__ . '/installments-fee.php';
 			( new Monri_WC_Installments_Fee() )->init();
+		}
+	}
+
+	/**
+	 * @return void
+	 */
+	public function payment_fields() {
+
+		$order_total = (float) WC()->cart->get_total( 'edit' );
+
+		// installments key/value array for template
+		$installments = array();
+
+		if ( $this->payment->get_option_bool( 'paying_in_installments' ) ) {
+
+			$bottom_limit           = (float) $this->payment->get_option( 'bottom_limit', 0 );
+			$bottom_limit_satisfied = ( $bottom_limit < 0.01 ) || ( $order_total >= $bottom_limit );
+
+			if ( $bottom_limit_satisfied ) {
+
+				$selected = (int) WC()->session->get( 'monri_installments' );
+
+				for ( $i = 1; $i <= (int) $this->payment->get_option( 'number_of_allowed_installments', 12 ); $i ++ ) {
+					$installments[] = [
+						'label'          => ( $i === 1 ) ? __('No installments', 'monri') : (string) $i,
+						'value'          => (string) $i,
+						'selected'       => ( $selected === $i ),
+						'price_increase' => $this->payment->get_option( "price_increase_$i", 0 )
+					];
+				}
+
+			}
+
+			wc_get_template( 'installments.php', array(
+				'installments' => $installments
+			), basename( MONRI_WC_PLUGIN_PATH ), MONRI_WC_PLUGIN_PATH . 'templates/' );
+
 		}
 	}
 
@@ -43,6 +79,13 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	 */
 	public function process_payment( $order_id ) {
 		$order = wc_get_order( $order_id );
+
+        $number_of_installments = WC()->session->get( 'monri_installments' );
+
+        if ( isset( $number_of_installments ) ) {
+            $order->add_meta_data('monri_installments', $number_of_installments );
+            $order->save();
+        }
 
 		return [
 			'result'   => 'success',
@@ -102,10 +145,18 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			'transaction_type'      => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
 			'authenticity_token'    => $token,
 			'digest'                => $digest,
-			'success_url_override'  => $this->payment->get_return_url( $order ), // from
+			'success_url_override'  => $this->payment->get_return_url( $order ),
 			'cancel_url_override'   => $order->get_cancel_order_url(),
 			'callback_url_override' => add_query_arg( 'wc-api', 'monri_callback', get_home_url() )
 		);
+
+		$number_of_installments = $order->get_meta('monri_installments' ) ? (int) $order->get_meta('monri_installments' ) : 1;
+		$number_of_installments = min( max( $number_of_installments, 1 ), 24 );
+		if ( $number_of_installments > 1 ) {
+			$args['number_of_installments'] = $number_of_installments;
+		}
+
+		$args = apply_filters( 'monri_webpay_form_request', $args );
 
 		Monri_WC_Logger::log( "Request data: " . print_r( $args, true ), __METHOD__ );
 
@@ -117,119 +168,103 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	}
 
 	/**
-	 * In some cases page url is rewritten and it contains page path and query string.
+	 * @param WC_Order $order
 	 *
-	 * @return string
+	 * @return bool
 	 */
-	private function get_query_string() {
-		$arr = explode( '?', $_SERVER['REQUEST_URI'] );
-		// If there's more than one '?' shift and join with ?, it's special case of having '?' in success url
-		// eg http://testiranjeintegracija.net/?page_id=6order-recieved?
+	private function validate_monri_response( $order ) {
 
-		if ( count( $arr ) > 2 ) {
-			array_shift( $arr );
-
-			return implode( '?', $arr );
+		// validate digest hash format
+		if ( empty( $_GET['digest'] ) || ! preg_match( '/^[a-f0-9]{128}$/', $_GET['digest'] ) ) {
+			return false;
 		}
 
-		return end( $arr );
+		/**
+		 * @note: GET/SERVER params are not sanitized here because values are used for hash compare
+		 */
+		$digest = $_GET['digest'];
+
+		$calculated_url = $this->payment->get_return_url( $order ); // use current url?
+		$calculated_url = strtok( $calculated_url, '?' );
+
+		$arr = explode( '?', $_SERVER['REQUEST_URI'] );
+
+		// If there's more than one '?' shift and join with ?, it's special case of having '?' in success url
+		// eg https://test.com/?page_id=6order-recieved?
+		if ( count( $arr ) > 2 ) {
+			array_shift( $arr );
+			$query_string = implode( '?', $arr );
+		} else {
+			$query_string = end( $arr );
+		}
+
+		$calculated_url .= '?' . $query_string;
+		$calculated_url = preg_replace( '/&digest=[^&]*/', '', $calculated_url );
+
+		//generate known digest
+		$check_digest = hash( 'sha512', $this->payment->get_option( 'monri_merchant_key' ) . $calculated_url );
+
+		return hash_equals( $check_digest, $digest );
 	}
 
 	/**
-	 * Monri server callback on thankyou page
+	 * Monri returns on thankyou page
+	 *
+	 * @param int $order_id
 	 *
 	 * @return void
 	 */
-	public function process_return() {
-
-		Monri_WC_Logger::log( "Response data: " . print_r( $_REQUEST, true ), __METHOD__ );
-		$order_id = $_REQUEST['order_number'];
-
-		if ( ! $order_id ) {
-			return;
-		}
-
-		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
-			$order_id = Monri_WC_Utils::resolve_real_order_id( $order_id );
-		}
+	public function process_return( $order_id ) {
 
 		$order = wc_get_order( $order_id );
-
-		if ( !$order || $order->get_payment_method() !== $this->payment->id ) {
+		if ( ! $order || $order->get_payment_method() !== $this->payment->id ) {
 			return;
 		}
 
-		if ( $order->get_status() === 'completed' ) {
+		Monri_WC_Logger::log( "Response data: " . print_r( $_GET, true ), __METHOD__ );
+
+		$requested_order_id = sanitize_text_field( $_GET['order_number'] );
+		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
+			$requested_order_id = Monri_WC_Utils::resolve_real_order_id( $order_id );
+		}
+
+		if ( $order_id != $requested_order_id ) {
 			return;
 		}
 
-		if ( empty( $_REQUEST['approval_code'] ) || empty( $_REQUEST['digest'] ) ) {
-			$order->update_status( 'failed' );
-
+		if ( ! $this->validate_monri_response( $order ) ) {
 			return;
 		}
 
-		//wp_enqueue_style('thankyou-page', plugins_url() . '/woocommerce-monri/assets/style/thankyou-page.css');
+        if ( ! in_array( $order->get_status(), [ 'pending', 'failed' ], true ) ) {
+			return;
+		}
 
-		try {
+		$response_code = ! empty( $_GET['response_code'] ) ? sanitize_text_field( $_GET['response_code'] ) : '';
 
-			$digest        = $_REQUEST['digest'];
-			$response_code = $_REQUEST['response_code'];
+		if ( $response_code === '0000' ) {
+			$order->payment_complete();
 
-			$thankyou_page = $this->payment->get_return_url( $order );
-			$url           = strtok( $thankyou_page, '?' );
-
-			$query_string = $this->get_query_string();
-			$full_url     = $url . '?' . $query_string;
-
-			$calculated_url = preg_replace( '/&digest=[^&]*/', '', $full_url );
-			//Generate digest
-			$check_digest = hash( 'sha512', $this->payment->get_option( 'monri_merchant_key' ) . $calculated_url );
-
-			if ( $digest !== $check_digest ) {
-				$order->update_status( 'failed', 'Mismatch between digest and calculated digest' );
-
-				return;
+			$approval_code = ! empty( $_GET['approval_code'] ) ? sanitize_text_field( $_GET['approval_code'] ) : '';
+			if ($approval_code) {
+				$order->add_order_note( __( 'Monri payment successful<br/>Approval code: ', 'monri' ) . $approval_code );
 			}
 
-			if ( $response_code === "0000" ) {
-
-				if ( $order->get_status() !== 'processing' ) {
-					$order->payment_complete();
-					$order->add_order_note( __( "Monri payment successful<br/>Approval code: ", 'monri' ) . $_REQUEST['approval_code'] );
-					$order->add_order_note( __( 'Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be shipping your order to you soon.', 'monri' ) );
-					$order->add_order_note( "Issuer: " . $_REQUEST['issuer'] );
-
-					if ( $_REQUEST['number_of_installments'] > 1 ) {
-						$order->add_order_note( __( 'Number of installments: ', 'monri' ) . $_REQUEST['number_of_installments'] );
-					}
-
-					WC()->cart->empty_cart();
-				}
-
-			} else if ( $response_code === "pending" ) {
-				$order->add_order_note( __( "Monri payment status is pending<br/>Approval code: ", 'monri' ) . $_REQUEST['approval_code'] );
-				$order->add_order_note( __( 'Thank you for shopping with us. Right now your payment status is pending, We will keep you posted regarding the status of your order through e-mail', 'monri' ) );
-				$order->add_order_note( "Issuer: " . $_REQUEST['issuer'] );
-
-				if ( $_REQUEST['number_of_installments'] > 1 ) {
-					$order->add_order_note( __( 'Number of installments:', 'monri' ) . ": " . $_REQUEST['number_of_installments'] );
-				}
-
-				$order->update_status( 'on-hold' );
-				WC()->cart->empty_cart();
-
-			} else {
-				$order->update_status( 'failed', 'Response not authorized' );
-				$order->add_order_note( __( 'Transaction Declined: ', 'monri' ) . $_REQUEST['Error'] );
+			$issuer = ! empty( $_GET['issuer'] ) ? sanitize_text_field( $_GET['issuer'] ) : '';
+			if ( $issuer ) {
+				$order->add_order_note( 'Issuer: ' . $issuer );
 			}
 
-		} catch ( Exception $e ) {
-			Monri_WC_Logger::log( "Error while processing response for order $order_id: " . $e->getMessage(),
-				__METHOD__
-			);
+			$number_of_installments = ! empty( $_GET['number_of_installments'] ) ? (int) $_GET['number_of_installments'] : 0;
+			if ( $number_of_installments > 1 ) {
+				$order->add_order_note( __( 'Number of installments: ', 'monri' ) . $number_of_installments );
+			}
 
-			$order->update_status( 'failed', 'Error while checking form response' );
+			WC()->cart->empty_cart();
+
+		} else {
+			$order->update_status( 'failed', "Response not authorized - response code is $response_code." );
+			//$order->add_order_note( __( 'Transaction Declined: ', 'monri' ) . sanitize_text_field( $_GET['Error'] ) );
 		}
 
 	}

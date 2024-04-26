@@ -22,6 +22,10 @@ msgstr ""
 msgid "Monri"
 msgstr ""
 
+#: blocks/integration/web-pay/components.js:50
+msgid "Transaction declined, please reload the page."
+msgstr "Die Transaktion wurde abgelehnt. Bitte laden Sie die Seite neu."
+
 #: blocks/integration/installments.js:42
 msgid "An additional installments fee has been applied"
 msgstr "Es wurde eine zusätzliche Ratenzahlungsgebühr erhoben"
