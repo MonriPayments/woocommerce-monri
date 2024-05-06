@@ -49,6 +49,7 @@ class Monri_WC_Callback {
 		$bad_request_header = [ 400, 'Bad Request' ];
 
 		// json post comming from Monri webhook, validated by header, not user input but trusted data
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$json = file_get_contents( 'php://input' );
 
 		Monri_WC_Logger::log( "Request data: " . sanitize_textarea_field( $json ), __METHOD__ );
