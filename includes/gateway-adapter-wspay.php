@@ -250,7 +250,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return;
 		}
 
-		Monri_WC_Logger::log( "Response data: " . print_r( $_GET, true ), __METHOD__ );
+		Monri_WC_Logger::log( "Response data: " . sanitize_textarea_field( print_r( $_GET, true ) ), __METHOD__ );
 
 		$requested_order_id = sanitize_text_field( $_GET['ShoppingCartID'] );
 		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
@@ -342,13 +342,10 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return false;
 		}
 
-		/**
-		 * @note: GET params are not sanitized here because values are used for hash compare
-		 */
-		$order_id      = $_GET['ShoppingCartID'];
-		$digest        = $_GET['Signature'];
-		$success       = $_GET['Success'] ?? '0';
-		$approval_code = $_GET['ApprovalCode'] ?? '';
+		$order_id      = sanitize_text_field($_GET['ShoppingCartID']);
+		$digest        = Monri_WC_Utils::sanitize_hash( $_GET['Signature'] );
+		$success       = (isset( $_GET['Success'] ) && $_GET['Success'] === '1') ? '1' : '0';
+		$approval_code = isset( $_GET['ApprovalCode'] ) ? sanitize_text_field( $_GET['ApprovalCode'] ) : '';
 
 		$shop_id    = $this->shop_id;
 		$secret_key = $this->secret;

@@ -267,7 +267,7 @@ class Monri_WC_Settings {
 			),
 			'order_show_transaction_info' => array(
 				'title'       => __( 'Transaction info in order', 'monri' ),
-				'description' => __( 'Show Monri transaction info on Thank You page. Required by some banks.' ),
+				'description' => __( 'Show Monri transaction info on Thank You page. Required by some banks.', 'monri' ),
 				'type'        => 'select',
 				'class'       => 'wc-enhanced-select',
 				'default'     => 0,

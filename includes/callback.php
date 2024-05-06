@@ -7,25 +7,13 @@ class Monri_WC_Callback {
 	}
 
 	/**
-	 * Sets proper Status header with along with HTTP Status Code and Status Name.
-	 *
-	 * @param array $status
-	 */
-	private function http_status( array $status = array() ) {
-		// FastCGI special treatment
-		$protocol    = $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.0';
-		$http_status = substr( php_sapi_name(), 0, 3 ) === 'cgi' ? 'Status:' : $protocol;
-		header( sprintf( '%s %s %s', $http_status, $status[0], $status[1] ) );
-	}
-
-	/**
 	 * Prints the error message and exits the process with a given HTTP Status Code.
 	 *
 	 * @param $message
 	 * @param array $status
 	 */
 	private function error( $message, array $status = array() ) {
-		$this->http_status( $status );
+		status_header($status[0], $status[1]);
 		header( 'Content-Type: text/plain' );
 
 		echo esc_html($message);
@@ -63,7 +51,7 @@ class Monri_WC_Callback {
 		// Grabbing read-only stream from the request body.
 		$json = file_get_contents( 'php://input' );
 
-		Monri_WC_Logger::log( "Request data: " . $json, __METHOD__ );
+		Monri_WC_Logger::log( "Request data: " . sanitize_textarea_field( $json ), __METHOD__ );
 
 		// Calculating the digest...
 		$digest = hash( 'sha512', $merchant_key . $json );
