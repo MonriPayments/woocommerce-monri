@@ -146,7 +146,6 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			// paying with tokenized card
 			if ( $use_token ) {
 
-				//$decoded_card       = json_decode( base64_decode( $tokenized_card ) );
 				$req['Token']       = $use_token->get_token();
 				$req['TokenNumber'] = $use_token->get_last4();
 
@@ -290,29 +289,30 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 			// save token if needed
 			if ( $this->tokenization_enabled() && $order->get_user_id() ) {
-				$token_data = array_intersect_key(
-					$_GET,
-					array_fill_keys( [ 'Token', 'TokenNumber', 'TokenExp', 'PaymentType', 'CreditCardName' ], null )
-				);
+				$token_data = [
+					'Token'          => isset( $_GET['Token'] ) ? sanitize_text_field( $_GET['Token'] ) : null,
+					'TokenNumber'    => isset( $_GET['TokenNumber'] ) ? sanitize_text_field( $_GET['TokenNumber'] ) : null,
+					'TokenExp'       => isset( $_GET['TokenExp'] ) ? sanitize_text_field( $_GET['TokenExp'] ) : null,
+					'PaymentType'    => isset( $_GET['PaymentType'] ) ? sanitize_text_field( $_GET['PaymentType'] ) : null,
+					'CreditCardName' => isset( $_GET['CreditCardName'] ) ? sanitize_text_field( $_GET['CreditCardName'] ) : null,
+				];
 
-				$token_data = array_map( 'sanitize_text_field', $token_data );
 				$this->save_user_token( $order->get_user_id(), $token_data );
 			}
 
 			// save transaction info
-			$transaction_data = array_intersect_key(
-				$_GET,
-				$this->transaction_info_map
-			);
-			$transaction_data = array_map( 'sanitize_text_field', $transaction_data );
-
+			$transaction_data = [];
+			foreach ( array_keys($this->transaction_info_map)  as $key ) {
+				if ( isset( $_GET[$key] ) ) {
+					$transaction_data[$key] = sanitize_text_field( $_GET[$key] );
+				}
+			}
 			$order->update_meta_data( '_monri_transaction_info', $transaction_data );
 			$order->save_meta_data();
 
 		} else {
 
 			$order->update_status( 'failed' );
-			//$order->add_order_note( 'Failed' );
 		}
 
 	}
