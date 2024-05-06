@@ -90,7 +90,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	 */
 	public function process_payment( $order_id ) {
 
-		// $_POST['monri-transaction'] is a json value, it is individually sanitized after decode
+		// monri-transaction is a json value, it is individually sanitized after decode
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$transaction = json_decode( wp_unslash( $_POST['monri-transaction'] ?? '{}' ), true );
 
