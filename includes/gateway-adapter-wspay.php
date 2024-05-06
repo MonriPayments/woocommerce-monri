@@ -269,14 +269,14 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return;
 		}
 
-        if ( ! in_array( $order->get_status(), [ 'pending', 'failed' ], true ) ) {
+		if ( ! in_array( $order->get_status(), [ 'pending', 'failed' ], true ) ) {
 			return;
 		}
 
-		$success        = (isset( $_GET['Success'] ) && $_GET['Success'] === '1') ? '1' : '0';
-		$approval_code  = ! empty( $_GET['ApprovalCode'] ) ? sanitize_text_field( $_GET['ApprovalCode'] ) : '';
+		$success       = ( isset( $_GET['Success'] ) && $_GET['Success'] === '1' ) ? '1' : '0';
+		$approval_code = ! empty( $_GET['ApprovalCode'] ) ? sanitize_text_field( $_GET['ApprovalCode'] ) : '';
 
-		$trx_authorized = ($success === '1') && ! empty( $approval_code );
+		$trx_authorized = ( $success === '1' ) && ! empty( $approval_code );
 
 		if ( $trx_authorized ) {
 
@@ -289,22 +289,20 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 			// save token if needed
 			if ( $this->tokenization_enabled() && $order->get_user_id() ) {
-				$token_data = [
-					'Token'          => isset( $_GET['Token'] ) ? sanitize_text_field( $_GET['Token'] ) : null,
-					'TokenNumber'    => isset( $_GET['TokenNumber'] ) ? sanitize_text_field( $_GET['TokenNumber'] ) : null,
-					'TokenExp'       => isset( $_GET['TokenExp'] ) ? sanitize_text_field( $_GET['TokenExp'] ) : null,
-					'PaymentType'    => isset( $_GET['PaymentType'] ) ? sanitize_text_field( $_GET['PaymentType'] ) : null,
-					'CreditCardName' => isset( $_GET['CreditCardName'] ) ? sanitize_text_field( $_GET['CreditCardName'] ) : null,
-				];
-
+				$token_data = [];
+				foreach ( [ 'Token', 'TokenNumber', 'TokenExp', 'PaymentType', 'CreditCardName' ] as $key ) {
+					if ( isset( $_GET[ $key ] ) ) {
+						$token_data[ $key ] = sanitize_text_field( $_GET[ $key ] );
+					}
+				}
 				$this->save_user_token( $order->get_user_id(), $token_data );
 			}
 
 			// save transaction info
 			$transaction_data = [];
-			foreach ( array_keys($this->transaction_info_map)  as $key ) {
-				if ( isset( $_GET[$key] ) ) {
-					$transaction_data[$key] = sanitize_text_field( $_GET[$key] );
+			foreach ( array_keys( $this->transaction_info_map ) as $key ) {
+				if ( isset( $_GET[ $key ] ) ) {
+					$transaction_data[ $key ] = sanitize_text_field( $_GET[ $key ] );
 				}
 			}
 			$order->update_meta_data( '_monri_transaction_info', $transaction_data );
@@ -342,9 +340,9 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return false;
 		}
 
-		$order_id      = sanitize_text_field($_GET['ShoppingCartID']);
+		$order_id      = sanitize_text_field( $_GET['ShoppingCartID'] );
 		$digest        = Monri_WC_Utils::sanitize_hash( $_GET['Signature'] );
-		$success       = (isset( $_GET['Success'] ) && $_GET['Success'] === '1') ? '1' : '0';
+		$success       = ( isset( $_GET['Success'] ) && $_GET['Success'] === '1' ) ? '1' : '0';
 		$approval_code = isset( $_GET['ApprovalCode'] ) ? sanitize_text_field( $_GET['ApprovalCode'] ) : '';
 
 		$shop_id    = $this->shop_id;
