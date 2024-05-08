@@ -90,10 +90,11 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	 */
 	public function process_payment( $order_id ) {
 
-		$transaction = $_POST['monri-transaction'] ?? '{}';
-		$transaction = json_decode( wp_unslash( $transaction ), true );
+		// monri-transaction is a json value, it is individually sanitized after decode
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$transaction = json_decode( wp_unslash( $_POST['monri-transaction'] ?? '{}' ), true );
 
-		Monri_WC_Logger::log( "Response data: " . print_r( $transaction, true ), __METHOD__ );
+		Monri_WC_Logger::log( "Response data: " . sanitize_textarea_field( print_r( $transaction, true ) ), __METHOD__ );
 
 		if ( empty( $transaction ) ) {
 			throw new Exception( esc_html( __( 'Missing Monri transaction.', 'monri' ) ) );

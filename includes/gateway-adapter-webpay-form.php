@@ -179,10 +179,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			return false;
 		}
 
-		/**
-		 * @note: GET/SERVER params are not sanitized here because values are used for hash compare
-		 */
-		$digest = $_GET['digest'];
+		$digest = Monri_WC_Utils::sanitize_hash( $_GET['digest'] );
 
 		$calculated_url = $this->payment->get_return_url( $order ); // use current url?
 		$calculated_url = strtok( $calculated_url, '?' );
@@ -221,7 +218,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			return;
 		}
 
-		Monri_WC_Logger::log( "Response data: " . print_r( $_GET, true ), __METHOD__ );
+		Monri_WC_Logger::log( "Response data: " . sanitize_textarea_field( print_r( $_GET, true ) ), __METHOD__ );
 
 		$requested_order_id = sanitize_text_field( $_GET['order_number'] );
 		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
