@@ -12,17 +12,15 @@ Accept payments using Monri WebPay and WSPay.
 
 == Description ==
 
-Monri's online payments enable you to quickly and easily charge debit and credit cards at all online sales points with
-maximum security.
+Monri's online payments enable you to quickly and easily charge debit and credit cards at all online sales points with maximum security.
 
 == Installation ==
 
-You will first need to register with Monri in order to use this plugin on your site. Additional fees apply. Please
-complete the [inquiry form](https://monri.com/contact/), and we will contact you regarding setup and any information
-you will need.
+You will first need to register with Monri in order to use this plugin on your site. Additional fees apply.
+Please complete the [inquiry form](https://monri.com/contact/), and we will contact you regarding setup and any information you will need.
 
-If you used older Monri plugin, it is best to remove it first before using this new version. Old settings will be
-migrated but make sure to recheck them and test new integration.
+If you used older Monri plugin, it is best to remove it first before using this new version.
+Old settings will be migrated but make sure to recheck them and test new integration.
 
 == Documentation ==
 
@@ -41,10 +39,13 @@ You can find additional information regarding Privacy policy of Monri payments o
 
 == Development ==
 
-You can find more details about the development of this plugin here:
+You can find more details about the development of this plugin at:
 https://github.com/MonriPayments/woocommerce-monri
 
 == Changelog ==
+
+= 3.1.1 - 2024-05-06 =
+* Small code changes required by WP Plugins, no functionality changes
 
 = 3.1.0 - 2024-04-19 =
 * New components implementation - customer never leaves checkout, 3D secure check is done in lightbox
