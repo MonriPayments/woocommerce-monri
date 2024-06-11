@@ -22,14 +22,17 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 		// resolve adapter based on settings
 		if ($this->get_option('monri_payment_gateway_service') === 'monri-ws-pay') {
 			require_once __DIR__ . '/gateway-adapter-wspay.php';
+            // @todo: separate api.php into monri-api.php and wspay-api.php or use api.php for both?
 			$this->adapter = new Monri_WC_Gateway_Adapter_Wspay();
 		} elseif ($this->get_option('monri_payment_gateway_service') === 'monri-web-pay' &&
 		          $this->get_option('monri_web_pay_integration_type') === 'components'
 		) {
 			require_once __DIR__ . '/gateway-adapter-webpay-components.php';
+            require_once __DIR__ . '/monri-api.php';
 			$this->adapter = new Monri_WC_Gateway_Adapter_Webpay_Components();
 		} else {
 			require_once __DIR__ . '/gateway-adapter-webpay-form.php';
+            require_once __DIR__ . '/monri-api.php';
 			$this->adapter = new Monri_WC_Gateway_Adapter_Webpay_Form();
 		}
 
@@ -40,7 +43,7 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
         $callback = new Monri_WC_Callback();
         $callback->init();
 		//
-
+        $this->supports = [ 'products', 'refunds' ];
 		if (is_admin()) {
 			add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
 		}
@@ -140,5 +143,17 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 	public function get_option_bool( $key ) {
 		return in_array( $this->get_option( $key ),  array( 'yes', '1', true ), true );
 	}
+
+    /**
+     * Forward to adapter
+     *
+     * @inheritDoc
+     */
+    public function can_refund_order( $order ) {
+        if(method_exists($this->adapter, 'can_refund_order')) {
+            return $this->adapter->can_refund_order( $order);
+        }
+        return parent::can_refund_order( $order);
+    }
 
 }
