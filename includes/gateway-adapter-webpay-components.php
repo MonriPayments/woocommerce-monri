@@ -284,7 +284,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 
         if ( is_wp_error($response) ) {
             $order->add_order_note(
-                sprintf( __( 'There was an error submitting the capture to Zip.', 'monri' ) ) .
+                sprintf( __( 'There was an error submitting the capture to Monri.', 'monri' ) ) .
                 ' ' .
                 $response->get_error_message()
             );
