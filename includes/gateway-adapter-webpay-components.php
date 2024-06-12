@@ -43,10 +43,9 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	 */
 	public function payment_fields() {
 
-		// @todo: cache based on timestamp/amount for expire?
-		$initialize = $this->request_authorize();
+		$client_secret = $this->request_authorize();
 
-		if ( empty( $initialize['client_secret'] ) ) {
+		if ( empty( $client_secret ) ) {
 			esc_html_e( 'Initialization error occurred.', 'monri' );
 			return;
 		}
@@ -65,7 +64,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		wc_get_template( 'components.php', array(
 			'config'       => array(
 				'authenticity_token' => $this->payment->get_option( 'monri_authenticity_token' ),
-				'client_secret'      => $initialize['client_secret'],
+				'client_secret'      => $client_secret,
 				'locale'             => $this->payment->get_option( 'form_language' ),
 			),
 			'installments' => $installments
@@ -73,12 +72,12 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	}
 
 	public function prepare_blocks_data() {
-		$initialize = $this->request_authorize();
+        $client_secret = $this->request_authorize();
 
 		return [
 			'components' => [
 				'authenticity_token' => $this->payment->get_option( 'monri_authenticity_token' ),
-				'client_secret'      => $initialize['client_secret'] ?? "",
+				'client_secret'      => $client_secret ?? "",
 				'locale'             => $this->payment->get_option( 'form_language' ),
 			]
 		];
@@ -124,7 +123,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
             else {
                 $order->update_status('on-hold', __('Order awaiting payment', 'monri'));
             }
-
+            $amount_in_minor_units = (int) round( $order->get_total() * 100 );
+            WC()->session->set((string) $amount_in_minor_units.'_client_secret_timestamp', '');
             $monri_order_number = $transaction['transaction_response']['order_number'] ?
                 sanitize_key( $transaction['transaction_response']['order_number'] ) :
                 '';
@@ -148,7 +148,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 
 	/**
 	 *
-	 * @return array
+	 * @return string
 	 */
 	private function request_authorize() {
 
@@ -162,13 +162,19 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			$order_total = (float) WC()->cart->get_total( 'edit' );
 		}
 
-		$currency    = get_woocommerce_currency();
+        $amount_in_minor_units = (int) round( $order_total * 100 );
+        $session_client_secret = $this->get_session_client_secret($amount_in_minor_units);
+        if (!empty($session_client_secret)) {
+            return $session_client_secret;
+        }
+
+        $currency    = get_woocommerce_currency();
 		if ( $currency === 'KM' ) {
 			$currency = 'BAM';
 		}
 
 		$data = [
-			'amount'           => (int) round( $order_total * 100 ),
+			'amount'           => $amount_in_minor_units,
 			'order_number'     => wp_generate_uuid4(), //uniqid('woocommerce-', true),
 			'currency'         => $currency,
 			'transaction_type' => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
@@ -204,8 +210,13 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		}
 
 		$body = wp_remote_retrieve_body( $response );
-
-		return json_decode( $body, true );
+        $client_secret = json_decode( $body, true )['client_secret'];
+        // save data to session so that we can reuse it on site refresh
+        WC()->session->set(
+            $amount_in_minor_units. '_client_secret_timestamp',
+            $amount_in_minor_units. '_' . $client_secret . '_' . time()
+        );
+		return $client_secret;
 	}
 
 
@@ -342,5 +353,34 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
         ) );
         return true;
     }
+    /**
+     * Return client secret from session if it is valid
+     *
+     * @param int $amount_in_minor_units
+     * @return string
+     */
+    public function get_session_client_secret ($amount_in_minor_units) {
+        // @todo: find out exact time
+        $allowed_time_seconds = 900;
+        $amount_client_secret_timestamp = WC()->session->get((string) $amount_in_minor_units.'_client_secret_timestamp');
 
+        if(!empty($amount_client_secret_timestamp)){
+            $amount_client_secret_timestamp = explode('_', $amount_client_secret_timestamp);
+            if (!empty($amount_client_secret_timestamp[0])){
+                $amount = (int) $amount_client_secret_timestamp[0];
+            }
+            if (!empty($amount_client_secret_timestamp[1])) {
+                $client_secret = $amount_client_secret_timestamp[1];
+            }
+            if (!empty($amount_client_secret_timestamp[2])) {
+                $timestamp = (int) $amount_client_secret_timestamp[2];
+            }
+            if(!empty($amount) && $amount === $amount_in_minor_units
+                && !empty($client_secret) && !empty($timestamp) &&
+                (time() - $timestamp) <= $allowed_time_seconds) {
+                return $client_secret;
+            }
+        }
+        return null;
+    }
 }
