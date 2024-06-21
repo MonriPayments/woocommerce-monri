@@ -499,12 +499,14 @@ class Monri_WC_Gateway_Adapter_Wspay {
             Monri_WC_Logger::log( $response, __METHOD__ );
             return false;
         }
-        $order->update_meta_data('should_close_parent_transaction', '1');
-        $order->save();
+        if ( $order->get_total() - $order->get_total_refunded() < 0.01 ) {
+            $order->update_meta_data('should_close_parent_transaction', '1');
+        }
         $order->add_order_note(sprintf(
             __( 'Refund of %s successfully sent to Monri.', 'monri' ),
             wc_price( $amount, array( 'currency' => $currency ) )
         ) );
+        $order->save();
         return true;
     }
 
@@ -595,5 +597,16 @@ class Monri_WC_Gateway_Adapter_Wspay {
             wc_price( $amount, array( 'currency' => $order->get_currency() ) )
         ) );
         return true;
+    }
+
+    /**
+     * Can the order be refunded
+     *
+     * @param  WC_Order $order
+     * @return bool
+     */
+    public function can_refund_order( $order ) {
+        return $order && in_array( $order->get_status(), wc_get_is_paid_statuses() ) &&
+            !$order->get_meta( 'should_close_parent_transaction' );
     }
 }
