@@ -34,9 +34,10 @@ class Monri_WSPay_WC_Api {
     }
 
     /**
-     * @param string $order_number
+     * @param string $STAN
+     * @param string $approval_code
+     * @param string $wspay_order_id
      * @param int $amount
-     * @param string $currency
      *
      * @return string
      */
@@ -86,7 +87,14 @@ class Monri_WSPay_WC_Api {
 
         return json_decode( $result['body'], true );
     }
-
+    /**
+     * @param string $STAN
+     * @param string $approval_code
+     * @param string $wspay_order_id
+     * @param int $amount
+     *
+     * @return array
+     */
     public function capture($STAN, $approval_code, $wspay_order_id, $amount) {
         $shop_id = Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_shop_id' );
         $signature = $this->generateSignatureAPI($STAN, $approval_code, $wspay_order_id, $amount);
@@ -103,7 +111,14 @@ class Monri_WSPay_WC_Api {
         return $this->request('/completion', $req);
 
     }
-
+    /**
+     * @param string $STAN
+     * @param string $approval_code
+     * @param string $wspay_order_id
+     * @param int $amount
+     *
+     * @return array
+     */
     public function refund($STAN, $approval_code, $wspay_order_id, $amount) {
         $shop_id = Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_shop_id' );
         $signature = $this->generateSignatureAPI($STAN, $approval_code, $wspay_order_id, $amount);
@@ -120,6 +135,14 @@ class Monri_WSPay_WC_Api {
         return $this->request('/refund', $req);
 
     }
+    /**
+     * @param string $STAN
+     * @param string $approval_code
+     * @param string $wspay_order_id
+     * @param int $amount
+     *
+     * @return array
+     */
     public function void($STAN, $approval_code, $wspay_order_id, $amount) {
         $shop_id = Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_shop_id' );
         $signature = $this->generateSignatureAPI($STAN, $approval_code, $wspay_order_id, $amount);

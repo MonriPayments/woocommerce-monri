@@ -474,7 +474,6 @@ class Monri_WC_Gateway_Adapter_Wspay {
      *
      * @param int $order_id
      * @param float $amount
-     * @param string $reason
      *
      * @return bool
      */
