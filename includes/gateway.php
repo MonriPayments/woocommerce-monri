@@ -22,7 +22,7 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 		// resolve adapter based on settings
 		if ($this->get_option('monri_payment_gateway_service') === 'monri-ws-pay') {
 			require_once __DIR__ . '/gateway-adapter-wspay.php';
-            // @todo: separate api.php into monri-api.php and wspay-api.php or use api.php for both?
+            require_once __DIR__ . '/monri-wspay-api.php';
 			$this->adapter = new Monri_WC_Gateway_Adapter_Wspay();
 		} elseif ($this->get_option('monri_payment_gateway_service') === 'monri-web-pay' &&
 		          $this->get_option('monri_web_pay_integration_type') === 'components'

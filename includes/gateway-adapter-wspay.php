@@ -34,6 +34,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		'PaymentType'  => 'Credit cart type',
 		'PaymentPlan'  => 'Payment plan',
 		'DateTime'     => 'Date/Time',
+        'STAN'         => 'STAN',
+        'Amount'       => 'Amount',
 	];
 
 	/**
@@ -68,6 +70,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 		add_action( 'woocommerce_before_thankyou', [ $this, 'process_return' ] );
 		add_action( 'woocommerce_thankyou_monri', [ $this, 'thankyou_page' ] );
+        add_action( 'woocommerce_order_status_changed', [ $this, 'process_capture' ], null, 4 );
+        add_action( 'woocommerce_order_status_changed', [ $this, 'process_void' ], null, 4 );
 	}
 
 	/**
@@ -194,7 +198,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$req['customerEmail']     = $order->get_billing_email();
 
 		$req = apply_filters( 'monri_wspay_request', $req );
-
+        $order->add_meta_data('transaction_type', $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase');
+        $order->save();
 		Monri_WC_Logger::log( "Request data: " . print_r( $req, true ), __METHOD__ );
 		$response = $this->api( '/api/create-transaction', $req );
 		Monri_WC_Logger::log( $response, __METHOD__ );
@@ -281,7 +286,25 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		if ( $trx_authorized ) {
 
 			$transaction_id = ! empty( $_GET['WsPayOrderId'] ) ? sanitize_text_field( $_GET['WsPayOrderId'] ) : '';
-			$order->payment_complete( $transaction_id );
+            $transaction_type = $order->get_meta('transaction_type');
+            if ( $transaction_type === 'purchase') {
+                $STAN = ! empty( $_GET['STAN'] ) ? sanitize_text_field( $_GET['STAN'] ) : '';
+                $approvalCode = ! empty( $_GET['ApprovalCode'] ) ? sanitize_text_field( $_GET['ApprovalCode'] ) : '';
+                $amount = $order->get_total();
+                $response = Monri_WSPay_WC_Api::instance()->capture($STAN, $approvalCode, $transaction_id, $amount * 100);
+                if ( isset($response['ActionSuccess'])  && $response['ActionSuccess'] === '1' ) {
+                    $order->payment_complete( $transaction_id );
+                }
+                else {
+                    Monri_WC_Logger::log( $response, __METHOD__ );
+                    $order->update_status( 'failed' );
+                    return;
+                }
+            }
+            else {
+                $order->update_status('on-hold', __('Order awaiting payment', 'monri'));
+            }
+
 
 			$order->add_order_note( __( 'Monri payment successful<br/>Approval code: ', 'monri' ) . $approval_code );
 
@@ -446,4 +469,132 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		return $formatted;
 	}
 
+    /**
+     * Process a refund
+     *
+     * @param int $order_id
+     * @param float $amount
+     * @param string $reason
+     *
+     * @return bool
+     */
+    public function process_refund( $order_id, $amount = null) {
+
+        $order = wc_get_order( $order_id );
+        $transaction_info = $order->get_meta( '_monri_transaction_info' );
+        $wspay_order_id = $transaction_info['WsPayOrderId'] ? sanitize_text_field($transaction_info[ 'WsPayOrderId' ]) : null;
+        $STAN = $transaction_info['STAN'] ? sanitize_text_field($transaction_info[ 'STAN' ]) : null;
+        $approval_code = $transaction_info['ApprovalCode'] ? sanitize_text_field($transaction_info[ 'ApprovalCode' ]) : null;
+        $currency = $order->get_currency();
+
+        if ( empty( $wspay_order_id ) ) {
+            $order->add_order_note( sprintf( __( 'There was an error submitting the refund to Monri.', 'monri' ) ) );
+            return false;
+        }
+
+        $response = Monri_WSPay_WC_Api::instance()->refund($STAN, $approval_code, $wspay_order_id, $amount * 100);
+
+        if ( is_wp_error($response) || $response['ActionSuccess'] ==! '1' ) {
+            $order->add_order_note( sprintf( __( 'There was an error submitting the refund to Monri.', 'monri' ) ) );
+            $order->save();
+            Monri_WC_Logger::log( $response, __METHOD__ );
+            return false;
+        }
+        $order->update_meta_data('should_close_parent_transaction', '1');
+        $order->save();
+        $order->add_order_note(sprintf(
+            __( 'Refund of %s successfully sent to Monri.', 'monri' ),
+            wc_price( $amount, array( 'currency' => $currency ) )
+        ) );
+        return true;
+    }
+
+    /**
+     * Capture order on Monri side
+     *
+     * @param int $order_id
+     * @param string $from
+     * @param string $to
+     * @return bool
+     */
+    public function process_capture( $order_id, $from, $to ) {
+
+        if ( ! ( in_array( $from, [ 'pending', 'on-hold' ] ) && in_array( $to, wc_get_is_paid_statuses() ) ) ) {
+            return false;
+        }
+        $order = wc_get_order( $order_id );
+        $transaction_info = $order->get_meta( '_monri_transaction_info' );
+        $wspay_order_id = $transaction_info['WsPayOrderId'] ? sanitize_text_field($transaction_info[ 'WsPayOrderId' ]) : null;
+        $STAN = $transaction_info['STAN'] ? sanitize_text_field($transaction_info[ 'STAN' ]) : null;
+        $approval_code = $transaction_info['ApprovalCode'] ? sanitize_text_field($transaction_info[ 'ApprovalCode' ]) : null;
+        $amount = $order->get_total() - $order->get_total_refunded();
+
+        if ($amount < 0.01) {
+            return false;
+        }
+
+        $response = Monri_WSPay_WC_Api::instance()->capture($STAN, $approval_code, $wspay_order_id, $amount * 100);
+
+        if ( is_wp_error($response) || $response['ActionSuccess'] ==! '1' ) {
+            Monri_WC_Logger::log( $response, __METHOD__ );
+            $order->add_order_note(
+                sprintf( __( 'There was an error submitting the capture to Monri.', 'monri' ) ) .
+                ' ' .
+                $response->get_error_message()
+            );
+            $order->save();
+            return false;
+        }
+
+        $order->payment_complete( $wspay_order_id );
+        $order->add_order_note(sprintf(
+            __( 'Capture of %s successfully sent to Monri.', 'monri' ),
+            wc_price( $amount, array( 'currency' => $order->get_currency() ) )
+        ) );
+
+        return true;
+    }
+
+    /**
+     * Void order on Monri WSPay side
+     *
+     * @param $order_id
+     * @param string $from
+     * @param string $to
+     * @return bool
+     */
+    public function process_void( $order_id, $from, $to ) {
+
+        if ( ! ( in_array( $from, [ 'pending', 'on-hold' ] ) && in_array( $to, [ 'cancelled', 'failed' ] ) ) ) {
+            return false;
+        }
+
+        $order = wc_get_order( $order_id );
+        $transaction_info = $order->get_meta( '_monri_transaction_info' );
+        $wspay_order_id = $transaction_info['WsPayOrderId'] ? sanitize_text_field($transaction_info[ 'WsPayOrderId' ]) : null;
+        $STAN = $transaction_info['STAN'] ? sanitize_text_field($transaction_info[ 'STAN' ]) : null;
+        $approval_code = $transaction_info['ApprovalCode'] ? sanitize_text_field($transaction_info[ 'ApprovalCode' ]) : null;
+        $amount = $order->get_total() - $order->get_total_refunded();
+        if ($amount < 0.01) {
+            return false;
+        }
+
+        $response = Monri_WSPay_WC_Api::instance()->void($STAN, $approval_code, $wspay_order_id, $amount * 100);
+
+        if ( is_wp_error($response) || $response['ActionSuccess'] ==! '1' ) {
+            Monri_WC_Logger::log( $response, __METHOD__ );
+            $order->add_order_note(
+                sprintf( __( 'There was an error submitting the void to Monri.', 'monri' ) ) .
+                ' ' .
+                $response->get_error_message()
+            );
+            return false;
+        }
+
+        $order->add_order_note(sprintf(
+            __( 'Void of %s successfully sent to Monri.', 'monri' ),
+            wc_price( $amount, array( 'currency' => $order->get_currency() ) )
+        ) );
+        return true;
+    }
 }
