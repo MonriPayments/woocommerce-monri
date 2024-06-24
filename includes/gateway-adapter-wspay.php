@@ -285,7 +285,6 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 		if ( $trx_authorized ) {
 
-			$transaction_id = ! empty( $_GET['WsPayOrderId'] ) ? sanitize_text_field( $_GET['WsPayOrderId'] ) : '';
             $transaction_type = $order->get_meta('transaction_type');
             // save transaction info
             $transaction_data = [];
