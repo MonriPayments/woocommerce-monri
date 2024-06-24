@@ -70,8 +70,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 		add_action( 'woocommerce_before_thankyou', [ $this, 'process_return' ] );
 		add_action( 'woocommerce_thankyou_monri', [ $this, 'thankyou_page' ] );
-        add_action( 'woocommerce_order_status_changed', [ $this, 'process_capture' ], null, 4 );
-        add_action( 'woocommerce_order_status_changed', [ $this, 'process_void' ], null, 4 );
+        add_action( 'woocommerce_order_status_changed', [ $this, 'process_capture' ], null, 3 );
+        add_action( 'woocommerce_order_status_changed', [ $this, 'process_void' ], null, 3 );
 	}
 
 	/**
@@ -509,6 +509,9 @@ class Monri_WC_Gateway_Adapter_Wspay {
         }
         $order = wc_get_order( $order_id );
         $transaction_info = $order->get_meta( '_monri_transaction_info' );
+        if (empty($transaction_info)) {
+            return false;
+        }
         $wspay_order_id = $transaction_info['WsPayOrderId'] ? sanitize_text_field($transaction_info[ 'WsPayOrderId' ]) : null;
         $STAN = $transaction_info['STAN'] ? sanitize_text_field($transaction_info[ 'STAN' ]) : null;
         $approval_code = $transaction_info['ApprovalCode'] ? sanitize_text_field($transaction_info[ 'ApprovalCode' ]) : null;
@@ -554,6 +557,9 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
         $order = wc_get_order( $order_id );
         $transaction_info = $order->get_meta( '_monri_transaction_info' );
+        if (empty($transaction_info)) {
+            return false;
+        }
         $wspay_order_id = $transaction_info['WsPayOrderId'] ? sanitize_text_field($transaction_info[ 'WsPayOrderId' ]) : null;
         $STAN = $transaction_info['STAN'] ? sanitize_text_field($transaction_info[ 'STAN' ]) : null;
         $approval_code = $transaction_info['ApprovalCode'] ? sanitize_text_field($transaction_info[ 'ApprovalCode' ]) : null;
