@@ -297,18 +297,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
             $order->update_meta_data( '_monri_transaction_info', $transaction_data );
             $order->save_meta_data();
             if ( $transaction_type === 'purchase') {
-                $STAN = ! empty( $_GET['STAN'] ) ? sanitize_text_field( $_GET['STAN'] ) : '';
-                $approvalCode = ! empty( $_GET['ApprovalCode'] ) ? sanitize_text_field( $_GET['ApprovalCode'] ) : '';
-                $amount = $order->get_total();
-                $response = Monri_WSPay_WC_Api::instance()->capture($STAN, $approvalCode, $transaction_id, $amount * 100);
-                if ( isset($response['ActionSuccess'])  && $response['ActionSuccess'] === '1' ) {
-                    $order->payment_complete( $transaction_id );
-                }
-                else {
-                    Monri_WC_Logger::log( $response, __METHOD__ );
-                    $order->update_status( 'failed' );
-                    return;
-                }
+                $order->update_status( 'processing' );
             }
             else {
                 $order->update_status('on-hold', __('Order awaiting payment', 'monri'));
@@ -481,7 +470,6 @@ class Monri_WC_Gateway_Adapter_Wspay {
         $wspay_order_id = $transaction_info['WsPayOrderId'] ? sanitize_text_field($transaction_info[ 'WsPayOrderId' ]) : null;
         $STAN = $transaction_info['STAN'] ? sanitize_text_field($transaction_info[ 'STAN' ]) : null;
         $approval_code = $transaction_info['ApprovalCode'] ? sanitize_text_field($transaction_info[ 'ApprovalCode' ]) : null;
-        $currency = $order->get_currency();
 
         if ( empty( $wspay_order_id ) ) {
             $order->add_order_note( sprintf( __( 'There was an error submitting the refund to Monri.', 'monri' ) ) );
@@ -501,7 +489,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
         }
         $order->add_order_note(sprintf(
             __( 'Refund of %s successfully sent to Monri.', 'monri' ),
-            wc_price( $amount, array( 'currency' => $currency ) )
+            wc_price( $amount, array( 'currency' => $order->get_currency() ) )
         ) );
         $order->save();
         return true;
