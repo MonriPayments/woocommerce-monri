@@ -295,7 +295,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
             }
             $order->update_meta_data( '_monri_transaction_info', $transaction_data );
             $order->save_meta_data();
-            if ( $transaction_type === 'purchase') {
+            if ( $transaction_type === 'purchase' || $is_tokenization) {
                 $order->update_status( 'processing' );
             }
             else {
@@ -466,6 +466,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
         $order = wc_get_order( $order_id );
         $transaction_info = $order->get_meta( '_monri_transaction_info' );
+        $is_tokenization = $order->get_meta( '_monri_order_token_used' );
         $wspay_order_id = isset($transaction_info['WsPayOrderId']) ? sanitize_text_field($transaction_info[ 'WsPayOrderId' ]) : null;
         $STAN = isset($transaction_info['STAN']) ? sanitize_text_field($transaction_info[ 'STAN' ]) : null;
         $approval_code = isset($transaction_info['ApprovalCode']) ? sanitize_text_field($transaction_info[ 'ApprovalCode' ]) : null;
@@ -474,8 +475,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
             $order->add_order_note( sprintf( __( 'There was an error submitting the refund to Monri.', 'monri' ) ) );
             return false;
         }
-
-        $response = Monri_WSPay_WC_Api::instance()->refund($STAN, $approval_code, $wspay_order_id, $amount * 100);
+        $response = Monri_WSPay_WC_Api::instance()->refund($STAN, $approval_code, $wspay_order_id, $amount * 100, $is_tokenization);
 
         if ( is_wp_error($response) || ( isset($response['ActionSuccess']) && $response['ActionSuccess'] ==! '1') ) {
             $order->add_order_note( sprintf( __( 'There was an error submitting the refund to Monri.', 'monri' ) ) );
@@ -509,7 +509,9 @@ class Monri_WC_Gateway_Adapter_Wspay {
         }
         $order = wc_get_order( $order_id );
         $transaction_info = $order->get_meta( '_monri_transaction_info' );
-        if (empty($transaction_info)) {
+        $is_tokenization = $order->get_meta( '_monri_order_token_used' );
+
+        if (empty($transaction_info) || $is_tokenization) {
             return false;
         }
         $wspay_order_id = isset($transaction_info['WsPayOrderId']) ? sanitize_text_field($transaction_info[ 'WsPayOrderId' ]) : null;
@@ -521,7 +523,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
             return false;
         }
 
-        $response = Monri_WSPay_WC_Api::instance()->capture($STAN, $approval_code, $wspay_order_id, $amount * 100);
+        $response = Monri_WSPay_WC_Api::instance()->capture($STAN, $approval_code, $wspay_order_id, $amount * 100, $is_tokenization);
 
         if ( is_wp_error($response) || ( isset($response['ActionSuccess']) && $response['ActionSuccess'] ==! '1') ) {
             Monri_WC_Logger::log( $response, __METHOD__ );
@@ -556,7 +558,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
         }
 
         $order = wc_get_order( $order_id );
-        $transaction_info = $order->get_meta( '_monri_transaction_info' );
+        $transaction_info = $order->get_meta( '_monri_transaction_info' ) ;
+        $is_tokenization = $order->get_meta( '_monri_order_token_used' );
         if (empty($transaction_info)) {
             return false;
         }
@@ -567,15 +570,12 @@ class Monri_WC_Gateway_Adapter_Wspay {
         if ($amount < 0.01) {
             return false;
         }
-
-        $response = Monri_WSPay_WC_Api::instance()->void($STAN, $approval_code, $wspay_order_id, $amount * 100);
+        $response = Monri_WSPay_WC_Api::instance()->void($STAN, $approval_code, $wspay_order_id, $amount * 100, $is_tokenization);
 
         if ( is_wp_error($response) || ( isset($response['ActionSuccess']) && $response['ActionSuccess'] ==! '1') ) {
             Monri_WC_Logger::log( $response, __METHOD__ );
             $order->add_order_note(
-                sprintf( __( 'There was an error submitting the void to Monri.', 'monri' ) ) .
-                ' ' .
-                $response->get_error_message()
+                sprintf( __( 'There was an error submitting the void to Monri.', 'monri' ) )
             );
             return false;
         }

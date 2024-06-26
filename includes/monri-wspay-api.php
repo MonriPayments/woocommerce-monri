@@ -38,12 +38,15 @@ class Monri_WSPay_WC_Api {
      * @param string $approval_code
      * @param string $wspay_order_id
      * @param int $amount
+     * @param string $shop_id
+     * @param bool $is_tokenization
      *
      * @return string
      */
-    private function generate_signature_API($STAN, $approval_code, $wspay_order_id, $amount ) {
-        $shop_id = Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_shop_id' );
-        $secret_key = Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_secret' );
+    private function generate_signature_API($STAN, $approval_code, $wspay_order_id, $amount, $shop_id, $is_tokenization ) {
+        $secret_key = $is_tokenization ?
+            Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_tokenization_secret' ) :
+            Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_secret' );
 
         $clean_total_amount = str_replace(',', '', $amount);
         $signature =
@@ -92,11 +95,12 @@ class Monri_WSPay_WC_Api {
      * @param string $approval_code
      * @param string $wspay_order_id
      * @param int $amount
+     * @param bool $is_tokenization
      *
      * @return array
      */
-    public function capture($STAN, $approval_code, $wspay_order_id, $amount) {
-        $req = $this->create_request_body($STAN, $approval_code, $wspay_order_id, $amount);
+    public function capture($STAN, $approval_code, $wspay_order_id, $amount, $is_tokenization) {
+        $req = $this->create_request_body($STAN, $approval_code, $wspay_order_id, $amount, $is_tokenization);
         return $this->request('/completion', $req);
     }
     /**
@@ -104,11 +108,12 @@ class Monri_WSPay_WC_Api {
      * @param string $approval_code
      * @param string $wspay_order_id
      * @param int $amount
+     * @param bool $is_tokenization
      *
      * @return array
      */
-    public function refund($STAN, $approval_code, $wspay_order_id, $amount) {
-        $req = $this->create_request_body($STAN, $approval_code, $wspay_order_id, $amount);
+    public function refund($STAN, $approval_code, $wspay_order_id, $amount, $is_tokenization) {
+        $req = $this->create_request_body($STAN, $approval_code, $wspay_order_id, $amount, $is_tokenization);
         return $this->request('/refund', $req);
     }
     /**
@@ -116,11 +121,12 @@ class Monri_WSPay_WC_Api {
      * @param string $approval_code
      * @param string $wspay_order_id
      * @param int $amount
+     * @param bool $is_tokenization
      *
      * @return array
      */
-    public function void($STAN, $approval_code, $wspay_order_id, $amount) {
-        $req = $this->create_request_body($STAN, $approval_code, $wspay_order_id, $amount);
+    public function void($STAN, $approval_code, $wspay_order_id, $amount, $is_tokenization) {
+        $req = $this->create_request_body($STAN, $approval_code, $wspay_order_id, $amount, $is_tokenization);
         return $this->request('/void', $req);
     }
     /**
@@ -128,12 +134,16 @@ class Monri_WSPay_WC_Api {
      * @param string $approval_code
      * @param string $wspay_order_id
      * @param int $amount
+     * @param bool $is_tokenization
      *
      * @return array
      */
-    private function create_request_body($STAN, $approval_code, $wspay_order_id, $amount) {
-        $shop_id = Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_shop_id' );
-        $signature = $this->generate_signature_API($STAN, $approval_code, $wspay_order_id, $amount);
+    private function create_request_body($STAN, $approval_code, $wspay_order_id, $amount, $is_tokenization) {
+
+        $shop_id = $is_tokenization ?
+            Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_tokenization_shop_id' ) :
+            Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_shop_id' );
+        $signature = $this->generate_signature_API($STAN, $approval_code, $wspay_order_id, $amount, $shop_id, $is_tokenization);
         $version = $this->version;
         $req = [];
         $req['STAN'] = $STAN;
