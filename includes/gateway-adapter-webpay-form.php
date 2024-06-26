@@ -221,7 +221,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		if ( ! $order || $order->get_payment_method() !== $this->payment->id ) {
 			return;
 		}
-        $get = $_GET;
 		Monri_WC_Logger::log( "Response data: " . sanitize_textarea_field( print_r( $_GET, true ) ), __METHOD__ );
 
 		$requested_order_id = sanitize_text_field( $_GET['order_number'] );
