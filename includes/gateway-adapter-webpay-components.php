@@ -26,6 +26,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	public function init( $payment ) {
 		$this->payment             = $payment;
 		$this->payment->has_fields = true;
+        add_action( 'woocommerce_order_status_changed', [ $this, 'process_capture' ], null, 4 );
+        add_action( 'woocommerce_order_status_changed', [ $this, 'process_void' ], null, 4 );
 
 		// load components.js on frontend checkout
 		add_action( 'template_redirect', function () {
@@ -41,10 +43,9 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	 */
 	public function payment_fields() {
 
-		// @todo: cache based on timestamp/amount for expire?
-		$initialize = $this->request_authorize();
+		$client_secret = $this->request_authorize();
 
-		if ( empty( $initialize['client_secret'] ) ) {
+		if ( empty( $client_secret ) ) {
 			esc_html_e( 'Initialization error occurred.', 'monri' );
 			return;
 		}
@@ -63,7 +64,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		wc_get_template( 'components.php', array(
 			'config'       => array(
 				'authenticity_token' => $this->payment->get_option( 'monri_authenticity_token' ),
-				'client_secret'      => $initialize['client_secret'],
+				'client_secret'      => $client_secret,
 				'locale'             => $this->payment->get_option( 'form_language' ),
 			),
 			'installments' => $installments
@@ -71,12 +72,12 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	}
 
 	public function prepare_blocks_data() {
-		$initialize = $this->request_authorize();
+        $client_secret = $this->request_authorize();
 
 		return [
 			'components' => [
 				'authenticity_token' => $this->payment->get_option( 'monri_authenticity_token' ),
-				'client_secret'      => $initialize['client_secret'] ?? "",
+				'client_secret'      => $client_secret ?? "",
 				'locale'             => $this->payment->get_option( 'form_language' ),
 			]
 		];
@@ -109,13 +110,21 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
             sanitize_text_field( $transaction['transaction_response']['response_code'] ) :
             '';
 
+        $transaction_type = ! empty( $transaction['transaction_type']) ?
+            sanitize_text_field( $transaction['transaction_type'] ) :
+            '';
+        $transaction_response_id = isset( $transaction['transaction_response']['id'] ) ?
+            sanitize_key( (string) $transaction['transaction_response']['id'] ) :
+            '';
         if ( $response_code === '0000' ) {
-            $order->payment_complete(
-                isset( $transaction['transaction_response']['id'] ) ?
-                    sanitize_key( (string) $transaction['transaction_response']['id'] ) :
-                    ''
-            );
-
+            if ( $transaction_type === 'purchase') {
+                $order->payment_complete( $transaction_response_id );
+            }
+            else {
+                $order->update_status('on-hold', __('Order awaiting payment', 'monri'));
+            }
+            $amount_in_minor_units = (int) round( $order->get_total() * 100 );
+            WC()->session->set((string) $amount_in_minor_units.'_client_secret_timestamp', '');
             $monri_order_number = $transaction['transaction_response']['order_number'] ?
                 sanitize_key( $transaction['transaction_response']['order_number'] ) :
                 '';
@@ -124,6 +133,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
             $order->add_order_note( sprintf( __( 'Order number in Monri administration: %s', 'monri' ), $monri_order_number ) );
 
             WC()->cart->empty_cart();
+            $order->update_meta_data( 'monri_order_number', $monri_order_number );
+            $order->save();
 
         } else {
             $order->update_status( 'failed', "Response not authorized - response code is $response_code." );
@@ -137,7 +148,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 
 	/**
 	 *
-	 * @return array
+	 * @return string
 	 */
 	private function request_authorize() {
 
@@ -151,13 +162,19 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			$order_total = (float) WC()->cart->get_total( 'edit' );
 		}
 
-		$currency    = get_woocommerce_currency();
+        $amount_in_minor_units = (int) round( $order_total * 100 );
+        $session_client_secret = $this->get_session_client_secret($amount_in_minor_units);
+        if (!empty($session_client_secret)) {
+            return $session_client_secret;
+        }
+
+        $currency    = get_woocommerce_currency();
 		if ( $currency === 'KM' ) {
 			$currency = 'BAM';
 		}
 
 		$data = [
-			'amount'           => (int) round( $order_total * 100 ),
+			'amount'           => $amount_in_minor_units,
 			'order_number'     => wp_generate_uuid4(), //uniqid('woocommerce-', true),
 			'currency'         => $currency,
 			'transaction_type' => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
@@ -193,8 +210,177 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		}
 
 		$body = wp_remote_retrieve_body( $response );
-
-		return json_decode( $body, true );
+        $client_secret = json_decode( $body, true )['client_secret'];
+        // save data to session so that we can reuse it on site refresh
+        WC()->session->set(
+            $amount_in_minor_units. '_client_secret_timestamp',
+            $amount_in_minor_units. '_' . $client_secret . '_' . time()
+        );
+		return $client_secret;
 	}
 
+
+    /**
+     * Process a refund
+     *
+     * @param int $order_id
+     * @param float $amount
+     * @param string $reason
+     *
+     * @return bool
+     */
+    public function process_refund( $order_id, $amount = null) {
+
+        $order = wc_get_order( $order_id );
+        $monri_order_id = $order->get_meta( 'monri_order_number' );
+        $currency = $order->get_currency();
+
+        if ( empty( $monri_order_id ) ) {
+            $order->add_order_note( sprintf( __( 'There was an error submitting the refund to Monri.', 'monri' ) ) );
+            return false;
+        }
+
+        $response = Monri_WC_Api::instance()->refund($monri_order_id, $amount * 100, $currency);
+
+        if ( is_wp_error($response) ) {
+            $order->add_order_note( sprintf( __( 'There was an error submitting the refund to Monri.', 'monri' ) ) );
+            return false;
+        }
+        $order->update_meta_data('should_close_parent_transaction', '1');
+        $order->save();
+        $order->add_order_note(sprintf(
+            __( 'Refund of %s successfully sent to Monri.', 'monri' ),
+            wc_price( $amount, array( 'currency' => $currency ) )
+        ) );
+        return true;
+    }
+
+    /**
+     * Can the order be refunded
+     *
+     * @param  WC_Order $order
+     * @return bool
+     */
+    public function can_refund_order( $order ) {
+        return $order && in_array( $order->get_status(), wc_get_is_paid_statuses() ) &&
+            !$order->get_meta( 'should_close_parent_transaction' );
+    }
+
+    /**
+     * Capture order on Monri side
+     *
+     * @param int $order_id
+     * @param string $from
+     * @param string $to
+     * @return bool
+     */
+    public function process_capture( $order_id, $from, $to ) {
+
+        if ( ! ( in_array( $from, [ 'pending', 'on-hold' ] ) && in_array( $to, wc_get_is_paid_statuses() ) ) ) {
+            return false;
+        }
+        $order = wc_get_order( $order_id );
+        $monri_order_id = $order->get_meta( 'monri_order_number' );
+        if ( empty( $monri_order_id ) ) {
+            return false;
+        }
+        $currency = $order->get_currency();
+        $amount = $order->get_total() - $order->get_total_refunded();
+
+        if ($amount < 0.01) {
+            return false;
+        }
+
+        $response = Monri_WC_Api::instance()->capture($monri_order_id, $amount * 100, $currency);
+
+        if ( is_wp_error($response) ) {
+            $order->add_order_note(
+                sprintf( __( 'There was an error submitting the capture to Monri.', 'monri' ) ) .
+                ' ' .
+                $response->get_error_message()
+            );
+            return false;
+        }
+
+        $order->payment_complete( $monri_order_id );
+        $order->add_order_note(sprintf(
+            __( 'Capture of %s successfully sent to Monri.', 'monri' ),
+            wc_price( $amount, array( 'currency' => $order->get_currency() ) )
+        ) );
+
+        return true;
+    }
+
+    /**
+     * Void order on Monri side
+     *
+     * @param $order_id
+     * @param string $from
+     * @param string $to
+     * @return bool
+     */
+    public function process_void( $order_id, $from, $to ) {
+
+        if ( ! ( in_array( $from, [ 'pending', 'on-hold' ] ) && in_array( $to, [ 'cancelled', 'failed' ] ) ) ) {
+            return false;
+        }
+
+        $order = wc_get_order( $order_id );
+        $monri_order_id = $order->get_meta( 'monri_order_number' );
+        if ( empty( $monri_order_id ) ) {
+            return false;
+        }
+        $amount = $order->get_total() - $order->get_total_refunded();
+        $currency = $order->get_currency();
+        if ($amount < 0.01) {
+            return false;
+        }
+
+        $response = Monri_WC_Api::instance()->void($monri_order_id, $amount * 100, $currency);
+
+        if ( is_wp_error($response) ) {
+            $order->add_order_note(
+                sprintf( __( 'There was an error submitting the void to Monri.', 'monri' ) ) .
+                ' ' .
+                $response->get_error_message()
+            );
+            return false;
+        }
+
+        $order->add_order_note(sprintf(
+            __( 'Void of %s successfully sent to Monri.', 'monri' ),
+            wc_price( $amount, array( 'currency' => $order->get_currency() ) )
+        ) );
+        return true;
+    }
+    /**
+     * Return client secret from session if it is valid
+     *
+     * @param int $amount_in_minor_units
+     * @return string
+     */
+    public function get_session_client_secret ($amount_in_minor_units) {
+        // @todo: find out exact time
+        $allowed_time_seconds = 900;
+        $amount_client_secret_timestamp = WC()->session->get((string) $amount_in_minor_units.'_client_secret_timestamp');
+
+        if(!empty($amount_client_secret_timestamp)){
+            $amount_client_secret_timestamp = explode('_', $amount_client_secret_timestamp);
+            if (!empty($amount_client_secret_timestamp[0])){
+                $amount = (int) $amount_client_secret_timestamp[0];
+            }
+            if (!empty($amount_client_secret_timestamp[1])) {
+                $client_secret = $amount_client_secret_timestamp[1];
+            }
+            if (!empty($amount_client_secret_timestamp[2])) {
+                $timestamp = (int) $amount_client_secret_timestamp[2];
+            }
+            if(!empty($amount) && $amount === $amount_in_minor_units
+                && !empty($client_secret) && !empty($timestamp) &&
+                (time() - $timestamp) <= $allowed_time_seconds) {
+                return $client_secret;
+            }
+        }
+        return null;
+    }
 }
