@@ -106,7 +106,9 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 		}
 
 		// mostly for components config for now
-		$data = array_merge( $data, $this->gateway->prepare_blocks_data() );
+		if (is_checkout()) {
+            $data = array_merge( $data, $this->gateway->prepare_blocks_data() );
+        }
 
 		// @todo not aware of bottom limit
 
