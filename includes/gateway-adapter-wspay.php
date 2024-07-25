@@ -517,7 +517,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
         $transaction_info = $order->get_meta( '_monri_transaction_info' );
         $is_tokenization = $order->get_meta( '_monri_order_token_used' );
 
-        if (empty($transaction_info) || $is_tokenization) {
+        if (empty($transaction_info)) {
             return false;
         }
         $wspay_order_id = isset($transaction_info['WsPayOrderId']) ? sanitize_text_field($transaction_info[ 'WsPayOrderId' ]) : null;
