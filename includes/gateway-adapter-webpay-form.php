@@ -16,7 +16,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	private $payment;
 
     /**
-     * @var []
+     * @var string[]
      */
     public $supports = [ 'products', 'refunds'];
 	/**
@@ -26,6 +26,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	 */
 	public function init( $payment ) {
 		$this->payment = $payment;
+
 		add_action( 'woocommerce_receipt_' . $this->payment->id, [ $this, 'process_redirect' ] );
 		add_action( 'woocommerce_before_thankyou', [ $this, 'process_return' ] );
         add_action( 'woocommerce_order_status_changed', [ $this, 'process_capture' ], null, 4 );
@@ -411,10 +412,5 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
             wc_price( $amount, array( 'currency' => $order->get_currency() ) )
         ) );
         return true;
-    }
-
-    public function get_supports()
-    {
-        return [ 'products', 'refunds', 'tokenization' ];
     }
 }

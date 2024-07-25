@@ -30,9 +30,10 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	 */
 
     /**
-     * @var []
+     * @var string[]
      */
     public $supports = [ 'products', 'refunds', 'tokenization'];
+
 	private $transaction_info_map = [
 		'WsPayOrderId' => 'Transaction ID',
 		'ApprovalCode' => 'Approval code',
@@ -203,7 +204,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$req['customerEmail']     = $order->get_billing_email();
 
 		$req = apply_filters( 'monri_wspay_request', $req );
-        $order->add_meta_data('monri_wspay_transaction_type', $this->payment->get_option_bool( 'monri_wspay_transaction_type' ) ? 'authorize' : 'purchase');
+        $order->add_meta_data('monri_wspay_transaction_type', $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase');
         $order->save();
 		Monri_WC_Logger::log( "Request data: " . print_r( $req, true ), __METHOD__ );
 		$response = $this->api( '/api/create-transaction', $req );
@@ -300,7 +301,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
             }
             $order->update_meta_data( '_monri_transaction_info', $transaction_data );
             $order->save_meta_data();
-            if ( $transaction_type === 'purchase' || $is_tokenization) {
+            if ( $transaction_type === 'purchase') {
                 $order->update_status( 'processing' );
             }
             else {

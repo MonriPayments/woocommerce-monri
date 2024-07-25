@@ -18,7 +18,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	 */
 	private $payment;
     /**
-     * @var []
+     * @var string[]
      */
     public $supports = [ 'products', 'refunds'];
 
@@ -387,5 +387,4 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
         }
         return null;
     }
-
 }

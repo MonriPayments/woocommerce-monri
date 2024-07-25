@@ -43,7 +43,7 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
         $callback = new Monri_WC_Callback();
         $callback->init();
 		//
-        $this->supports = $this->get_support();
+        $this->supports = $this->get_supports();
 		if (is_admin()) {
 			add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
 		}
