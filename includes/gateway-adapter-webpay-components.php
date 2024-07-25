@@ -17,6 +17,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	 * @var Monri_WC_Gateway
 	 */
 	private $payment;
+    /**
+     * @var string[]
+     */
+    public $supports = [ 'products', 'refunds'];
 
 	/**
 	 * @param Monri_WC_Gateway $payment
@@ -246,7 +250,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
             $order->add_order_note( sprintf( __( 'There was an error submitting the refund to Monri.', 'monri' ) ) );
             return false;
         }
-        $order->update_meta_data('should_close_parent_transaction', '1');
+        $order->update_meta_data('_monri_should_close_parent_transaction', '1');
         $order->save();
         $order->add_order_note(sprintf(
             __( 'Refund of %s successfully sent to Monri.', 'monri' ),
@@ -263,7 +267,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
      */
     public function can_refund_order( $order ) {
         return $order && in_array( $order->get_status(), wc_get_is_paid_statuses() ) &&
-            !$order->get_meta( 'should_close_parent_transaction' );
+            !$order->get_meta( '_monri_should_close_parent_transaction' );
     }
 
     /**

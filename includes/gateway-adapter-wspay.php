@@ -28,6 +28,12 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	/**
 	 * @var string[]
 	 */
+
+    /**
+     * @var string[]
+     */
+    public $supports = [ 'products', 'refunds', 'tokenization'];
+
 	private $transaction_info_map = [
 		'WsPayOrderId' => 'Transaction ID',
 		'ApprovalCode' => 'Approval code',
@@ -198,7 +204,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$req['customerEmail']     = $order->get_billing_email();
 
 		$req = apply_filters( 'monri_wspay_request', $req );
-        $order->add_meta_data('transaction_type', $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase');
+        $order->add_meta_data('monri_wspay_transaction_type', $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase');
         $order->save();
 		Monri_WC_Logger::log( "Request data: " . print_r( $req, true ), __METHOD__ );
 		$response = $this->api( '/api/create-transaction', $req );
@@ -285,7 +291,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 		if ( $trx_authorized ) {
 
-            $transaction_type = $order->get_meta('transaction_type');
+            $transaction_type = $order->get_meta('monri_wspay_transaction_type');
             // save transaction info
             $transaction_data = [];
             foreach ( array_keys( $this->transaction_info_map ) as $key ) {
@@ -295,7 +301,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
             }
             $order->update_meta_data( '_monri_transaction_info', $transaction_data );
             $order->save_meta_data();
-            if ( $transaction_type === 'purchase' || $is_tokenization) {
+            if ( $transaction_type === 'purchase') {
                 $order->update_status( 'processing' );
             }
             else {
@@ -484,7 +490,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
             return false;
         }
         if ( $order->get_total() - $order->get_total_refunded() < 0.01 ) {
-            $order->update_meta_data('should_close_parent_transaction', '1');
+            $order->update_meta_data('_monri_should_close_parent_transaction', '1');
         }
         $order->add_order_note(sprintf(
             __( 'Refund of %s successfully sent to Monri.', 'monri' ),
@@ -511,7 +517,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
         $transaction_info = $order->get_meta( '_monri_transaction_info' );
         $is_tokenization = $order->get_meta( '_monri_order_token_used' );
 
-        if (empty($transaction_info) || $is_tokenization) {
+        if (empty($transaction_info)) {
             return false;
         }
         $wspay_order_id = isset($transaction_info['WsPayOrderId']) ? sanitize_text_field($transaction_info[ 'WsPayOrderId' ]) : null;
@@ -595,6 +601,10 @@ class Monri_WC_Gateway_Adapter_Wspay {
      */
     public function can_refund_order( $order ) {
         return $order && in_array( $order->get_status(), wc_get_is_paid_statuses() ) &&
-            !$order->get_meta( 'should_close_parent_transaction' );
+            !$order->get_meta( '_monri_should_close_parent_transaction' );
+    }
+
+    public function get_supports() {
+        return [ 'products', 'refunds', 'tokenization' ];
     }
 }

@@ -43,7 +43,7 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
         $callback = new Monri_WC_Callback();
         $callback->init();
 		//
-        $this->supports = [ 'products', 'refunds', 'tokenization' ];
+        $this->supports = $this->get_supports();
 		if (is_admin()) {
 			add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
 		}
@@ -154,6 +154,18 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
             return $this->adapter->can_refund_order( $order);
         }
         return parent::can_refund_order( $order);
+    }
+
+    /**
+     * Forward to adapter
+     *
+     * @inheritDoc
+     */
+    public function get_supports() {
+        if(property_exists($this->adapter, 'supports')) {
+            return $this->adapter->supports;
+        }
+        return $this->supports;
     }
 
 }

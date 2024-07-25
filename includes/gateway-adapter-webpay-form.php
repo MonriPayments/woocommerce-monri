@@ -15,6 +15,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	 */
 	private $payment;
 
+    /**
+     * @var string[]
+     */
+    public $supports = [ 'products', 'refunds'];
 	/**
 	 * @param Monri_WC_Gateway $payment
 	 *
@@ -152,7 +156,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			'callback_url_override' => add_query_arg( 'wc-api', 'monri_callback', get_home_url() )
 		);
 
-        $order->add_meta_data('transaction_type', $args['transaction_type']);
+        $order->add_meta_data('monri_transaction_type', $args['transaction_type']);
         $order->save();
 		$number_of_installments = $order->get_meta('monri_installments' ) ? (int) $order->get_meta('monri_installments' ) : 1;
 		$number_of_installments = min( max( $number_of_installments, 1 ), 24 );
@@ -241,7 +245,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		}
 
 		$response_code = ! empty( $_GET['response_code'] ) ? sanitize_text_field( $_GET['response_code'] ) : '';
-        $transaction_type = $order->get_meta('transaction_type');
+        $transaction_type = $order->get_meta('monri_transaction_type');
 		if ( $response_code === '0000' ) {
             if ( $transaction_type === 'purchase') {
                 $order->payment_complete();
@@ -302,7 +306,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
             $order->add_order_note( sprintf( __( 'There was an error submitting the refund to Monri.', 'monri' ) ) );
             return false;
         }
-        $order->update_meta_data('should_close_parent_transaction', '1');
+        $order->update_meta_data('_monri_should_close_parent_transaction', '1');
         $order->save();
         $order->add_order_note(sprintf(
             __( 'Refund of %s successfully sent to Monri.', 'monri' ),
@@ -319,7 +323,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
      */
     public function can_refund_order( $order ) {
         return $order && in_array( $order->get_status(), wc_get_is_paid_statuses() ) &&
-            !$order->get_meta( 'should_close_parent_transaction' );
+            !$order->get_meta( '_monri_should_close_parent_transaction' );
     }
 
     /**
