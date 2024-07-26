@@ -490,6 +490,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			$order->update_meta_data( '_monri_should_close_parent_transaction', '1' );
 		}
 		$order->add_order_note( sprintf(
+			/* translators: %s: amount which was successfully refunded */
 			__( 'Refund of %s successfully sent to Monri.', 'monri' ),
 			wc_price( $amount, array( 'currency' => $order->get_currency() ) )
 		) );
@@ -542,6 +543,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 		$order->payment_complete( $wspay_order_id );
 		$order->add_order_note( sprintf(
+            /* translators: %s: amount which was successfully captured */
 			__( 'Capture of %s successfully sent to Monri.', 'monri' ),
 			wc_price( $amount, array( 'currency' => $order->get_currency() ) )
 		) );
@@ -589,6 +591,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		}
 
 		$order->add_order_note( sprintf(
+            /* translators: %s: amount which was successfully voided */
 			__( 'Void of %s successfully sent to Monri.', 'monri' ),
 			wc_price( $amount, array( 'currency' => $order->get_currency() ) )
 		) );
