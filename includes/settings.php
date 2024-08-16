@@ -42,6 +42,7 @@ class Monri_WC_Settings {
 		);
 
 		$number_of_allowed_installments = array(
+			'36' => '36',
 			'24' => '24',
 			'12' => '12',
 			'6'  => '6'
@@ -281,7 +282,7 @@ class Monri_WC_Settings {
 			),
 		);
 
-		for ( $i = 2; $i <= 24; $i ++ ) {
+		for ( $i = 2; $i <= 36; $i ++ ) {
 			$form_fields["price_increase_$i"] = array(
 				/* translators: %d: number of installments */
 				'title'       => sprintf(__( 'Price increase when paying in %d installments', 'monri' ), $i),

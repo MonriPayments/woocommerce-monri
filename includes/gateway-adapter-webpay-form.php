@@ -160,7 +160,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		$order->add_meta_data( 'monri_transaction_type', $args['transaction_type'] );
 		$order->save();
 		$number_of_installments = $order->get_meta( 'monri_installments' ) ? (int) $order->get_meta( 'monri_installments' ) : 1;
-		$number_of_installments = min( max( $number_of_installments, 1 ), 24 );
+		$number_of_installments = min( max( $number_of_installments, 1 ), 36 );
 		if ( $number_of_installments > 1 ) {
 			$args['number_of_installments'] = $number_of_installments;
 		}
