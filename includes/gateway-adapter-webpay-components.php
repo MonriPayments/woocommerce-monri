@@ -96,7 +96,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	 * @throws Exception
 	 */
 	public function process_payment( $order_id ) {
-
+		//return with success if we are using process_checkout just for validation
+		if ($_GET["frontend_validation"]) {
+			return ['result'   => 'success'];
+		}
 		// monri-transaction is a json value, it is individually sanitized after decode
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$transaction = json_decode( wp_unslash( $_POST['monri-transaction'] ?? '{}' ), true );

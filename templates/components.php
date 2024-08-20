@@ -29,9 +29,16 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             }
         });
 
-        $('form.checkout').on('checkout_place_order_monri', function () {
+        $('form.checkout').on('checkout_place_order_monri', async function () {
             if ($('#monri-transaction').val()) {
                 return true;
+            }
+
+            let url = wc_checkout_params.wc_ajax_url.toString().replace( '%%endpoint%%', 'checkout' ) + '&frontend_validation=1'
+            const response = await $.post(url, $('form.checkout').serialize());
+            if (response.result !== 'success') {
+                console.log(response)
+                return;
             }
 
             const transactionParams = {
