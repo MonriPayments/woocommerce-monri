@@ -29,9 +29,16 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             }
         });
 
-        $('form.checkout').on('checkout_place_order_monri', function () {
+        $('form.checkout').on('checkout_place_order_monri', async function () {
             if ($('#monri-transaction').val()) {
                 return true;
+            }
+            //we use monri_checkout instead of checkout because process_checkout will call process_payment. process_payment requires '#monri-transaction' to be set!!
+            url = wc_checkout_params.wc_ajax_url.toString().replace( '%%endpoint%%', 'monri_checkout' )
+            const response = await $.post(url, $('form.checkout').serialize());
+            if (response.result !== 'success') {
+                //console.log(response)
+                return;
             }
 
             const transactionParams = {

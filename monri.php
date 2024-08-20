@@ -27,6 +27,7 @@ function monri_wc_init() {
 	}
 
 	require_once __DIR__ . '/includes/gateway.php';
+	require_once __DIR__ . '/includes/class-wc-monri-checkout.php';
 
 	function woocommerce_add_monri_gateway( $methods ) {
 		$methods[] = Monri_WC_Gateway::class;
@@ -143,3 +144,7 @@ function monri_legacy_migrate() {
 }
 
 register_activation_hook( __FILE__, 'monri_legacy_migrate' );
+
+
+
+
