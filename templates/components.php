@@ -29,18 +29,25 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             }
         });
 
-        $('form.checkout').on('checkout_place_order_monri', async function () {
+        $('form.checkout').on('checkout_place_order_monri', function () {
             if ($('#monri-transaction').val()) {
                 return true;
             }
 
             let url = wc_checkout_params.wc_ajax_url.toString().replace( '%%endpoint%%', 'checkout' ) + '&frontend_validation=1'
-            const response = await $.post(url, $('form.checkout').serialize());
+            // const response = await $.post(url, $('form.checkout').serialize());
+            const response =$.ajax({
+                type: 'POST',
+                url: url,
+                data: $('form.checkout').serialize(),
+                success: success,
+                dataType: dataType,
+                async:false
+            });
             if (response.result !== 'success') {
                 console.log(response)
                 return;
             }
-
             const transactionParams = {
                 address: $('#billing_address_1').val(),
                 fullName: $('#billing_first_name').val() + ' ' + $('#billing_last_name').val(),
