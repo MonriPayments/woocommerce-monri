@@ -34,21 +34,27 @@ if ( ! defined( 'ABSPATH' ) ) exit;
                 return true;
             }
 
+            // Needed to skip order placement, just do validation of fields
+            let formData = $('form.checkout').serializeArray();
+            formData.push({name: 'woocommerce_checkout_update_totals', value: '1'});
+
             let url = wc_checkout_params.wc_ajax_url.toString().replace( '%%endpoint%%', 'checkout' ) + '&frontend_validation=1'
             let response;
             $.ajax({
                 type: 'POST',
                 url: url,
-                data: $('form.checkout').serialize(),
+                data: $.param(formData),
                 success: function (result) {
                     response = result
                 },
                 async:false
             });
-            if (response.result !== 'success') {
-                console.log(response)
+
+            // Order placement is skipped, so failure is always returned. However, if messages is empty, validation has passed
+            if (response.result === 'failure' && response.messages) {
                 return;
             }
+
             const transactionParams = {
                 address: $('#billing_address_1').val(),
                 fullName: $('#billing_first_name').val() + ' ' + $('#billing_last_name').val(),
