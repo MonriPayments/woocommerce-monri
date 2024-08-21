@@ -38,7 +38,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             let formData = $('form.checkout').serializeArray();
             formData.push({name: 'woocommerce_checkout_update_totals', value: '1'});
 
-            let url = wc_checkout_params.wc_ajax_url.toString().replace( '%%endpoint%%', 'checkout' ) + '&frontend_validation=1'
+            let url = wc_checkout_params.wc_ajax_url.toString().replace( '%%endpoint%%', 'checkout' )
             let response;
             $.ajax({
                 type: 'POST',
