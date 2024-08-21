@@ -44,7 +44,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
                 async:false
             });
             if (response.result !== 'success') {
-                //console.log(response)
+                console.log(response)
                 return;
             }
             const transactionParams = {

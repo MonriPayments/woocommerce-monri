@@ -97,7 +97,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	 */
 	public function process_payment( $order_id ) {
 		//return with success if we are using process_checkout just for validation
-		if ($_GET["frontend_validation"]) {
+		if (!empty($_GET["frontend_validation"]) && $_GET["frontend_validation"] === "1") {
 			return ['result'   => 'success'];
 		}
 		// monri-transaction is a json value, it is individually sanitized after decode
