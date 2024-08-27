@@ -96,7 +96,7 @@ class Monri_WC_Installments_Fee {
 		// get installments from session
 		$installments = (int) WC()->session->get( 'monri_installments' );
 
-		if ( $installments <= 1 || $installments > 24 ) {
+		if ( $installments <= 1 || $installments > 36 ) {
 			return;
 		}
 

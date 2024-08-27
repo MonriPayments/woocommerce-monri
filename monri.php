@@ -116,7 +116,7 @@ function monri_legacy_migrate() {
 		'bottom_limit'                   => 'bottom_limit'
 	];
 
-	for ( $i = 2; $i <= 24; $i ++ ) {
+	for ( $i = 2; $i <= 36; $i ++ ) {
 		$old_to_new_map["price_increase_$i"] = "price_increase_$i";
 	}
 
