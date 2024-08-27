@@ -4,7 +4,7 @@ Tags: monri, credit card, payment, woocommerce
 Requires at least: 5.3
 Tested up to: 6.6
 Requires PHP: 7.3
-Stable tag: 3.2.0
+Stable tag: 3.2.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -43,6 +43,10 @@ You can find more details about the development of this plugin at:
 https://github.com/MonriPayments/woocommerce-monri
 
 == Changelog ==
+
+= 3.2.1 - 2024-08-27 =
+* Validation improvements in old WooCommerce checkout
+* Increased the number of maximum installments to 36
 
 = 3.2.0 - 2024-07-26 =
 * Refund, capture, void from administration, APIs implemented for all 3 payment methods
