@@ -67,14 +67,17 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			$installments = ( $bottom_limit < 0.01 ) || ( $order_total >= $bottom_limit );
 		}
 
-		wc_get_template( 'components.php', array(
-			'config'       => array(
-				'authenticity_token' => $this->payment->get_option( 'monri_authenticity_token' ),
-				'client_secret'      => $client_secret,
-				'locale'             => $this->payment->get_option( 'form_language' ),
-			),
-			'installments' => $installments
-		), basename( MONRI_WC_PLUGIN_PATH ), MONRI_WC_PLUGIN_PATH . 'templates/' );
+		// Prevents rendering this file multiple times - JS part gets duplicated and executed twice
+		if ( isset( $_REQUEST['wc-ajax'] ) && $_REQUEST['wc-ajax'] === "update_order_review" ) {
+			wc_get_template( 'components.php', array(
+				'config'       => array(
+					'authenticity_token' => $this->payment->get_option( 'monri_authenticity_token' ),
+					'client_secret'      => $client_secret,
+					'locale'             => $this->payment->get_option( 'form_language' ),
+				),
+				'installments' => $installments
+			), basename( MONRI_WC_PLUGIN_PATH ), MONRI_WC_PLUGIN_PATH . 'templates/' );
+		}
 	}
 
 	public function prepare_blocks_data() {
