@@ -1,6 +1,6 @@
 {
   "name": "woocommerce-monri",
-  "version": "3.1.1",
+  "version": "3.2.1",
   "description": "Monri WooCommerce Plugin",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,9 @@
     "make:release": "node tasks/pack.js",
     "build": "rimraf assets/js/blocks/* && npm run build:webpack",
     "pack": "npm run build && npm run make:release",
-    "bump-version": "bash tasks/bump-version.sh"
+    "bump-version": "bash tasks/bump-version.sh",
+    "publish": "bash tasks/publish.sh",
+    "release": "npm run pack && npm run publish"
   },
   "author": "",
   "license": "ISC",

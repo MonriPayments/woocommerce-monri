@@ -2,17 +2,17 @@
 /*
 Plugin Name: Monri Payments
 Description: Official Monri Payments gateway for WooCommerce
-Version: 3.1.1
+Version: 3.2.1
 Author: Monri Payments d.o.o.
 Author URI: https://monri.com
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 WC requires at least: 4.3.0
-WC tested up to: 8.7
+WC tested up to: 9.2.3
 */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'MONRI_WC_VERSION', '3.1.1' );
+define( 'MONRI_WC_VERSION', '3.2.1' );
 define( 'MONRI_WC_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'MONRI_WC_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'MONRI_WC_PLUGIN_INDEX', __FILE__ );
@@ -116,7 +116,7 @@ function monri_legacy_migrate() {
 		'bottom_limit'                   => 'bottom_limit'
 	];
 
-	for ( $i = 2; $i <= 24; $i ++ ) {
+	for ( $i = 2; $i <= 36; $i ++ ) {
 		$old_to_new_map["price_increase_$i"] = "price_increase_$i";
 	}
 

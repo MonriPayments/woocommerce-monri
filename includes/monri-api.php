@@ -82,14 +82,12 @@ class Monri_WC_Api {
 
 		$authenticity_token = Monri_WC_Settings::instance()->get_option( 'monri_authenticity_token' );
 
-		$payload = '<?xml version="1.0" encoding="UTF-8"?>
-              <order>
-                <order-number>' . $order_number . '</order-number>
-                <authenticity-token>' . $authenticity_token . '</authenticity-token>
-                <digest>' . $this->digest( $order_number ) . '</digest>
-            </order>';
+		$payload = new SimpleXMLElement( "<order></order>" );
+		$payload->addChild( 'order-number', $order_number );
+		$payload->addChild( 'authenticity-token', $authenticity_token );
+		$payload->addChild( 'digest', $this->digest( $order_number ) );
 
-		return $this->request( '/orders/show', $payload );
+		return $this->request( '/orders/show', $payload->asXML() );
 	}
 
 	/**
@@ -103,72 +101,56 @@ class Monri_WC_Api {
 
 		$authenticity_token = Monri_WC_Settings::instance()->get_option( 'monri_authenticity_token' );
 
-        $payload = new SimpleXMLElement("<transaction></transaction>");
-        $payload->addChild( 'order-number', $order_number );
-        $payload->addChild( 'amount', $amount );
-        $payload->addChild( 'currency', $currency );
-        $payload->addChild( 'authenticity-token', $authenticity_token );
-        $payload->addChild( 'digest', $this->digestAPI( $order_number, $amount, $currency ) );
+		$payload = new SimpleXMLElement( "<transaction></transaction>" );
+		$payload->addChild( 'order-number', $order_number );
+		$payload->addChild( 'amount', $amount );
+		$payload->addChild( 'currency', $currency );
+		$payload->addChild( 'authenticity-token', $authenticity_token );
+		$payload->addChild( 'digest', $this->digestAPI( $order_number, $amount, $currency ) );
 
 		return $this->request( "/transactions/$order_number/refund.xml", $payload->asXML() );
 	}
 
-    /**
-     * @param string $order_number
-     * @param float|string $amount
-     * @param string $currency
-     *
-     * @return SimpleXmlElement|WP_Error
-     */
-    public function capture( $order_number, $amount, $currency ) {
-
-        $authenticity_token = Monri_WC_Settings::instance()->get_option( 'monri_authenticity_token' );
-
-        $payload = new SimpleXMLElement("<transaction></transaction>");
-        $payload->addChild( 'order-number', $order_number );
-        $payload->addChild( 'amount', $amount );
-        $payload->addChild( 'currency', $currency );
-        $payload->addChild( 'authenticity-token', $authenticity_token );
-        $payload->addChild( 'digest', $this->digestAPI( $order_number, $amount, $currency ) );
-
-        return $this->request( "/transactions/$order_number/capture.xml", $payload->asXML() );
-    }
-
-    /**
-     * @param string $order_number
-     * @param float|string $amount
-     * @param string $currency
-     *
-     * @return SimpleXmlElement|WP_Error
-     */
-    public function void( $order_number, $amount, $currency ) {
-
-        $authenticity_token = Monri_WC_Settings::instance()->get_option( 'monri_authenticity_token' );
-
-        $payload = new SimpleXMLElement("<transaction></transaction>");
-        $payload->addChild( 'order-number', $order_number );
-        $payload->addChild( 'amount', $amount );
-        $payload->addChild( 'currency', $currency );
-        $payload->addChild( 'authenticity-token', $authenticity_token );
-        $payload->addChild( 'digest', $this->digestAPI( $order_number, $amount, $currency ) );
-
-        return $this->request( "/transactions/$order_number/void.xml", $payload->asXML() );
-    }
-
-    /**
-	 * @param array $post
+	/**
+	 * @param string $order_number
+	 * @param float|string $amount
+	 * @param string $currency
 	 *
 	 * @return SimpleXmlElement|WP_Error
 	 */
-	public function pares( $post ) {
+	public function capture( $order_number, $amount, $currency ) {
 
-		$xml = "<?xml version='1.0' encoding='UTF-8'?>
-                <secure-message>              
-                  <MD>{$post['MD']}</MD>
-                  <PaRes>{$post['PaRes']}</PaRes>
-                </secure-message>";
+		$authenticity_token = Monri_WC_Settings::instance()->get_option( 'monri_authenticity_token' );
 
-		return $this->request( '/pares', $xml );
+		$payload = new SimpleXMLElement( "<transaction></transaction>" );
+		$payload->addChild( 'order-number', $order_number );
+		$payload->addChild( 'amount', $amount );
+		$payload->addChild( 'currency', $currency );
+		$payload->addChild( 'authenticity-token', $authenticity_token );
+		$payload->addChild( 'digest', $this->digestAPI( $order_number, $amount, $currency ) );
+
+		return $this->request( "/transactions/$order_number/capture.xml", $payload->asXML() );
+	}
+
+	/**
+	 * @param string $order_number
+	 * @param float|string $amount
+	 * @param string $currency
+	 *
+	 * @return SimpleXmlElement|WP_Error
+	 */
+	public function void( $order_number, $amount, $currency ) {
+
+		$authenticity_token = Monri_WC_Settings::instance()->get_option( 'monri_authenticity_token' );
+
+		$payload = new SimpleXMLElement( "<transaction></transaction>" );
+		$payload->addChild( 'order-number', $order_number );
+		$payload->addChild( 'amount', $amount );
+		$payload->addChild( 'currency', $currency );
+		$payload->addChild( 'authenticity-token', $authenticity_token );
+		$payload->addChild( 'digest', $this->digestAPI( $order_number, $amount, $currency ) );
+
+		return $this->request( "/transactions/$order_number/void.xml", $payload->asXML() );
 	}
 
 	/**
@@ -183,17 +165,17 @@ class Monri_WC_Api {
 		return hash( 'SHA1', $merchant_key . $order_number );
 	}
 
-    /**
-     * @param string $order_number
-     * @param int $amount
-     * @param string $currency
-     *
-     * @return string
-     */
-    private function digestAPI( $order_number, $amount, $currency ) {
+	/**
+	 * @param string $order_number
+	 * @param int $amount
+	 * @param string $currency
+	 *
+	 * @return string
+	 */
+	private function digestAPI( $order_number, $amount, $currency ) {
 
-        $merchant_key = Monri_WC_Settings::instance()->get_option( 'monri_merchant_key' );
+		$merchant_key = Monri_WC_Settings::instance()->get_option( 'monri_merchant_key' );
 
-        return hash( 'SHA1', $merchant_key . $order_number . $amount . $currency );
-    }
+		return hash( 'SHA1', $merchant_key . $order_number . $amount . $currency );
+	}
 }
