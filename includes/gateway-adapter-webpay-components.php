@@ -387,26 +387,28 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
     }
 
     public function cart_data_updated() {
-        woocommerce_store_api_register_endpoint_data(
-            array(
-                'endpoint'        => CartSchema::IDENTIFIER,
-                'namespace'       => 'woocommerce-monri',
-                'data_callback'   => function() {
-                    return array(
-                        'client_secret' => $this->request_authorize(),
-                    );
-                },
-                'schema_callback' => function() {
-                    return array(
-                        'properties' => array(
-                            'client_secret' => array(
-                                'type' => 'string',
-                            ),
-                        ),
-                    );
-                },
-                'schema_type'     => ARRAY_A,
-            )
-        );
+		if (!WC()->cart->is_empty()) {
+			woocommerce_store_api_register_endpoint_data(
+				array(
+					'endpoint'        => CartSchema::IDENTIFIER,
+					'namespace'       => 'woocommerce-monri',
+					'data_callback'   => function() {
+						return array(
+							'client_secret' => $this->request_authorize(),
+						);
+					},
+					'schema_callback' => function() {
+						return array(
+							'properties' => array(
+								'client_secret' => array(
+									'type' => 'string',
+								),
+							),
+						);
+					},
+					'schema_type'     => ARRAY_A,
+				)
+			);
+		}
     }
 }
