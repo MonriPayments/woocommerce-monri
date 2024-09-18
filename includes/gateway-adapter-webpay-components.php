@@ -201,6 +201,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 
 		$authorization = "WP3-v2 {$this->payment->get_option( 'monri_authenticity_token' )} $timestamp $digest";
 
+		Monri_WC_Logger::log( $data, __METHOD__ );
+
 		$response = wp_remote_post( $url, [
 				'body'      => $data,
 				'headers'   => [
@@ -212,6 +214,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 				'sslverify' => true
 			]
 		);
+
+		Monri_WC_Logger::log( $response, __METHOD__ );
 
 		if ( is_wp_error( $response ) ) {
 			$response = [ 'status' => 'error', 'error' => $response->get_error_message() ];
