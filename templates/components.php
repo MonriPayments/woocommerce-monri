@@ -37,6 +37,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             // Needed to skip order placement, just do validation of fields
             let formData = $('form.checkout').serializeArray();
             formData.push({name: 'woocommerce_checkout_update_totals', value: '1'});
+            formData.push({name: 'monri_components_checkout_validation', value: '1'});
 
             let url = wc_checkout_params.wc_ajax_url.toString().replace( '%%endpoint%%', 'checkout' )
             let response;
@@ -66,7 +67,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             }
 
             monri.confirmPayment(card, transactionParams).then(function (response) {
-                //console.log(response);
                 if (response.error) {
                     $('#monri-error').text(response.error.message);
                     return;
