@@ -39,6 +39,8 @@ class Monri_WC_Api {
 	 */
 	private function request( $path, $body ) {
 
+		Monri_WC_Logger::log( func_get_args(), __METHOD__ );
+
 		$url = $this->test_mode ? self::TEST_ENDPOINT : self::ENDPOINT;
 
 		$headers = [
@@ -52,6 +54,8 @@ class Monri_WC_Api {
 			'user-agent' => 'Monri 3DS Ringer',
 			'timeout'    => 15
 		) );
+
+		Monri_WC_Logger::log( $response, __METHOD__ );
 
 		if ( is_wp_error( $response ) ) {
 			return $response;
