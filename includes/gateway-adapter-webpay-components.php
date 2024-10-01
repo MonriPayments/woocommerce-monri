@@ -41,6 +41,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 				wp_enqueue_script( 'monri-components', $script_url, [], MONRI_WC_VERSION );
 			}
 		} );
+
+		add_action( 'woocommerce_after_checkout_validation', [ $this, 'after_checkout_validation' ], null, 2);
 	}
 
 	/**
@@ -406,5 +408,24 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Validate TOC on Monri woocommerce_checkout_update_totals ajax request
+	 *
+	 * @param array $data
+	 * @param WP_Error $errors
+	 *
+	 * @return void
+	 */
+	public function after_checkout_validation( $data, $errors ) {
+
+		if ( empty( $_POST['monri_components_checkout_validation'] ) ) {
+			return;
+		}
+
+		if ( !empty( $data['woocommerce_checkout_update_totals'] ) && empty( $data['terms'] ) && ! empty( $data['terms-field'] ) ) {
+			$errors->add( 'terms', __( 'Please read and accept the terms and conditions to proceed with your order.', 'woocommerce' ) );
+		}
 	}
 }
