@@ -10,7 +10,7 @@ export const WebPayForm = () => {
     const showInstallments = settings.installments;
     return <Fragment>
         {decodeEntities(settings.description || '')}
-        {showInstallments && <Installments />}
+        {showInstallments ? <Installments /> : ''}
     </Fragment>;
 };
 
