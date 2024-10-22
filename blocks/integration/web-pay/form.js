@@ -7,9 +7,10 @@ import { getDefaultPaymentMethod } from "../default-payment-method";
 export const WebPayForm = () => {
     const settings = useMonriData();
 
+    const showInstallments = settings.installments;
     return <Fragment>
         {decodeEntities(settings.description || '')}
-        <Installments />
+        {showInstallments ? <Installments /> : ''}
     </Fragment>;
 };
 

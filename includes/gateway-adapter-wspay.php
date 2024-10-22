@@ -200,11 +200,13 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$req['customerEmail']     = $order->get_billing_email();
 
 		$req = apply_filters( 'monri_wspay_request', $req );
+
 		$order->add_meta_data( 'monri_wspay_transaction_type', $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase' );
 		$order->save();
-		Monri_WC_Logger::log( "Request data: " . print_r( $req, true ), __METHOD__ );
+
+		//Monri_WC_Logger::log( "Request data: " . print_r( $req, true ), __METHOD__ );
 		$response = $this->api( '/api/create-transaction', $req );
-		Monri_WC_Logger::log( $response, __METHOD__ );
+		//Monri_WC_Logger::log( $response, __METHOD__ );
 
 		if ( isset( $response['PaymentFormUrl'] ) ) {
 			return [
@@ -382,6 +384,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	 */
 	private function api( $path, $params ) {
 
+		Monri_WC_Logger::log( func_get_args(), __METHOD__ );
+
 		$url = $this->payment->get_option_bool( 'test_mode' ) ? self::ENDPOINT_TEST : self::ENDPOINT;
 		$url .= $path;
 
@@ -396,6 +400,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
 				'sslverify' => false
 			]
 		);
+
+		Monri_WC_Logger::log( $result, __METHOD__ );
 
 		if ( is_wp_error( $result ) || ! isset( $result['body'] ) ) {
 			return [];
