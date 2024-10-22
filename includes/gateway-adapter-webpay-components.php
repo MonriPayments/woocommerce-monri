@@ -434,7 +434,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			$errors->add( 'terms', __( 'Please read and accept the terms and conditions to proceed with your order.', 'woocommerce' ) );
 		}
 	}
-
+	/**
+	 * Send new client secret to frontend when cart data is updated
+	 *
+	 */
 	public function cart_data_updated() {
 		if (!WC()->cart->is_empty()) {
 			woocommerce_store_api_register_endpoint_data(
