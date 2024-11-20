@@ -1,4 +1,5 @@
 <?php
+use Automattic\WooCommerce\StoreApi\Schemas\V1\CartSchema;
 
 class Monri_WC_Gateway_Adapter_Webpay_Components {
 
@@ -33,6 +34,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		$this->payment->has_fields = true;
 		add_action( 'woocommerce_order_status_changed', [ $this, 'process_capture' ], null, 4 );
 		add_action( 'woocommerce_order_status_changed', [ $this, 'process_void' ], null, 4 );
+		add_action( 'woocommerce_cart_updated', [$this, 'cart_data_updated']);
 
 		// load components.js on frontend checkout
 		add_action( 'template_redirect', function () {
@@ -430,6 +432,35 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 
 		if ( !empty( $data['woocommerce_checkout_update_totals'] ) && empty( $data['terms'] ) && ! empty( $data['terms-field'] ) ) {
 			$errors->add( 'terms', __( 'Please read and accept the terms and conditions to proceed with your order.', 'woocommerce' ) );
+		}
+	}
+	/**
+	 * Send new client secret to frontend when cart data is updated
+	 *
+	 */
+	public function cart_data_updated() {
+		if (!WC()->cart->is_empty()) {
+			woocommerce_store_api_register_endpoint_data(
+				array(
+					'endpoint'        => CartSchema::IDENTIFIER,
+					'namespace'       => 'woocommerce-monri',
+					'data_callback'   => function() {
+						return array(
+							'client_secret' => $this->request_authorize(),
+						);
+					},
+					'schema_callback' => function() {
+						return array(
+							'properties' => array(
+								'client_secret' => array(
+									'type' => 'string',
+								),
+							),
+						);
+					},
+					'schema_type'     => ARRAY_A,
+				)
+			);
 		}
 	}
 }
