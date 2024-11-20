@@ -21,12 +21,27 @@ class Monri_WC_Callback {
 	}
 
 	/**
+	 * Forward callback request based on selected payment gateway service.
+	 */
+	public function handle_callback() {
+		$payment_gateway_service = Monri_WC_Settings::instance()->get_option( 'monri_payment_gateway_service' );
+		switch ( $payment_gateway_service ) {
+			case 'monri-web-pay':
+				$this->handle_monri_webpay_callback();
+				break;
+			case 'monri-ws-pay':
+				$this->handle_monri_wspay_callback();
+				break;
+		}
+	}
+
+	/**
 	 * Handles the given URL `$callback` as the callback URL for Monri Payment Gateway.
 	 * This endpoint accepts only POST requests which have their payload in the PHP Input Stream.
 	 * The payload must be a valid JSON.
 	 *
 	 */
-	public function handle_callback() {
+	private function handle_monri_webpay_callback() {
 
 		if ( $_SERVER['REQUEST_METHOD'] !== 'POST' ) {
 			$this->error( 'Invalid request method.', [ 400, 'Bad Request' ] );
@@ -97,5 +112,113 @@ class Monri_WC_Callback {
 			$this->error( $message, array( 404, 'Not Found' ) );
 		}
 
+	}
+
+	/**
+	 * Handles Monri WSPay callback. Must be a POST request
+	 */
+	private function handle_monri_wspay_callback() {
+		$bad_request = [ 400, 'Bad Request' ];
+		if ( $_SERVER['REQUEST_METHOD'] !== 'POST' ) {
+			$this->error( 'Invalid request method.', $bad_request );
+		}
+
+		$json = file_get_contents( 'php://input' );
+		Monri_WC_Logger::log( "Request data: " . sanitize_textarea_field( $json ), __METHOD__ );
+
+		try {
+			$payload = json_decode( $json, true );
+		} catch ( \Throwable $e ) {
+			$this->error( 'Invalid request content', $bad_request_header );;
+		}
+
+		if ( !$this->validate_monri_wspay_callback($payload) ) {
+			$this->error( 'Invalid signature.', $bad_request );
+		}
+
+		if (!in_array($this->get_monri_wspay_callback_action($payload), ['Authorized', 'Completed'])) {
+			$this->error( 'Invalid action.', $bad_request );
+		}
+
+		if ( ! isset( $payload['ShoppingCartID'] ) ) {
+			$this->error( 'Order information not found in request content.', $bad_request_header );
+		}
+
+		$order_number = sanitize_text_field( $payload['ShoppingCartID'] );
+		if (Monri_WC_Settings::instance()->get_option( 'test_mode' )) {
+			$order_number = Monri_WC_Utils::resolve_real_order_id($order_number);
+		}
+
+		$order = wc_get_order( $order_number );
+		if ( ! $order ) {
+			$this->error( 'Payment order not found.', $bad_request );
+		}
+
+		try {
+			$order = wc_get_order( $order_number );
+
+			if ( $order->get_status() !== 'pending' ) {
+				return;
+			}
+
+			$valid_response_code = isset( $payload['ActionSuccess'] ) && $payload['ActionSuccess'] === "1";
+
+			if ( $valid_response_code ) {
+				$order->payment_complete();
+			} else {
+				$order->update_status( 'cancelled' );
+			}
+
+		} catch ( \Exception $e ) {
+			$message = sprintf( 'Order ID: %s not found or does not exist.', $order_number );
+			$this->error( $message, array( 404, 'Not Found' ) );
+		}
+	}
+
+	/**
+	 * Validate the Monri WSPay callback request
+	 * @param string[] $payload
+	 *
+	 * @return bool
+	 */
+	private function validate_monri_wspay_callback($payload) {
+		$shopID = Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_shop_id' );
+		$secretKey = Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_secret' );
+		$actionSuccess = sanitize_text_field( $payload['ActionSuccess'] ?? '');
+		$approvalCode = sanitize_text_field( $payload['ApprovalCode'] ?? '');
+		$wspayOrderId = sanitize_text_field( $payload['WsPayOrderId'] ?? '');
+
+		$signature =
+			$shopID . $secretKey .
+			$actionSuccess .
+			$approvalCode .
+			$secretKey . $shopID .
+			$approvalCode .
+			$wspayOrderId;
+
+		$payloadSignature = $payload['Signature'] ?? '';
+
+		return $payloadSignature === hash('sha512', $signature);
+
+	}
+
+	/**
+	 *  Get callback action name
+	 * @param string[] $payload
+	 *
+	 * @return string
+	 */
+	private function get_monri_wspay_callback_action($payload)
+	{
+		$orderedActions = ['Refunded', 'Voided', 'Completed', 'Authorized'];
+		$result = 'Unknown';
+		foreach ($orderedActions as $action) {
+			if (isset($payload[$action]) && $payload[$action] === '1') {
+				$result = $action;
+				break;
+			}
+		}
+
+		return $result;
 	}
 }
