@@ -230,12 +230,12 @@ class Monri_WC_Settings {
 				'type'        => 'select',
 				'class'       => 'wc-enhanced-select',
 				'default'     => 0,
-				'description' => '',
+				'description' => 'Note: Monri Components does not allow paying in installments.',
 				'options'     => $yes_or_no,
 				'desc_tip'    => true,
 				'custom_attributes' => [
 					'data-depends' => '{
-						"monri_payment_gateway_service":"monri-web-pay"
+						"monri_payment_gateway_service":["monri-web-pay", "monri-ws-pay"]
 					}'
 				]
 			),
@@ -249,7 +249,7 @@ class Monri_WC_Settings {
 				'desc_tip'    => true,
 				'custom_attributes' => [
 					'data-depends' => '{
-						"monri_web_pay_integration_type":"form",
+						"monri_payment_gateway_service":["monri-web-pay", "monri-ws-pay"],
 						"paying_in_installments":"1"
 					}'
 				]
@@ -292,7 +292,7 @@ class Monri_WC_Settings {
 				'default'     => __( '0', 'monri' ),
 				'custom_attributes' => [
 					'data-depends' => '{
-						"monri_web_pay_integration_type":"form",
+						"monri_payment_gateway_service":["monri-web-pay", "monri-ws-pay"],
 						"paying_in_installments":"1"
 					}'
 				]

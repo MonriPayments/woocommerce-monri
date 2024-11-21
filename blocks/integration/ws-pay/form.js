@@ -1,11 +1,17 @@
 import { decodeEntities } from '@wordpress/html-entities';
 import { useMonriData } from "../use-monri-data";
 import { getDefaultPaymentMethod } from "../default-payment-method";
+import { Installments } from "../installments";
+import { Fragment } from "react";
 
 export const WsPayForm = () => {
     const settings = useMonriData();
 
-    return decodeEntities(settings.description || '');
+    const showInstallments = settings.installments;
+    return <Fragment>
+        {decodeEntities(settings.description || '')}
+        {showInstallments ? <Installments /> : ''}
+    </Fragment>;
 };
 
 export const getPaymentMethod = () => {

@@ -74,6 +74,12 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		add_action( 'woocommerce_thankyou_monri', [ $this, 'thankyou_page' ] );
 		add_action( 'woocommerce_order_status_changed', [ $this, 'process_capture' ], null, 3 );
 		add_action( 'woocommerce_order_status_changed', [ $this, 'process_void' ], null, 3 );
+
+		// load installments fee logic if installments enabled
+		if ( $this->payment->get_option( 'paying_in_installments' ) ) {
+			require_once __DIR__ . '/installments-fee.php';
+			( new Monri_WC_Installments_Fee() )->init();
+		}
 	}
 
 	/**
@@ -109,6 +115,36 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			$this->payment->saved_payment_methods();
 			$this->payment->save_payment_method_checkbox();
 		}
+
+		if ( $this->payment->get_option_bool( 'paying_in_installments' ) ) {
+			$order_total = (float) WC()->cart->get_total( 'edit' );
+
+			// installments key/value array for template
+			$installments = array();
+
+			$bottom_limit           = (float) $this->payment->get_option( 'bottom_limit', 0 );
+			$bottom_limit_satisfied = ( $bottom_limit < 0.01 ) || ( $order_total >= $bottom_limit );
+
+			if ( $bottom_limit_satisfied ) {
+
+				$selected = (int) WC()->session->get( 'monri_installments' );
+
+				for ( $i = 1; $i <= (int) $this->payment->get_option( 'number_of_allowed_installments', 12 ); $i ++ ) {
+					$installments[] = [
+						'label'          => ( $i === 1 ) ? __( 'No installments', 'monri' ) : (string) $i,
+						'value'          => (string) $i,
+						'selected'       => ( $selected === $i ),
+						'price_increase' => $this->payment->get_option( "price_increase_$i", 0 )
+					];
+				}
+
+			}
+
+			wc_get_template( 'installments.php', array(
+				'installments' => $installments
+			), basename( MONRI_WC_PLUGIN_PATH ), MONRI_WC_PLUGIN_PATH . 'templates/' );
+
+		}
 	}
 
 	/**
@@ -120,6 +156,13 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	public function process_payment( $order_id ) {
 
 		$order = wc_get_order( $order_id );
+
+		$number_of_installments = WC()->session->get( 'monri_installments' );
+
+		if ( isset( $number_of_installments ) ) {
+			$order->add_meta_data( 'monri_installments', $number_of_installments );
+			$order->save();
+		}
 
 		$order_id = (string) $order->get_id();
 
@@ -198,6 +241,14 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$req['customerCountry']   = $order->get_billing_country();
 		$req['customerPhone']     = $order->get_billing_phone();
 		$req['customerEmail']     = $order->get_billing_email();
+
+		$number_of_installments = $order->get_meta( 'monri_installments' ) ? $order->get_meta( 'monri_installments' ) : 1;
+		$number_of_installments = min( max( $number_of_installments, 1 ), 36 );
+		if ( $number_of_installments > 1 ) {
+			//formatting and adding 00 (no grace period allowed)
+			$number_of_installments = sprintf('%02d', $number_of_installments) . '00';
+			$req['paymentPlan'] = $number_of_installments;
+		}
 
 		$req = apply_filters( 'monri_wspay_request', $req );
 
