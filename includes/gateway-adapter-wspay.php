@@ -241,6 +241,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$req['customerCountry']   = $order->get_billing_country();
 		$req['customerPhone']     = $order->get_billing_phone();
 		$req['customerEmail']     = $order->get_billing_email();
+		$req['paymentPlan']       = '0000';
 
 		$number_of_installments = $order->get_meta( 'monri_installments' ) ? $order->get_meta( 'monri_installments' ) : 1;
 		$number_of_installments = min( max( $number_of_installments, 1 ), 36 );
