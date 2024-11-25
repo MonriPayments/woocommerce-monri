@@ -135,7 +135,7 @@ class Monri_WC_Callback {
 			$this->error( 'Invalid signature.', $bad_request );
 		}
 
-		if ( ! in_array( $this->get_monri_wspay_callback_action( $payload ), array( 'Authorized', 'Completed' ) ) ) {
+		if ( ! in_array( $this->get_monri_wspay_callback_action( $payload ), array( 'Refunded', 'Voided', 'Completed', 'Authorized' ) ) ) {
 			$this->error( 'Invalid action.', $bad_request );
 		}
 
@@ -156,14 +156,23 @@ class Monri_WC_Callback {
 		try {
 			$order = wc_get_order( $order_number );
 
-			if ( $order->get_status() !== 'pending' ) {
-				return;
-			}
-
 			$valid_response_code = isset( $payload['ActionSuccess'] ) && $payload['ActionSuccess'] === '1';
 
 			if ( $valid_response_code ) {
-				$order->payment_complete();
+				if (isset($payload['Refunded']) && $payload['Refunded'] === '1' && $order->get_status() !== 'refunded' ) {
+					$order->update_status( 'refunded' );
+					return;
+				}
+				if (isset($payload['Voided']) && $payload['Voided'] === '1' && $order->get_status() !== 'cancelled' ) {
+					$order->update_status( 'cancelled' );
+					return;
+				}
+				//@todo: add order metadata for authorize callback so that order can be voided/captured/refunded from admin
+				if (isset($payload['Completed']) && $payload['Completed'] === '1' && !in_array( $order->get_status(), [ 'completed', 'refunded' ])) {
+					$order->payment_complete();
+					return;
+				}
+
 			} else {
 				$order->update_status( 'cancelled' );
 			}
@@ -196,7 +205,6 @@ class Monri_WC_Callback {
 			$wspay_order_id;
 
 		$payload_signature = $payload['Signature'] ?? '';
-
 		return $payload_signature === hash( 'sha512', $signature );
 	}
 
