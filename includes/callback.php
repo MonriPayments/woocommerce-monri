@@ -154,25 +154,28 @@ class Monri_WC_Callback {
 		}
 
 		try {
-			$order = wc_get_order( $order_number );
+			$order            = wc_get_order( $order_number );
+			$transaction_info = $order->get_meta( '_monri_transaction_info' );
 
 			$valid_response_code = isset( $payload['ActionSuccess'] ) && $payload['ActionSuccess'] === '1';
 
 			if ( $valid_response_code ) {
-				if (isset($payload['Refunded']) && $payload['Refunded'] === '1' && $order->get_status() !== 'refunded' ) {
+				if ( isset( $payload['Refunded'] ) && $payload['Refunded'] === '1' && $order->get_status() !== 'refunded' ) {
 					$order->update_status( 'refunded' );
 					return;
 				}
-				if (isset($payload['Voided']) && $payload['Voided'] === '1' && $order->get_status() !== 'cancelled' ) {
+				if ( isset( $payload['Voided'] ) && $payload['Voided'] === '1' && $order->get_status() !== 'cancelled' ) {
 					$order->update_status( 'cancelled' );
 					return;
 				}
-				//@todo: add order metadata for authorize callback so that order can be voided/captured/refunded from admin
-				if (isset($payload['Completed']) && $payload['Completed'] === '1' && !in_array( $order->get_status(), [ 'completed', 'refunded' ])) {
+				if ( empty( $transaction_info ) && isset( $payload['Authorized'] ) && $payload['Authorized'] === '1' && in_array( $order->get_status(), array( 'pending', 'on-hold' ) ) ) {
+					$order->update_meta_data( '_monri_transaction_info', $this->get_monri_wspay_transaction_data( $payload ) );
+					$order->save_meta_data();
+				}
+				if ( isset( $payload['Completed'] ) && $payload['Completed'] === '1' && ! in_array( $order->get_status(), array( 'completed', 'refunded' ) ) ) {
 					$order->payment_complete();
 					return;
 				}
-
 			} else {
 				$order->update_status( 'cancelled' );
 			}
@@ -226,5 +229,30 @@ class Monri_WC_Callback {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Get order transaction data. Used for WSPay API calls
+	 *
+	 * @param string[] $payload
+	 *
+	 * @return array
+	 */
+	private function get_monri_wspay_transaction_data( $payload ) {
+		$transaction_data     = array();
+		$transaction_info_map = array(
+			'WsPayOrderId' => 'Transaction ID',
+			'ApprovalCode' => 'Approval code',
+			'PaymentPlan'  => 'Payment plan',
+			'STAN'         => 'STAN',
+			'Amount'       => 'Amount',
+		);
+
+		foreach ( array_keys( $transaction_info_map ) as $key ) {
+			if ( isset( $payload[ $key ] ) ) {
+				$transaction_data[ $key ] = sanitize_text_field( $payload[ $key ] );
+			}
+		}
+		return $transaction_data;
 	}
 }
