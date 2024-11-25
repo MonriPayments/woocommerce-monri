@@ -300,7 +300,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			$order->update_meta_data( '_monri_transaction_info', $transaction_data );
 			$order->save_meta_data();
 			if ( $transaction_type === 'purchase' ) {
-				$order->update_status( 'processing' );
+				$order->payment_complete();
 			} else {
 				$order->update_status( 'on-hold', __( 'Order awaiting payment', 'monri' ) );
 			}
