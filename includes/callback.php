@@ -154,7 +154,6 @@ class Monri_WC_Callback {
 		}
 
 		try {
-			$order            = wc_get_order( $order_number );
 			$transaction_info = $order->get_meta( '_monri_transaction_info' );
 
 			$valid_response_code = isset( $payload['ActionSuccess'] ) && $payload['ActionSuccess'] === '1';
