@@ -127,7 +127,7 @@ class Monri_WC_Callback {
 		try {
 			$payload = json_decode( $json, true );
 		} catch ( \Throwable $e ) {
-			$this->error( 'Invalid request content', $bad_request_header );
+			$this->error( 'Invalid request content', $bad_request );
 
 		}
 
@@ -140,7 +140,7 @@ class Monri_WC_Callback {
 		}
 
 		if ( ! isset( $payload['ShoppingCartID'] ) ) {
-			$this->error( 'Order information not found in request content.', $bad_request_header );
+			$this->error( 'Order information not found in request content.', $bad_request );
 		}
 
 		$order_number = sanitize_text_field( $payload['ShoppingCartID'] );
