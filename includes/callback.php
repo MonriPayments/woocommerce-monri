@@ -169,6 +169,7 @@ class Monri_WC_Callback {
 				}
 				if ( empty( $transaction_info ) && isset( $payload['Authorized'] ) && $payload['Authorized'] === '1' && in_array( $order->get_status(), array( 'pending', 'on-hold' ) ) ) {
 					$order->update_meta_data( '_monri_transaction_info', $this->get_monri_wspay_transaction_data( $payload ) );
+					$order->update_status( 'on-hold', __( 'Order awaiting payment', 'monri' ) );
 					$order->save_meta_data();
 				}
 				if ( isset( $payload['Completed'] ) && $payload['Completed'] === '1' && ! in_array( $order->get_status(), array( 'completed', 'refunded' ) ) ) {
