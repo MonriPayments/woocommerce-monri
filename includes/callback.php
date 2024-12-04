@@ -159,10 +159,6 @@ class Monri_WC_Callback {
 			$valid_response_code = isset( $payload['ActionSuccess'] ) && $payload['ActionSuccess'] === '1';
 
 			if ( $valid_response_code ) {
-				if ( isset( $payload['Refunded'] ) && $payload['Refunded'] === '1' && $order->get_status() !== 'refunded' ) {
-					$order->update_status( 'refunded' );
-					return;
-				}
 				if ( isset( $payload['Voided'] ) && $payload['Voided'] === '1' && $order->get_status() !== 'cancelled' ) {
 					$order->update_status( 'cancelled' );
 					return;
