@@ -522,7 +522,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$order            = wc_get_order( $order_id );
 		$transaction_info = $order->get_meta( '_monri_transaction_info' );
 		$is_tokenization  = $order->get_meta( '_monri_order_token_used' );
-		$transaction_type = $order->get_meta( '_monri_wspay_transaction_type' );
+		$transaction_type = $order->get_meta( 'monri_wspay_transaction_type' );
 
 		if ( empty( $transaction_info ) || $transaction_type === 'purchase') {
 			return false;
