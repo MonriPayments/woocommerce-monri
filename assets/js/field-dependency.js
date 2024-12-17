@@ -22,10 +22,16 @@ jQuery(function ($) {
                     show = false;
                     break;
                 }
-
-                if ($(depends).val() != rules[el][depends]) {
-                    show = false;
-                    break;
+                if (Array.isArray(rules[el][depends])) {
+                    if (!rules[el][depends].includes($(depends).val())) {
+                        show = false;
+                        break;
+                    }
+                } else {
+                    if ($(depends).val() != rules[el][depends]) {
+                        show = false;
+                        break;
+                    }
                 }
 
                 if ($(depends).attr('type') === 'checkbox' && !$(depends).is(':checked')) {
