@@ -200,7 +200,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$req['customerEmail']     = $order->get_billing_email();
 
 		$req = apply_filters( 'monri_wspay_request', $req );
-		$order->add_meta_data( '_monri_wspay_transaction_type', $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase' );
+		$order->add_meta_data( 'monri_wspay_transaction_type', $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase' );
 		$order->save();
 		Monri_WC_Logger::log( "Request data: " . print_r( $req, true ), __METHOD__ );
 		$response = $this->api( '/api/create-transaction', $req );
@@ -287,7 +287,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 		if ( $trx_authorized ) {
 
-			$transaction_type = $order->get_meta( '_monri_wspay_transaction_type' );
+			$transaction_type = $order->get_meta( 'monri_wspay_transaction_type' );
 			// save transaction info
 			$transaction_data = [];
 			foreach ( array_keys( $this->transaction_info_map ) as $key ) {
