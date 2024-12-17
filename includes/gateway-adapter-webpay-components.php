@@ -1,4 +1,5 @@
 <?php
+use Automattic\WooCommerce\StoreApi\Schemas\V1\CartSchema;
 
 class Monri_WC_Gateway_Adapter_Webpay_Components {
 
@@ -33,6 +34,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		$this->payment->has_fields = true;
 		add_action( 'woocommerce_order_status_changed', [ $this, 'process_capture' ], null, 4 );
 		add_action( 'woocommerce_order_status_changed', [ $this, 'process_void' ], null, 4 );
+		add_action( 'woocommerce_cart_updated', [$this, 'cart_data_updated']);
 
 		// load components.js on frontend checkout
 		add_action( 'template_redirect', function () {
@@ -41,6 +43,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 				wp_enqueue_script( 'monri-components', $script_url, [], MONRI_WC_VERSION );
 			}
 		} );
+
+		add_action( 'woocommerce_after_checkout_validation', [ $this, 'after_checkout_validation' ], null, 2);
 	}
 
 	/**
@@ -201,6 +205,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 
 		$authorization = "WP3-v2 {$this->payment->get_option( 'monri_authenticity_token' )} $timestamp $digest";
 
+		Monri_WC_Logger::log( $data, __METHOD__ );
+
 		$response = wp_remote_post( $url, [
 				'body'      => $data,
 				'headers'   => [
@@ -212,6 +218,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 				'sslverify' => true
 			]
 		);
+
+		Monri_WC_Logger::log( $response, __METHOD__ );
 
 		if ( is_wp_error( $response ) ) {
 			$response = [ 'status' => 'error', 'error' => $response->get_error_message() ];
@@ -406,5 +414,53 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Validate TOC on Monri woocommerce_checkout_update_totals ajax request
+	 *
+	 * @param array $data
+	 * @param WP_Error $errors
+	 *
+	 * @return void
+	 */
+	public function after_checkout_validation( $data, $errors ) {
+
+		if ( empty( $_POST['monri_components_checkout_validation'] ) ) {
+			return;
+		}
+
+		if ( !empty( $data['woocommerce_checkout_update_totals'] ) && empty( $data['terms'] ) && ! empty( $data['terms-field'] ) ) {
+			$errors->add( 'terms', __( 'Please read and accept the terms and conditions to proceed with your order.', 'woocommerce' ) );
+		}
+	}
+	/**
+	 * Send new client secret to frontend when cart data is updated
+	 *
+	 */
+	public function cart_data_updated() {
+		if (!WC()->cart->is_empty()) {
+			woocommerce_store_api_register_endpoint_data(
+				array(
+					'endpoint'        => CartSchema::IDENTIFIER,
+					'namespace'       => 'woocommerce-monri',
+					'data_callback'   => function() {
+						return array(
+							'client_secret' => $this->request_authorize(),
+						);
+					},
+					'schema_callback' => function() {
+						return array(
+							'properties' => array(
+								'client_secret' => array(
+									'type' => 'string',
+								),
+							),
+						);
+					},
+					'schema_type'     => ARRAY_A,
+				)
+			);
+		}
 	}
 }

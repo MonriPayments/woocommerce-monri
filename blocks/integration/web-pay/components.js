@@ -1,4 +1,4 @@
-import {Fragment, useEffect, useRef, useId } from "react";
+import {Fragment, useEffect, useRef, useId, useState } from "react";
 import { decodeEntities } from '@wordpress/html-entities';
 import { __, sprintf } from '@wordpress/i18n';
 import { useMonriData } from "../use-monri-data";
@@ -18,17 +18,23 @@ export const WebPayComponents = (props) => {
 
     const monriRef = useRef(null);
     const cardRef =  useRef(null);
+    const [clientSecret, setClientSecret] = useState(settings.components.client_secret);
+    const contentRef = useRef(null);
 
     useEffect(() => {
+        if (contentRef.current) {
+            contentRef.current.innerHTML = '';
+        }
         monriRef.current = Monri(settings.components.authenticity_token, {
             locale: settings.components.locale
         });
 
-        const components = monriRef.current.components({clientSecret: settings.components.client_secret});
+        const components = monriRef.current.components({clientSecret: clientSecret});
 
         cardRef.current = components.create('card', {style: {invalid: {color: 'red'}}, showInstallmentsSelection: settings.installments});
         cardRef.current.mount(monriWrapperId);
-    }, []);
+
+    }, [clientSecret]);
 
     const useComponentsTransaction = async (billingAddress) => {
         const transactionParams = {
@@ -67,6 +73,7 @@ export const WebPayComponents = (props) => {
     };
 
     useEffect( () => {
+        setClientSecret(cartData.extensions["woocommerce-monri"].client_secret);
         const unsubscribe = onPaymentSetup( async () => {
             try {
                 const transaction = await useComponentsTransaction(cartData.billingAddress);
@@ -100,7 +107,7 @@ export const WebPayComponents = (props) => {
     return <Fragment>
         {decodeEntities( settings.description || '' )}
         <br />
-        <div id={monriWrapperId} />
+        <div id={monriWrapperId} ref={contentRef}/>
     </Fragment>;
 };
 

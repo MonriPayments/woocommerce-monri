@@ -72,6 +72,8 @@ class Monri_WSPay_WC_Api {
 	 */
 	private function request( $path, $params ) {
 
+		Monri_WC_Logger::log( func_get_args(), __METHOD__ );
+
 		$url = $this->test_mode ? self::ENDPOINT_TEST : self::ENDPOINT;
 		$url .= $path;
 
@@ -85,6 +87,8 @@ class Monri_WSPay_WC_Api {
 				'sslverify' => false
 			]
 		);
+
+		Monri_WC_Logger::log( $result, __METHOD__ );
 
 		if ( is_wp_error( $result ) || ! isset( $result['body'] ) ) {
 			return [];
