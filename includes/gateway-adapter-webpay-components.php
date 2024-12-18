@@ -265,6 +265,17 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 
 			return false;
 		}
+
+		$formatted_response = json_decode(json_encode($response), true);
+		if (!(isset( $formatted_response['response-code']) && $formatted_response['response-code'] === '0000')) {
+			$order->add_order_note(
+				sprintf( __( 'There was an error submitting the capture to Monri.', 'monri' ) ) .
+				' ' .
+				$formatted_response['response-message']
+			);
+
+			return false;
+		}
 		$order->update_meta_data( '_monri_should_close_parent_transaction', '1' );
 		$order->save();
 		$order->add_order_note( sprintf(
@@ -326,6 +337,16 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			return false;
 		}
 
+		$formatted_response = json_decode(json_encode($response), true);
+		if (!(isset( $formatted_response['response-code']) && $formatted_response['response-code'] === '0000')) {
+			$order->add_order_note(
+				sprintf( __( 'There was an error submitting the capture to Monri.', 'monri' ) ) .
+				' ' .
+				$formatted_response['response-message']
+			);
+
+			return false;
+		}
 		$order->payment_complete( $monri_order_id );
 		$order->add_order_note( sprintf(
 		    /* translators: %s: amount which was successfully captured */
@@ -374,6 +395,16 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			return false;
 		}
 
+		$formatted_response = json_decode(json_encode($response), true);
+		if (!(isset( $formatted_response['response-code']) && $formatted_response['response-code'] === '0000')) {
+			$order->add_order_note(
+				sprintf( __( 'There was an error submitting the capture to Monri.', 'monri' ) ) .
+				' ' .
+				$formatted_response['response-message']
+			);
+
+			return false;
+		}
 		$order->add_order_note( sprintf(
 		    /* translators: %s: amount which was successfully voided */
 			__( 'Void of %s successfully sent to Monri.', 'monri' ),

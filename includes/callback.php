@@ -132,6 +132,7 @@ class Monri_WC_Callback {
 		}
 
 		if ( ! $this->validate_monri_wspay_callback( $payload ) ) {
+			Monri_WC_Logger::log( 'Invalid signature');
 			$this->error( 'Invalid signature.', $bad_request );
 		}
 
@@ -189,8 +190,11 @@ class Monri_WC_Callback {
 	 * @return bool
 	 */
 	private function validate_monri_wspay_callback( $payload ) {
-		$shop_id        = Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_shop_id' );
-		$secret_key     = Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_secret' );
+		$is_tokenization = $payload['ShopID'] === Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_tokenization_shop_id' );
+		$shop_id        = $is_tokenization ? Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_tokenization_shop_id' ) :
+			Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_shop_id' );
+		$secret_key     = $is_tokenization ? Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_tokenization_secret' ) :
+			Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_secret' );
 		$action_success = sanitize_text_field( $payload['ActionSuccess'] ?? '' );
 		$approval_code  = sanitize_text_field( $payload['ApprovalCode'] ?? '' );
 		$wspay_order_id = sanitize_text_field( $payload['WsPayOrderId'] ?? '' );
