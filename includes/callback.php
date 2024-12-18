@@ -100,9 +100,13 @@ class Monri_WC_Callback {
 			}
 
 			$valid_response_code = isset( $payload['response_code'] ) && $payload['response_code'] === '0000';
-
+			$transaction_type = $order->get_meta( 'monri_transaction_type' );
 			if ( $payload['status'] === 'approved' && $valid_response_code ) {
-				$order->payment_complete();
+				if ( $transaction_type === 'purchase' ) {
+					$order->payment_complete();
+				} else {
+					$order->update_status( 'on-hold', __( 'Order awaiting payment', 'monri' ) );
+				}
 			} else {
 				$order->update_status( 'cancelled' );
 			}
