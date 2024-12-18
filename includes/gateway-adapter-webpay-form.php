@@ -303,18 +303,11 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 		$response = Monri_WC_Api::instance()->refund( $monri_order_id, $amount * 100, $currency );
 
-		if ( is_wp_error( $response ) ) {
-			$order->add_order_note( sprintf( __( 'There was an error submitting the refund to Monri.', 'monri' ) ) );
-
-			return false;
-		}
-
 		$formatted_response = json_decode(json_encode($response), true);
-		if (!(isset( $formatted_response['response-code']) && $formatted_response['response-code'] === '0000')) {
+		if ( is_wp_error( $response ) || !(isset( $formatted_response['response-code']) && $formatted_response['response-code'] === '0000')) {
+			Monri_WC_Logger::log( $formatted_response, __METHOD__ );
 			$order->add_order_note(
-				sprintf( __( 'There was an error submitting the capture to Monri.', 'monri' ) ) .
-				' ' .
-				$formatted_response['response-message']
+				sprintf( __( 'There was an error submitting the refund to Monri.', 'monri' ) )
 			);
 
 			return false;
@@ -369,22 +362,11 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		}
 
 		$response = Monri_WC_Api::instance()->capture( $monri_order_id, $amount * 100, $currency );
-
-		if ( is_wp_error( $response ) ) {
-			$order->add_order_note(
-				sprintf( __( 'There was an error submitting the capture to Monri.', 'monri' ) ) .
-				' ' .
-				$response->get_error_message()
-			);
-
-			return false;
-		}
 		$formatted_response = json_decode(json_encode($response), true);
-		if (!(isset( $formatted_response['response-code']) && $formatted_response['response-code'] === '0000')) {
+		if ( is_wp_error( $response ) || !(isset( $formatted_response['response-code']) && $formatted_response['response-code'] === '0000')) {
+			Monri_WC_Logger::log( $formatted_response, __METHOD__ );
 			$order->add_order_note(
-				sprintf( __( 'There was an error submitting the capture to Monri.', 'monri' ) ) .
-				' ' .
-				$formatted_response['response-message']
+				sprintf( __( 'There was an error submitting the capture to Monri.', 'monri' ) )
 			);
 
 			return false;
@@ -427,23 +409,11 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		}
 
 		$response = Monri_WC_Api::instance()->void( $monri_order_id, $amount * 100, $currency );
-
-		if ( is_wp_error( $response ) ) {
-			$order->add_order_note(
-				sprintf( __( 'There was an error submitting the void to Monri.', 'monri' ) ) .
-				' ' .
-				$response->get_error_message()
-			);
-
-			return false;
-		}
-
 		$formatted_response = json_decode(json_encode($response), true);
-		if (!(isset( $formatted_response['response-code']) && $formatted_response['response-code'] === '0000')) {
+		if ( is_wp_error( $response ) || !(isset( $formatted_response['response-code']) && $formatted_response['response-code'] === '0000')) {
+			Monri_WC_Logger::log( $formatted_response, __METHOD__ );
 			$order->add_order_note(
-				sprintf( __( 'There was an error submitting the capture to Monri.', 'monri' ) ) .
-				' ' .
-				$formatted_response['response-message']
+				sprintf( __( 'There was an error submitting the void to Monri.', 'monri' ) )
 			);
 
 			return false;
