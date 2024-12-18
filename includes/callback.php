@@ -100,7 +100,7 @@ class Monri_WC_Callback {
 			}
 
 			$valid_response_code = isset( $payload['response_code'] ) && $payload['response_code'] === '0000';
-			$transaction_type = $order->get_meta( 'monri_transaction_type' );
+			$transaction_type    = $order->get_meta( 'monri_transaction_type' );
 			if ( $payload['status'] === 'approved' && $valid_response_code ) {
 				if ( $transaction_type === 'purchase' ) {
 					$order->payment_complete();
@@ -194,13 +194,13 @@ class Monri_WC_Callback {
 	 */
 	private function validate_monri_wspay_callback( $payload ) {
 		$is_tokenization = $payload['ShopID'] === Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_tokenization_shop_id' );
-		$shop_id        = $is_tokenization ? Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_tokenization_shop_id' ) :
+		$shop_id         = $is_tokenization ? Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_tokenization_shop_id' ) :
 			Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_shop_id' );
-		$secret_key     = $is_tokenization ? Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_tokenization_secret' ) :
+		$secret_key      = $is_tokenization ? Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_tokenization_secret' ) :
 			Monri_WC_Settings::instance()->get_option( 'monri_ws_pay_form_secret' );
-		$action_success = sanitize_text_field( $payload['ActionSuccess'] ?? '' );
-		$approval_code  = sanitize_text_field( $payload['ApprovalCode'] ?? '' );
-		$wspay_order_id = sanitize_text_field( $payload['WsPayOrderId'] ?? '' );
+		$action_success  = sanitize_text_field( $payload['ActionSuccess'] ?? '' );
+		$approval_code   = sanitize_text_field( $payload['ApprovalCode'] ?? '' );
+		$wspay_order_id  = sanitize_text_field( $payload['WsPayOrderId'] ?? '' );
 
 		$signature =
 			$shop_id . $secret_key .
