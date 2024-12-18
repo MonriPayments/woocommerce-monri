@@ -132,7 +132,6 @@ class Monri_WC_Callback {
 		}
 
 		if ( ! $this->validate_monri_wspay_callback( $payload ) ) {
-			Monri_WC_Logger::log( 'Invalid signature');
 			$this->error( 'Invalid signature.', $bad_request );
 		}
 
