@@ -31,11 +31,6 @@ class Monri_WC_Settings {
 			'1' => 'Yes'
 		);
 
-		$integration_types = array(
-			'form'       => __( 'Form', 'monri' ),
-			'components' => __( 'Components (beta)', 'monri' )
-		);
-
 		$transaction_type = array(
 			'0' => __( 'Purchase', 'monri' ),
 			'1' => __( 'Authorize', 'monri' )
@@ -102,11 +97,30 @@ class Monri_WC_Settings {
 				'type'        => 'select',
 				'class'       => 'wc-enhanced-select',
 				'default'     => true,
-				'options'     => $integration_types,
+				'options'     => array(
+					'form'       => __( 'Form', 'monri' ),
+					'components' => __( 'Components (beta)', 'monri' )
+				),
 				'desc_tip'    => true,
 				'custom_attributes' => [
 					'data-depends' => '{
 						"monri_payment_gateway_service":"monri-web-pay"
+					}'
+				]
+			),
+			'monri_ws_pay_integration_type' => array(
+				'title'       => __( 'Integration type', 'monri' ),
+				'type'        => 'select',
+				'class'       => 'wc-enhanced-select',
+				'default'     => 'form',
+				'options'     => array(
+					'form'       => __( 'Form', 'monri' ),
+					'iframe' => __( 'Iframe', 'monri' )
+				),
+				'desc_tip'    => true,
+				'custom_attributes' => [
+					'data-depends' => '{
+						"monri_payment_gateway_service":"monri-ws-pay"
 					}'
 				]
 			),
