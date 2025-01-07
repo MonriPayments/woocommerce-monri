@@ -18,37 +18,6 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 	 * @return void
 	 */
 	public function init( $payment ) {
-		/*
-		$this->payment = $payment;
-
-		$this->shop_id = $this->payment->get_option(
-			'monri_ws_pay_form_shop_id'
-		);
-		$this->secret  = $this->payment->get_option(
-			'monri_ws_pay_form_secret'
-		);
-
-		// add tokenization support
-		if ( $this->tokenization_enabled() ) {
-			$this->supports[] = 'tokenization';
-
-			require_once __DIR__ . '/payment-token-wspay.php';
-
-			add_filter( 'woocommerce_payment_token_class', function ( $value, $type ) {
-				if ( $type === 'Monri_Wspay' ) {
-					return Monri_WC_Payment_Token_Wspay::class;
-				}
-
-				return $value;
-			}, 0, 2 );
-		}
-
-		add_action( 'woocommerce_before_thankyou', [ $this, 'process_return' ] );
-		add_action( 'woocommerce_thankyou_monri', [ $this, 'thankyou_page' ] );
-		add_action( 'woocommerce_order_status_changed', [ $this, 'process_capture' ], null, 3 );
-		add_action( 'woocommerce_order_status_changed', [ $this, 'process_void' ], null, 3 );
-		*/
-
 		parent::init($payment);
 
 		// load iframe resizer on receipt page
@@ -102,6 +71,7 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 
 		$req = [];
 
+		// this needs to be on place order to get POST + save in meta that token should be used
 		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in() ) {
 
 			$use_token = null;
@@ -112,7 +82,8 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 				$tokens   = $this->payment->get_tokens();
 
 				if ( ! isset( $tokens[ $token_id ] ) ) {
-					throw new Exception( esc_html( __( 'Token does not exist.', 'monri' ) ) );
+					echo esc_html( __( 'Token does not exist.', 'monri' ) );
+					return;
 				}
 
 				/** @var Monri_WC_Payment_Token_Wspay $use_token */
@@ -172,10 +143,13 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 		$req['customerPhone']     = $order->get_billing_phone();
 		$req['customerEmail']     = $order->get_billing_email();
 
-		$req['Iframe'] = 'True';
+		$req['Iframe']               = 'True';
 		$req['IframeResponseTarget'] = 'TOP';
 
 		$req = apply_filters( 'monri_wspay_iframe_request', $req );
+
+		$order->add_meta_data( 'monri_wspay_transaction_type', $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase' );
+		$order->save_meta_data();
 
 		Monri_WC_Logger::log( "Request data: " . print_r( $req, true ), __METHOD__ );
 
