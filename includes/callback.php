@@ -183,10 +183,10 @@ class Monri_WC_Callback {
 				if ( $order->get_user_id() && isset( $payload['Token'], $payload['TokenNumber'], $payload['ExpirationDate'] ) ) {
 
 					$token_data = [
-						'Token' => $payload['Token'],
-						'TokenNumber' => $payload['TokenNumber'],
-						'TokenExp' => $payload['ExpirationDate'],
-						'CreditCardName' => $payload['CreditCardName'] ?? null,
+						'Token' => sanitize_text_field($payload['Token']),
+						'TokenNumber' => sanitize_text_field($payload['TokenNumber']),
+						'TokenExp' => sanitize_text_field($payload['ExpirationDate']),
+						'CreditCardName' => sanitize_text_field($payload['CreditCardName']) ?? null,
 					];
 
 					$wspay = new Monri_WC_Gateway_Adapter_Wspay();
