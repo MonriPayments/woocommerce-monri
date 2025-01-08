@@ -416,7 +416,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	 *
 	 * @return void
 	 */
-	private function save_user_token( $user_id, $data ) {
+	public function save_user_token( $user_id, $data ) {
 
 		if ( ! isset( $data['Token'], $data['TokenNumber'], $data['TokenExp'] ) ) {
 			return null;
