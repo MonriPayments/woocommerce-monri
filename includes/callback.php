@@ -107,6 +107,9 @@ class Monri_WC_Callback {
 				} else {
 					$order->update_status( 'on-hold', __( 'Order awaiting payment', 'monri' ) );
 				}
+
+				$order->update_meta_data( 'monri_order_number', $payload['order_number'] ?? '' );
+				$order->save();
 			} else {
 				$order->update_status( 'cancelled' );
 			}
@@ -176,6 +179,21 @@ class Monri_WC_Callback {
 					$order->payment_complete();
 					return;
 				}
+
+				if ( $order->get_user_id() && isset( $payload['Token'], $payload['TokenNumber'], $payload['ExpirationDate'] ) ) {
+
+					$token_data = [
+						'Token' => $payload['Token'],
+						'TokenNumber' => $payload['TokenNumber'],
+						'TokenExp' => $payload['ExpirationDate'],
+						'CreditCardName' => $payload['CreditCardName'] ?? null,
+					];
+
+					$wspay = new Monri_WC_Gateway_Adapter_Wspay();
+					$wspay->init( new Monri_WC_Gateway() );
+					$wspay->save_user_token( $order->get_user_id(), $token_data );
+				}
+
 			} else {
 				$order->update_status( 'cancelled' );
 			}
