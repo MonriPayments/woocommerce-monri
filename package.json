@@ -1,6 +1,6 @@
 {
   "name": "woocommerce-monri",
-  "version": "3.2.2",
+  "version": "3.3.2",
   "description": "Monri WooCommerce Plugin",
   "main": "index.js",
   "scripts": {
