@@ -57,23 +57,19 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 			if ( isset( $_POST['wc-monri-payment-token'] ) &&
 			     ! in_array( $_POST['wc-monri-payment-token'], [ 'not-selected', 'new', '' ], true )
 			) {
-				$token_id = sanitize_text_field( $_POST['wc-monri-payment-token'] );
-
-				// should we check if token exists here, better error handling??!
-
+				$use_token = sanitize_text_field( $_POST['wc-monri-payment-token'] );
 				$tokens   = $this->payment->get_tokens();
-				if ( ! isset( $tokens[ $token_id ] ) ) {
+				if ( ! isset( $tokens[ $use_token ] ) ) {
 					throw new Exception( esc_html( __( 'Token does not exist.', 'monri' ) ) );
 				}
 
-				$req['token_id'] = $token_id;
+				$req['use_token'] = $use_token;
 
 			// new token (save card)
 			} else if ( isset( $_POST['wc-monri-new-payment-method'] ) &&
 			            in_array( $_POST['wc-monri-new-payment-method'], [ 'true', '1', 1 ], true )
 			) {
-				$req['token_new'] = 'true';
-				// can we go with same param? rename token_id to use_token and use -1 for new?
+				$req['use_token'] = -1;
 			}
 
 			// add params to query
@@ -115,12 +111,14 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 
 		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in()) {
 
-			if ( isset( $_GET['token_id'] ) ) {  // maybe check if numeric?
-				$token_id = sanitize_text_field( $_GET['token_id'] );
+			if ( isset( $_GET['use_token'] ) && $_GET['use_token'] === '-1' ) {
+				$req['IsTokenRequest'] = '1';
+			} elseif( isset( $_GET['use_token'] ) && is_numeric( $_GET['use_token'] ) ) {
+				$token_id = sanitize_text_field( $_GET['use_token'] );
 				$tokens   = $this->payment->get_tokens();
 
 
-				// redirect to cart with error?? should never happend
+				// redirect to cart with error?? should never happen
 				if ( ! isset( $tokens[ $token_id ] ) ) {
 					echo esc_html( __( 'Token does not exist.', 'monri' ) );
 					return;
@@ -138,11 +136,7 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 
 				// use different shop_id/secret for tokenization if token is used
 				$this->use_tokenization_credentials();
-
-			} elseif ( isset( $_GET['token_new'] ) && $_GET['token_new'] === 'true' ) {
-				$req['IsTokenRequest'] = '1';
 			}
-
 		}
 
 		$req['shopID']         = $this->shop_id;
