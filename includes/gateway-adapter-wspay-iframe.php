@@ -46,9 +46,46 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 	public function process_payment( $order_id ) {
 		$order = wc_get_order( $order_id );
 
+		$order_pay_url = $order->get_checkout_payment_url( true );
+
+		// we need to pass token params to url to order-pay page
+		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in() ) {
+
+			$req = [];
+
+			// use token
+			if ( isset( $_POST['wc-monri-payment-token'] ) &&
+			     ! in_array( $_POST['wc-monri-payment-token'], [ 'not-selected', 'new', '' ], true )
+			) {
+				$token_id = sanitize_text_field( $_POST['wc-monri-payment-token'] );
+
+				// should we check if token exists here, better error handling??!
+
+				$tokens   = $this->payment->get_tokens();
+				if ( ! isset( $tokens[ $token_id ] ) ) {
+					throw new Exception( esc_html( __( 'Token does not exist.', 'monri' ) ) );
+				}
+
+				$req['token_id'] = $token_id;
+
+			// new token (save card)
+			} else if ( isset( $_POST['wc-monri-new-payment-method'] ) &&
+			            in_array( $_POST['wc-monri-new-payment-method'], [ 'true', '1', 1 ], true )
+			) {
+				$req['token_new'] = 'true';
+				// can we go with same param? rename token_id to use_token and use -1 for new?
+			}
+
+			// add params to query
+			if ($req) {
+				$order_pay_url = add_query_arg( $req, $order_pay_url );
+			}
+
+		}
+
 		return [
 			'result'   => 'success',
-			'redirect' => $order->get_checkout_payment_url( true )
+			'redirect' => $order_pay_url
 		];
 	}
 
@@ -71,51 +108,39 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 
 		$req = [];
 
-		// this needs to be on place order to get POST + save in meta that token should be used
-		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in() ) {
+		if ( $order->get_meta( '_monri_order_token_used' ) ) {
+			$order->delete_meta_data( '_monri_order_token_used' );
+			$order->save_meta_data();
+		}
 
-			$use_token = null;
-			if ( isset( $_POST['wc-monri-payment-token'] ) &&
-			     ! in_array( $_POST['wc-monri-payment-token'], [ 'not-selected', 'new', '' ], true )
-			) {
-				$token_id = sanitize_text_field( $_POST['wc-monri-payment-token'] );
+		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in()) {
+
+			if ( isset( $_GET['token_id'] ) ) {  // maybe check if numeric?
+				$token_id = sanitize_text_field( $_GET['token_id'] );
 				$tokens   = $this->payment->get_tokens();
 
+
+				// redirect to cart with error?? should never happend
 				if ( ! isset( $tokens[ $token_id ] ) ) {
 					echo esc_html( __( 'Token does not exist.', 'monri' ) );
 					return;
 				}
+				//
 
 				/** @var Monri_WC_Payment_Token_Wspay $use_token */
-				$use_token = $tokens[ $token_id ];
-			}
+				$token = $tokens[ $token_id ];
 
-			$new_token = isset( $_POST['wc-monri-new-payment-method'] ) &&
-			             in_array( $_POST['wc-monri-new-payment-method'], [ 'true', '1', 1 ], true );
-
-			// paying with tokenized card
-			if ( $use_token ) {
-
-				$req['Token']       = $use_token->get_token();
-				$req['TokenNumber'] = $use_token->get_last4();
+				$req['Token']       = $token->get_token();
+				$req['TokenNumber'] = $token->get_last4();
 
 				$order->update_meta_data( '_monri_order_token_used', 1 );
 				$order->save_meta_data();
 
-				// use different shop_id/secret for tokenization
+				// use different shop_id/secret for tokenization if token is used
 				$this->use_tokenization_credentials();
 
-			} else {
-
-				// tokenize/save new card
-				if ( $new_token ) {
-					$req['IsTokenRequest'] = '1';
-				}
-
-				if ( $order->get_meta( '_monri_order_token_used' ) ) {
-					$order->delete_meta_data( '_monri_order_token_used' );
-					$order->save_meta_data();
-				}
+			} elseif ( isset( $_GET['token_new'] ) && $_GET['token_new'] === 'true' ) {
+				$req['IsTokenRequest'] = '1';
 			}
 
 		}
