@@ -10,7 +10,7 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 	public const ADAPTER_ID = 'wspay_iframe';
 
 	public const FORM_ENDPOINT_TEST = 'https://formtest.wspay.biz/authorization.aspx';
-	public const FORM_ENDPOINT = 'https://form.wspay.biz/authorization.aspx';
+	public const FORM_ENDPOINT      = 'https://form.wspay.biz/authorization.aspx';
 
 	/**
 	 * @param Monri_WC_Gateway $payment
@@ -18,20 +18,23 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 	 * @return void
 	 */
 	public function init( $payment ) {
-		parent::init($payment);
+		parent::init( $payment );
 
 		// load iframe resizer on receipt page
-		add_action( 'template_redirect', function () {
-			if ( is_checkout_pay_page() ) {
-				wp_enqueue_script(
-					'monri-iframe-resizer',
-					MONRI_WC_PLUGIN_URL . 'assets/js/iframe-resizer.parent.js',
-					[],
-					MONRI_WC_VERSION,
-					false
-				);
+		add_action(
+			'template_redirect',
+			function () {
+				if ( is_checkout_pay_page() ) {
+					wp_enqueue_script(
+						'monri-iframe-resizer',
+						MONRI_WC_PLUGIN_URL . 'assets/js/iframe-resizer.parent.js',
+						[],
+						MONRI_WC_VERSION,
+						false
+					);
+				}
 			}
-		} );
+		);
 
 		add_action( 'woocommerce_receipt_' . $this->payment->id, [ $this, 'process_iframe' ] );
 	}
@@ -58,7 +61,7 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 			     ! in_array( $_POST['wc-monri-payment-token'], [ 'not-selected', 'new', '' ], true )
 			) {
 				$use_token = sanitize_text_field( $_POST['wc-monri-payment-token'] );
-				$tokens   = $this->payment->get_tokens();
+				$tokens    = $this->payment->get_tokens();
 				if ( ! isset( $tokens[ $use_token ] ) ) {
 					throw new Exception( esc_html( __( 'Token does not exist.', 'monri' ) ) );
 				}
@@ -73,10 +76,9 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 			}
 
 			// add params to query
-			if ($req) {
+			if ( $req ) {
 				$order_pay_url = add_query_arg( $req, $order_pay_url );
 			}
-
 		}
 
 		return [
@@ -109,21 +111,19 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 			$order->save_meta_data();
 		}
 
-		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in()) {
+		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in() ) {
 
 			if ( isset( $_GET['use_token'] ) && $_GET['use_token'] === '-1' ) {
 				$req['IsTokenRequest'] = '1';
-			} elseif( isset( $_GET['use_token'] ) && is_numeric( $_GET['use_token'] ) ) {
+			} elseif ( isset( $_GET['use_token'] ) && is_numeric( $_GET['use_token'] ) ) {
 				$token_id = sanitize_text_field( $_GET['use_token'] );
 				$tokens   = $this->payment->get_tokens();
-
 
 				// redirect to cart with error?? should never happen
 				if ( ! isset( $tokens[ $token_id ] ) ) {
 					echo esc_html( __( 'Token does not exist.', 'monri' ) );
 					return;
 				}
-				//
 
 				/** @var Monri_WC_Payment_Token_Wspay $use_token */
 				$token = $tokens[ $token_id ];
@@ -170,7 +170,7 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 		$order->add_meta_data( 'monri_wspay_transaction_type', $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase' );
 		$order->save_meta_data();
 
-		Monri_WC_Logger::log( "Request data: " . print_r( $req, true ), __METHOD__ );
+		Monri_WC_Logger::log( 'Request data: ' . print_r( $req, true ), __METHOD__ );
 
 		wc_get_template( 'iframe-form.php', [
 			'action'  => $this->payment->get_option_bool( 'test_mode' ) ? self::FORM_ENDPOINT_TEST : self::FORM_ENDPOINT,
@@ -178,5 +178,4 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 			'order'   => $order
 		], basename( MONRI_WC_PLUGIN_PATH ), MONRI_WC_PLUGIN_PATH . 'templates/' );
 	}
-
 }
