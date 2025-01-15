@@ -13,24 +13,24 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	/**
 	 * @var Monri_WC_Gateway
 	 */
-	private $payment;
+	protected $payment;
 
 	/**
 	 * @var string
 	 */
-	private $shop_id;
+	protected $shop_id;
 
 	/**
 	 * @var string
 	 */
-	private $secret;
+	protected $secret;
 
 	/**
 	 * @var string[]
 	 */
 	public $supports = [ 'products', 'refunds' ];
 
-	private $transaction_info_map = [
+	protected $transaction_info_map = [
 		'WsPayOrderId' => 'Transaction ID',
 		'ApprovalCode' => 'Approval code',
 		'PaymentType'  => 'Credit cart type',
@@ -332,7 +332,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	 *
 	 * @return string
 	 */
-	private function sign_transaction( $shoppingCartId, $totalAmount ) {
+	protected function sign_transaction( $shoppingCartId, $totalAmount ) {
 		$shopId    = $this->shop_id;
 		$secretKey = $this->secret;
 		$amount    = preg_replace( '~\D~', '', $totalAmount );
