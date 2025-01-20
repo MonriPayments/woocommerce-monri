@@ -40,6 +40,13 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 			require_once __DIR__ . '/gateway-adapter-webpay-components.php';
 			require_once __DIR__ . '/monri-api.php';
 			$this->adapter = new Monri_WC_Gateway_Adapter_Webpay_Components();
+		} elseif (
+			$this->get_option( 'monri_payment_gateway_service' ) === 'monri-web-pay' &&
+			$this->get_option( 'monri_web_pay_integration_type' ) === 'lightbox'
+		) {
+			require_once __DIR__ . '/gateway-adapter-webpay-lightbox.php';
+			require_once __DIR__ . '/monri-api.php';
+			$this->adapter = new Monri_WC_Gateway_Adapter_Webpay_Lightbox();
 		} else {
 			require_once __DIR__ . '/gateway-adapter-webpay-form.php';
 			require_once __DIR__ . '/monri-api.php';

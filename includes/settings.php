@@ -99,7 +99,8 @@ class Monri_WC_Settings {
 				'default'     => true,
 				'options'     => array(
 					'form'       => __( 'Form', 'monri' ),
-					'components' => __( 'Components (beta)', 'monri' )
+					'components' => __( 'Components (beta)', 'monri' ),
+					'lightbox' => __( 'LightBox', 'monri' )
 				),
 				'desc_tip'    => true,
 				'custom_attributes' => [
