@@ -108,6 +108,22 @@ class Monri_WC_Settings {
 					}'
 				]
 			),
+			'monri_web_pay_supported_payment_methods' => array(
+				'title'       => __( 'Supported Payment Methods', 'monri' ),
+				'type'        => 'multiselect',
+				'class'       => 'wc-enhanced-select',
+				'default'     => array( 'card' ),
+				'options'     => array(
+					'card'       => __( 'Card', 'monri' ),
+					'keks-pay-hr' => __( 'KEKS pay', 'monri' )
+				),
+				'desc_tip'    => true,
+				'custom_attributes' => [
+					'data-depends' => '{
+            "monri_payment_gateway_service":"monri-web-pay"
+        }'
+				]
+			),
 			'monri_ws_pay_integration_type' => array(
 				'title'       => __( 'Integration type', 'monri' ),
 				'type'        => 'select',

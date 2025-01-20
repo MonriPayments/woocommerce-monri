@@ -154,7 +154,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			'digest'                => $digest,
 			'success_url_override'  => $this->payment->get_return_url( $order ),
 			'cancel_url_override'   => $order->get_cancel_order_url(),
-			'callback_url_override' => add_query_arg( 'wc-api', 'monri_callback', get_home_url() )
+			'callback_url_override' => add_query_arg( 'wc-api', 'monri_callback', get_home_url() ),
+			'supported_payment_methods' => 'keks-pay-hr,card'
 		);
 
 		$order->add_meta_data( 'monri_transaction_type', $args['transaction_type'] );
