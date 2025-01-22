@@ -131,6 +131,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 		//Combine first and last name in one string
 		$full_name = $order->get_billing_first_name() . " " . $order->get_billing_last_name();
+		$supported_payment_methods = $this->payment->get_option( 'monri_web_pay_supported_payment_methods' );
+		$supported_payment_methods = !empty($supported_payment_methods) ?
+			implode(',', $supported_payment_methods) . ',card' : 'card';
+
 
 		//Array of order information
 		$args = array(
@@ -155,7 +159,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			'success_url_override'  => $this->payment->get_return_url( $order ),
 			'cancel_url_override'   => $order->get_cancel_order_url(),
 			'callback_url_override' => add_query_arg( 'wc-api', 'monri_callback', get_home_url() ),
-			'supported_payment_methods' => 'keks-pay-hr,card'
+			'supported_payment_methods' => $supported_payment_methods
 		);
 
 		$order->add_meta_data( 'monri_transaction_type', $args['transaction_type'] );
