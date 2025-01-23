@@ -302,8 +302,7 @@ class Monri_WC_Settings {
 				'label'   => __( 'Callback url', 'monri' ),
 				'description' => __( 'To enable callback send this url to Monri WSPay support.', 'monri' ),
 				'desc_tip'    => false,
-				'default'     => ( isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") .
-				                 "://" . $_SERVER['HTTP_HOST'] . '?wc-api=monri_callback',
+				'default'     => get_home_url() . '?wc-api=monri_callback',
 				'custom_attributes' => [
 					'disabled' => 'disabled',
 					'data-depends' => '{
