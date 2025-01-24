@@ -399,10 +399,7 @@ class Monri_WC_Settings {
 	 * @return string[]
 	 */
 	function modify_monri_sanitized_fields( $settings ) {
-		if ( isset( $settings['monri_ws_pay_callback_url'] ) ) {
-			unset( $settings['monri_ws_pay_callback_url'] );
-		}
-
+		unset( $settings['monri_ws_pay_callback_url'] );
 		return $settings;
 	}
 
