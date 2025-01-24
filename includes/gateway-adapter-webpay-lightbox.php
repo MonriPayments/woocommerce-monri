@@ -104,7 +104,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 
 		$req = apply_filters( 'monri_lightbox_iframe_request', $req );
 
-		$order->add_meta_data( 'monri_lightbox_transaction_type', $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase' );
+		$order->add_meta_data( 'monri_transaction_type', $req['data-transaction-type'] );
 		$order->save_meta_data();
 
 		Monri_WC_Logger::log( 'Request data: ' . print_r( $req, true ), __METHOD__ );
