@@ -75,7 +75,10 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 				// handle declined on 3DS Cancel
 				if (response.result.status === 'approved') {
                     $('#monri-transaction').val(JSON.stringify(response.result));
-                    $('form.checkout').submit();
+                    console.log('formData: ', formData);
+                    console.log('Checkout Form URL:', $('form.checkout').attr('action'));
+                    console.log('monri response:', response)
+                    //$('form.checkout').submit();
 				} else {
 					$('#monri-error').text( "<?php esc_html_e('Transaction declined, please reload the page.', 'monri'); ?>" );
 				}

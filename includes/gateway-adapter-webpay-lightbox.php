@@ -43,7 +43,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			}
 		);
 
-		add_action( 'woocommerce_receipt_' . $this->payment->id, [ $this, 'process_iframe' ] );
+		//add_action( 'woocommerce_receipt_' . $this->payment->id, [ $this, 'process_iframe' ] );
 	}
 
 
@@ -132,6 +132,80 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		return [
 			'result'   => 'success',
 			'redirect' => $order_pay_url
+		];
+	}
+
+
+	/**
+	 * Old checkout
+	 * @return void
+	 */
+	public function payment_fields() {
+		$cart = WC()->cart;
+		$total = (float) $cart->get_total( 'edit' );
+		$cart_id = $cart->get_cart_hash();
+		$currency = get_woocommerce_currency();
+		if ( $currency === 'KM' ) {
+			$currency = 'BAM';
+		}
+
+		//Generate digest key
+		$key   = $this->payment->get_option( 'monri_merchant_key' );
+		$token = $this->payment->get_option( 'monri_authenticity_token' );
+		$digest = hash( 'sha512', $key . $cart_id . $total . $currency );
+		$config = [
+			'src' => $this->payment->get_option_bool( 'test_mode' ) ? self::ENDPOINT_TEST : self::ENDPOINT,
+			'data-authenticity-token' => $token,
+			'data-amount'           => $total,
+			'data-currency'         => $currency,
+			'data-order-number'         => $cart_id,
+			'data-order-info'         => 'Monri Lightbox',
+			'data-digest'         => $digest,
+			'data-transaction-type'         => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
+			'data-language'         => $this->payment->get_option( 'form_language' ),
+			'data-success-url-override'         => $this->payment->get_return_url( ),
+		];
+		Monri_WC_Logger::log( 'Request data: ' . print_r( $config, true ), __METHOD__ );
+
+
+		// Prevents rendering this file multiple times - JS part gets duplicated and executed twice
+		if ( isset( $_REQUEST['wc-ajax'] ) && $_REQUEST['wc-ajax'] === "update_order_review" ) {
+			$order = wc_create_order();
+			foreach ($cart->get_cart() as $cart_item) {
+				$order->add_product(wc_get_product($cart_item['product_id']), $cart_item['quantity']);
+			}
+
+			wc_get_template( 'lightbox-iframe-form.php', array(
+				'config' => $config,
+			), basename( MONRI_WC_PLUGIN_PATH ), MONRI_WC_PLUGIN_PATH . 'templates/' );
+		}
+	}
+
+	public function prepare_blocks_data() {
+		$cart = WC()->cart;
+		$total = (float) $cart->get_total( 'edit' );
+		$cart_id = $cart->get_cart_hash();
+		$currency = get_woocommerce_currency();
+		if ( $currency === 'KM' ) {
+			$currency = 'BAM';
+		}
+
+		//Generate digest key
+		$key   = $this->payment->get_option( 'monri_merchant_key' );
+		$token = $this->payment->get_option( 'monri_authenticity_token' );
+		$digest = hash( 'sha512', $key . $cart_id . $total . $currency );
+
+		return [
+			'lightbox' => [
+				'data-authenticity-token' => $token,
+				'data-amount'           => $cart->get_total(),
+				'data-currency'         => $currency,
+				'data-order-number'         => $cart_id,
+				'data-order-info'         => 'Monri Lightbox',
+				'data-digest'         => $digest,
+				'data-transaction-type'         => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
+				'data-language'         => $this->payment->get_option( 'form_language' ),
+			]
 		];
 	}
 }
