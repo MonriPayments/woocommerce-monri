@@ -4,7 +4,7 @@ Tags: monri, credit card, payment, woocommerce
 Requires at least: 5.3
 Tested up to: 6.7.1
 Requires PHP: 7.3
-Stable tag: 3.4.0
+Stable tag: 3.4.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -43,6 +43,10 @@ You can find more details about the development of this plugin at:
 https://github.com/MonriPayments/woocommerce-monri
 
 == Changelog ==
+
+= 3.4.1 - 2025-01-24 =
+* Added additional payment methods for Monri Webpay
+* Added callback url for Monri WSPay in admin settings
 
 = 3.4.0 - 2025-01-14 =
 * Added Monri WSPay iFrame
