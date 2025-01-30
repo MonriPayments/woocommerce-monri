@@ -73,12 +73,6 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 		) {
 			$script_asset['dependencies'][] = 'monri-components';
 		}
-		else if ( $this->get_setting( 'monri_payment_gateway_service' ) === 'monri-web-pay' &&
-		          $this->get_setting( 'monri_web_pay_integration_type' ) === 'components' &&
-		          wp_script_is( 'monri-lightbox' )
-		) {
-			$script_asset['dependencies'][] = 'monri-lightbox';
-		}
 		wp_register_script(
 			'monri-wc-payments-blocks',
 			$script_url,
