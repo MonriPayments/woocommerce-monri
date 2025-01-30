@@ -32,11 +32,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		add_action( 'woocommerce_order_status_changed', array( $this, 'process_void' ), null, 4 );
 		add_action( 'woocommerce_receipt_' . $this->payment->id, array( $this, 'process_payment' ) );
 
-		// load installments fee logic if installments enabled
-		if ( $this->payment->get_option( 'paying_in_installments' ) ) {
-			require_once __DIR__ . '/installments-fee.php';
-			( new Monri_WC_Installments_Fee() )->init();
-		}
 	}
 
 
@@ -50,7 +45,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 	public function process_payment( $order_id ) {
 		$order = wc_get_order( $order_id );
 
-		$total    = (int) wc_get_order( $order_id )->get_total() * 100;
+		$order_total = $order->get_total() * 100;
 		$currency = get_woocommerce_currency();
 		if ( $currency === 'KM' ) {
 			$currency = 'BAM';
@@ -59,7 +54,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		// Generate digest key
 		$key    = $this->payment->get_option( 'monri_merchant_key' );
 		$token  = $this->payment->get_option( 'monri_authenticity_token' );
-		$digest = hash( 'sha512', $key . $order_id . $total . $currency );
+		$digest = hash( 'sha512', $key . $order_id . $order_total . $currency );
 
 		// Combine first and last name in one string
 		$full_name = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
@@ -67,7 +62,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		$config = array(
 			'src'                       => $this->payment->get_option_bool( 'test_mode' ) ? self::ENDPOINT_TEST : self::ENDPOINT,
 			'data-authenticity-token'   => $token,
-			'data-amount'               => $total,
+			'data-amount'               => $order_total,
 			'data-currency'             => $currency,
 			'data-order-number'         => $order_id,
 			'data-order-info'           => 'Monri Lightbox',
@@ -145,36 +140,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		}
 	}
 
-	/*
-	 * New checkout
-	 */
-	public function prepare_blocks_data() {
-		$cart     = WC()->cart;
-		$total    = (float) $cart->get_total( 'edit' );
-		$cart_id  = $cart->get_cart_hash();
-		$currency = get_woocommerce_currency();
-		if ( $currency === 'KM' ) {
-			$currency = 'BAM';
-		}
-
-		// Generate digest key
-		$key    = $this->payment->get_option( 'monri_merchant_key' );
-		$token  = $this->payment->get_option( 'monri_authenticity_token' );
-		$digest = hash( 'sha512', $key . $cart_id . $total . $currency );
-
-		return array(
-			'lightbox' => array(
-				'data-authenticity-token' => $token,
-				'data-amount'             => $cart->get_total(),
-				'data-currency'           => $currency,
-				'data-order-number'       => $cart_id,
-				'data-order-info'         => 'Monri Lightbox',
-				'data-digest'             => $digest,
-				'data-transaction-type'   => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
-				'data-language'           => $this->payment->get_option( 'form_language' ),
-			),
-		);
-	}
 
 	// Xdebug wont pause here after we pay and go to success url??
 	public function process_return( $order_id ) {

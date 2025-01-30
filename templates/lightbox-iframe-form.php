@@ -4,7 +4,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 /** @var array $config */
 ?>
 <form action="" id="monri-lightbox-form">
-    <p>lol</p>
 </form>
 
 
