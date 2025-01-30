@@ -27,25 +27,16 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 	public function init( $payment ) {
 		parent::init( $payment );
 
-		// load iframe resizer on receipt page
-		add_action(
-			'template_redirect',
-			function () {
-				if ( is_checkout_pay_page() ) {
-					wp_enqueue_script(
-						'monri-iframe-resizer',
-						MONRI_WC_PLUGIN_URL . 'assets/js/iframe-resizer.parent.js',
-						array(),
-						MONRI_WC_VERSION,
-						false
-					);
-				}
-			}
-		);
 		add_action( 'woocommerce_before_thankyou', array( $this, 'process_return' ) );
 		add_action( 'woocommerce_order_status_changed', array( $this, 'process_capture' ), null, 4 );
 		add_action( 'woocommerce_order_status_changed', array( $this, 'process_void' ), null, 4 );
 		add_action( 'woocommerce_receipt_' . $this->payment->id, array( $this, 'process_payment' ) );
+
+		// load installments fee logic if installments enabled
+		if ( $this->payment->get_option( 'paying_in_installments' ) ) {
+			require_once __DIR__ . '/installments-fee.php';
+			( new Monri_WC_Installments_Fee() )->init();
+		}
 	}
 
 
@@ -96,6 +87,11 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			'messages'                  => array(),
 		);
 
+		$number_of_installments = WC()->session->get( 'monri_installments' );
+		if ( $number_of_installments > 1 ) {
+			$config['data-number-of-installments'] = $number_of_installments;
+		}
+
 		$order->add_meta_data( 'monri_transaction_type', $config['data-transaction-type'] );
 		$order->save();
 
@@ -109,14 +105,43 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 	 * @return void
 	 */
 	public function payment_fields() {
-		// Prevents rendering this file multiple times - JS part gets duplicated and executed twice
-		if ( isset( $_REQUEST['wc-ajax'] ) && $_REQUEST['wc-ajax'] === 'update_order_review' ) {
-			wc_get_template(
-				'lightbox-iframe-form.php',
-				array(),
-				basename( MONRI_WC_PLUGIN_PATH ),
-				MONRI_WC_PLUGIN_PATH . 'templates/'
-			);
+		$order_total = (float) WC()->cart->get_total( 'edit' );
+
+		// installments key/value array for template
+		$installments = array();
+
+		if ( $this->payment->get_option_bool( 'paying_in_installments' ) ) {
+
+			$bottom_limit           = (float) $this->payment->get_option( 'bottom_limit', 0 );
+			$bottom_limit_satisfied = ( $bottom_limit < 0.01 ) || ( $order_total >= $bottom_limit );
+
+			if ( $bottom_limit_satisfied ) {
+
+				$selected = (int) WC()->session->get( 'monri_installments' );
+
+				for ( $i = 1; $i <= (int) $this->payment->get_option( 'number_of_allowed_installments', 12 ); $i ++ ) {
+					$installments[] = [
+						'label'          => ( $i === 1 ) ? __( 'No installments', 'monri' ) : (string) $i,
+						'value'          => (string) $i,
+						'selected'       => ( $selected === $i ),
+						'price_increase' => $this->payment->get_option( "price_increase_$i", 0 )
+					];
+				}
+
+			}
+
+			// Prevents rendering this file multiple times - JS part gets duplicated and executed twice
+			if ( isset( $_REQUEST['wc-ajax'] ) && $_REQUEST['wc-ajax'] === 'update_order_review' ) {
+				wc_get_template(
+					'lightbox-iframe-form.php',
+					array(),
+					basename( MONRI_WC_PLUGIN_PATH ),
+					MONRI_WC_PLUGIN_PATH . 'templates/'
+				);
+				wc_get_template( 'installments.php', array(
+					'installments' => $installments
+				), basename( MONRI_WC_PLUGIN_PATH ), MONRI_WC_PLUGIN_PATH . 'templates/' );
+			}
 		}
 	}
 

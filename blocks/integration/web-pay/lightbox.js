@@ -4,10 +4,12 @@ import { Fragment, useEffect } from "react";
 import { getDefaultPaymentMethod } from "../default-payment-method";
 import { useSelect } from '@wordpress/data';
 import { CHECKOUT_STORE_KEY, PAYMENT_STORE_KEY, } from '@woocommerce/block-data';
+import { Installments } from "../installments";
 
 
 export const WebPayLightbox = () => {
     const settings = useMonriData();
+    const showInstallments = settings.installments;
     //https://github.com/woocommerce/woocommerce-blocks
     const {
         isComplete: checkoutIsComplete,
@@ -48,6 +50,9 @@ export const WebPayLightbox = () => {
                     script.setAttribute('data-ch-city', monriData['data-ch-city']);
                     script.setAttribute('data-ch-country', monriData['data-ch-country']);
 
+                    if( monriData['data-number-of-installments'] ) {
+                        script.setAttribute('data-number-of-installments', monriData['data-number-of-installments']);
+                    }
 
                     document.querySelector('.wc-block-components-form').appendChild(script);
                     script.onload = () => {
@@ -68,6 +73,7 @@ export const WebPayLightbox = () => {
 
     return <Fragment>
         {decodeEntities(settings.description || '')}
+        {showInstallments ? <Installments /> : ''}
     </Fragment>;
 };
 
