@@ -109,11 +109,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	 */
 	public function process_redirect( $order_id ) {
 
-		//prevents redirect when integration type is not form
-		if ( $this->payment->get_option( 'monri_web_pay_integration_type' ) !== 'form') {
-			return;
-		}
-
 		$order = wc_get_order( $order_id );
 
 		if ( $this->payment->get_option_bool( 'test_mode' ) ) {

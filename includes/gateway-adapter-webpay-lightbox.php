@@ -46,6 +46,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		add_action( 'woocommerce_order_status_changed', [ $this, 'process_capture' ], null, 4 );
 		add_action( 'woocommerce_order_status_changed', [ $this, 'process_void' ], null, 4 );
 		add_action( 'woocommerce_receipt_' . $this->payment->id, [ $this, 'process_payment' ] );
+		add_action( 'rest_api_init', [ $this, 'register_monri_data_endpoint' ] );
 
 		// load lightbox.js on frontend checkout
 //		add_action( 'template_redirect', function () {
@@ -66,8 +67,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 	 */
 	public function process_payment( $order_id ) {
 		$order = wc_get_order( $order_id );
-
-		$order_pay_url = $order->get_checkout_payment_url( true );
 
 		$total = (int) wc_get_order( $order_id )->get_total() * 100 ;
 		$currency = get_woocommerce_currency();
@@ -329,6 +328,79 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			wc_price( $amount, array( 'currency' => $order->get_currency() ) )
 		) );
 
+		return true;
+	}
+
+	public function register_monri_data_endpoint() {
+		register_rest_route( 'monri/v1', '/order/(?P<order_id>\d+)', [
+			'methods'  => 'GET',
+			'callback' => [ $this, 'get_monri_data' ],
+			'permission_callback' => [ $this, 'check_order_permission' ]
+		]);
+	}
+
+
+	//todo: refactor with process_payment?
+	public function get_monri_data(WP_REST_Request $request) {
+		$order_id = $request->get_param('order_id');
+		$order = wc_get_order( $order_id );
+
+		$total = (int) wc_get_order( $order_id )->get_total() * 100 ;
+		$currency = get_woocommerce_currency();
+		if ( $currency === 'KM' ) {
+			$currency = 'BAM';
+		}
+
+		//Generate digest key
+		$key   = $this->payment->get_option( 'monri_merchant_key' );
+		$token = $this->payment->get_option( 'monri_authenticity_token' );
+		$digest = hash( 'sha512', $key . $order_id . $total . $currency );
+		//Combine first and last name in one string
+		$full_name = $order->get_billing_first_name() . " " . $order->get_billing_last_name();
+		$config = [
+			'src' => $this->payment->get_option_bool( 'test_mode' ) ? self::ENDPOINT_TEST : self::ENDPOINT,
+			'data-authenticity-token' => $token,
+			'data-amount'           => $total,
+			'data-currency'         => $currency,
+			'data-order-number'         => $order_id,
+			'data-order-info'         => 'Monri Lightbox',
+			'data-digest'         => $digest,
+			'data-transaction-type'         => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
+			'data-language'         => $this->payment->get_option( 'form_language' ),
+			'data-success-url-override'  => $this->payment->get_return_url( $order ) . '&nocache=1',
+			'data-cancel-url-override'   => $order->get_cancel_order_url(),
+			'data-ch-full-name' => wc_trim_string( $full_name, 30, '' ),
+			'data-ch-address'   => wc_trim_string( $order->get_billing_address_1(), 100, '' ),
+			'data-ch-city'      => wc_trim_string( $order->get_billing_city(), 30, '' ),
+			'data-ch-zip'       => wc_trim_string( $order->get_billing_postcode(), 9, '' ),
+			'data-ch-country'   => $order->get_billing_country(),
+			'data-ch-phone'     => wc_trim_string( $order->get_billing_phone(), 30, '' ),
+			'data-ch-email'     => wc_trim_string( $order->get_billing_email(), 100, '' ),
+		];
+
+		$order->add_meta_data( 'monri_transaction_type', $config['data-transaction-type'] );
+		$order->save();
+
+		return $config;
+	}
+
+	/**
+	 * @param WP_REST_Request $request
+	 *
+	 * @return bool
+	 */
+	public function check_order_permission( WP_REST_Request $request ) {
+		//todo: come up with something better. all guests have user_id = 0 so they are view each others data!!
+		$order_id = $request->get_param('order_id');
+		$user_id = $request->get_param('customer_id');
+		$order = wc_get_order( $order_id );
+
+		if ( ! $order ) {
+			return false;
+		}
+		if ( $order->get_user_id() !== $user_id ) {
+			return false;
+		}
 		return true;
 	}
 }

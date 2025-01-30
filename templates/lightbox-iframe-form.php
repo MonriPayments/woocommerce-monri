@@ -10,20 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 <script>
     (function($) {
-        console.log('lightbox hi');
-
         $('form.checkout').on('checkout_place_order_success', function (t, result) {
-            // ako lighbox gotov return true; // nepotrebno
-
-            console.log(result);
-
-            // uzmi result, stvori js/lighbox, script on load => form.submit()
-
-            // otvaramo lightbox
-
-            //alert(1);
-            //$('#monri-lightbox-form').submit();
-
 
             const transactionParams = {
                 address: $('#billing_address_1').val(),
@@ -35,9 +22,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
                 email: $('#billing_email').val()
             }
 
-            console.log('transaction params: ', transactionParams);
-            console.log('result.order_id: ', result.order_id);
-            console.log('digest: ', result.monri_data['data-digest'])
             let script = document.createElement('script');
             script.src = result.monri_data['src'];
             script.className = "lightbox-button";
@@ -60,13 +44,11 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             script.setAttribute('data-ch-country', transactionParams.country);
 
             script.onload = function() {
-                //alert(2);
                 $('button.monri-lightbox-button-el').click();
-
             }
 
             script.onerror = function() {
-                alert(3);
+                console.log('something went wrong');
             }
 
             document.querySelector('#monri-lightbox-form').appendChild(script);
