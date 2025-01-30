@@ -18,6 +18,7 @@ class Monri_WC_Settings {
 		if ( is_null( self::$instance ) ) {
 			self::$instance = new self();
 		}
+		add_filter( 'woocommerce_settings_api_sanitized_fields_monri', [ self::$instance, 'modify_monri_sanitized_fields' ] );
 
 		return self::$instance;
 	}
@@ -204,6 +205,15 @@ class Monri_WC_Settings {
 					}'
 				]
 			),
+			'transaction_type' => array(
+				'title'       => __( 'Transaction type', 'monri' ),
+				'type'        => 'select',
+				'class'       => 'wc-enhanced-select',
+				'default'     => 0,
+				'description' => '',
+				'options'     => $transaction_type,
+				'desc_tip'    => true
+			),
 			'test_mode' => array(
 				'title'       => __( 'Test mode', 'monri' ),
 				'description' => __( 'Just test the gateway, no real orders will be placed on the gateway side.', 'monri' ),
@@ -221,15 +231,6 @@ class Monri_WC_Settings {
 				'default'     => 0,
 				'options'     => $yes_or_no,
 				'desc_tip'    => true,
-			),
-			'transaction_type' => array(
-				'title'       => __( 'Transaction type', 'monri' ),
-				'type'        => 'select',
-				'class'       => 'wc-enhanced-select',
-				'default'     => 0,
-				'description' => '',
-				'options'     => $transaction_type,
-				'desc_tip'    => true
 			),
 			'form_language' => array(
 				'title'       => __( 'Form language', 'monri' ),
@@ -295,6 +296,41 @@ class Monri_WC_Settings {
 					}'
 				]
 			),
+
+			'monri_ws_pay_callback_url' => array(
+				'title'       => __( 'Callback url', 'monri' ),
+				'type'        => 'text',
+				'label'   => __( 'Callback url', 'monri' ),
+				'description' => __( 'To enable callback send this url to Monri WSPay support.', 'monri' ),
+				'desc_tip'    => false,
+				'default'     => get_home_url() . '?wc-api=monri_callback',
+				'custom_attributes' => [
+					'disabled' => 'disabled',
+					'data-depends' => '{
+						"monri_payment_gateway_service":"monri-ws-pay"
+					}'
+				],
+
+			),
+
+			'monri_web_pay_supported_payment_methods' => array(
+				'title'       => __( 'Additional Payment Methods', 'monri' ),
+				'type'        => 'multiselect',
+				'class'       => 'wc-enhanced-select',
+				'default'     => array(),
+				'options'     => array(
+					'keks-pay-hr' => __( 'KEKS pay', 'monri' ),
+					'pay-cek' => __( 'PayCek', 'monri' )
+				),
+				'desc_tip'    => true,
+				'description' => __( 'Select additional payment methods, if they are set on Monri Webpay.', 'monri' ),
+				'custom_attributes' => [
+					'data-depends' => '{
+						"monri_payment_gateway_service":"monri-web-pay"
+					}'
+				]
+			),
+
 		);
 
 		for ( $i = 2; $i <= 36; $i ++ ) {
@@ -357,4 +393,15 @@ class Monri_WC_Settings {
 	public function get_option_bool( $key ) {
 		return in_array( $this->get_option( $key ), array( 'yes', '1', true ), true );
 	}
+
+	/**
+	 * @param string[] $settings
+	 *
+	 * @return string[]
+	 */
+	function modify_monri_sanitized_fields( $settings ) {
+		unset( $settings['monri_ws_pay_callback_url'] );
+		return $settings;
+	}
+
 }
