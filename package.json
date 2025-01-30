@@ -24,11 +24,8 @@
     "@wordpress/scripts": "^27.2.0",
     "archiver": "^6.0.1",
     "colors": "^1.4.0",
-    "rimraf": "^5.0.5",
     "shelljs": "^0.8.5",
+    "rimraf": "^5.0.5",
     "webpack": "^5.90.3"
-  },
-  "dependencies": {
-    "@wordpress/hooks": "^4.16.0"
   }
 }

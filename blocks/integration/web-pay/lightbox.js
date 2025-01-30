@@ -3,7 +3,7 @@ import { useMonriData } from "../use-monri-data";
 import { Fragment, useEffect } from "react";
 import { getDefaultPaymentMethod } from "../default-payment-method";
 import { useSelect } from '@wordpress/data';
-import { CHECKOUT_STORE_KEY } from '@woocommerce/block-data';
+import { CHECKOUT_STORE_KEY, PAYMENT_STORE_KEY, } from '@woocommerce/block-data';
 
 
 export const WebPayLightbox = () => {
@@ -11,16 +11,13 @@ export const WebPayLightbox = () => {
     //https://github.com/woocommerce/woocommerce-blocks
     const {
         isComplete: checkoutIsComplete,
-        orderId,
-        store,
-        customerId
+        paymentResult,
     } = useSelect( ( select ) => {
         const store = select( CHECKOUT_STORE_KEY );
+        const payment = select( PAYMENT_STORE_KEY );
         return {
             isComplete: store.isComplete(),
-            orderId : store.getOrderId(),
-            store : store,
-            customerId : store.getCustomerId()
+            paymentResult : payment.getPaymentResult(),
         };
     } );
 
@@ -28,37 +25,28 @@ export const WebPayLightbox = () => {
         const loadMonriData = async () => {
             if (checkoutIsComplete) {
                 try {
-                    console.log('store: ', store);
-                    console.log('customer id:', customerId)
-                    const response = await fetch(`/?rest_route=/monri/v1/order/${orderId}&customer_id=${customerId}`);
-                    console.log('response: ', response);
-                    const monri_data = await response.json();
-
-                    const script = document.createElement("script");
-                    if (!monri_data["src"]) {
-                        console.log('invalid Monri data');
-                        return;
-                    }
-                    script.src = monri_data["src"];
+                    const monriData = paymentResult.paymentDetails;
+                    let script = document.createElement('script');
+                    script.src = monriData["src"];
                     script.className = "lightbox-button";
 
-                    script.setAttribute('data-authenticity-token', monri_data['data-authenticity-token']);
-                    script.setAttribute('data-amount', monri_data['data-amount']);
-                    script.setAttribute('data-currency', monri_data['data-currency']);
-                    script.setAttribute('data-order-number', monri_data['data-order-number']);
-                    script.setAttribute('data-order-info', monri_data['data-order-info']);
-                    script.setAttribute('data-digest', monri_data['data-digest']);
-                    script.setAttribute('data-transaction-type', monri_data['data-transaction-type']);
-                    script.setAttribute('data-language', monri_data['data-language']);
-                    script.setAttribute('data-success-url-override', monri_data['data-success-url-override']);
-                    script.setAttribute('data-cancel-url-override', monri_data['data-cancel-url-override']);
-                    script.setAttribute('data-ch-full-name', monri_data['data-ch-full-name']);
-                    script.setAttribute('data-ch-zip', monri_data['data-ch-zip']);
-                    script.setAttribute('data-ch-phone', monri_data['data-ch-phone']);
-                    script.setAttribute('data-ch-email', monri_data['data-ch-email']);
-                    script.setAttribute('data-ch-address', monri_data['data-ch-address']);
-                    script.setAttribute('data-ch-city', monri_data['data-ch-city']);
-                    script.setAttribute('data-ch-country', monri_data['data-ch-country']);
+                    script.setAttribute('data-authenticity-token', monriData['data-authenticity-token']);
+                    script.setAttribute('data-amount', monriData['data-amount']);
+                    script.setAttribute('data-currency', monriData['data-currency']);
+                    script.setAttribute('data-order-number', monriData['data-order-number']);
+                    script.setAttribute('data-order-info', monriData['data-order-info']);
+                    script.setAttribute('data-digest', monriData['data-digest']);
+                    script.setAttribute('data-transaction-type', monriData['data-transaction-type']);
+                    script.setAttribute('data-language', monriData['data-language']);
+                    script.setAttribute('data-success-url-override', monriData['data-success-url-override']);
+                    script.setAttribute('data-cancel-url-override', monriData['data-cancel-url-override']);
+                    script.setAttribute('data-ch-full-name', monriData['data-ch-full-name']);
+                    script.setAttribute('data-ch-zip', monriData['data-ch-zip']);
+                    script.setAttribute('data-ch-phone', monriData['data-ch-phone']);
+                    script.setAttribute('data-ch-email', monriData['data-ch-email']);
+                    script.setAttribute('data-ch-address', monriData['data-ch-address']);
+                    script.setAttribute('data-ch-city', monriData['data-ch-city']);
+                    script.setAttribute('data-ch-country', monriData['data-ch-country']);
 
 
                     document.querySelector('.wc-block-components-form').appendChild(script);

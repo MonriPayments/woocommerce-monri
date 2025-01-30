@@ -10,13 +10,13 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 	public const ADAPTER_ID = 'webpay_lightbox';
 
 	public const ENDPOINT_TEST = 'https://ipgtest.monri.com/dist/lightbox.js';
-	public const ENDPOINT = 'https://ipg.monri.com/dist/lightbox.js';
+	public const ENDPOINT      = 'https://ipg.monri.com/dist/lightbox.js';
 
 
 	/**
 	 * @var string[]
 	 */
-	public $supports = [ 'products', 'refunds' ];
+	public $supports = array( 'products', 'refunds' );
 
 
 	/**
@@ -35,26 +35,17 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 					wp_enqueue_script(
 						'monri-iframe-resizer',
 						MONRI_WC_PLUGIN_URL . 'assets/js/iframe-resizer.parent.js',
-						[],
+						array(),
 						MONRI_WC_VERSION,
 						false
 					);
 				}
 			}
 		);
-		add_action( 'woocommerce_before_thankyou', [ $this, 'process_return' ] );
-		add_action( 'woocommerce_order_status_changed', [ $this, 'process_capture' ], null, 4 );
-		add_action( 'woocommerce_order_status_changed', [ $this, 'process_void' ], null, 4 );
-		add_action( 'woocommerce_receipt_' . $this->payment->id, [ $this, 'process_payment' ] );
-		add_action( 'rest_api_init', [ $this, 'register_monri_data_endpoint' ] );
-
-		// load lightbox.js on frontend checkout
-//		add_action( 'template_redirect', function () {
-//			if ( is_checkout() ) {
-//				$script_url = $this->payment->get_option_bool( 'test_mode' ) ? self::ENDPOINT_TEST : self::ENDPOINT;
-//				wp_enqueue_script( 'monri-components', $script_url, [], MONRI_WC_VERSION );
-//			}
-//		} );
+		add_action( 'woocommerce_before_thankyou', array( $this, 'process_return' ) );
+		add_action( 'woocommerce_order_status_changed', array( $this, 'process_capture' ), null, 4 );
+		add_action( 'woocommerce_order_status_changed', array( $this, 'process_void' ), null, 4 );
+		add_action( 'woocommerce_receipt_' . $this->payment->id, array( $this, 'process_payment' ) );
 	}
 
 
@@ -68,52 +59,64 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 	public function process_payment( $order_id ) {
 		$order = wc_get_order( $order_id );
 
-		$total = (int) wc_get_order( $order_id )->get_total() * 100 ;
+		$total    = (int) wc_get_order( $order_id )->get_total() * 100;
 		$currency = get_woocommerce_currency();
 		if ( $currency === 'KM' ) {
 			$currency = 'BAM';
 		}
 
-		//Generate digest key
-		$key   = $this->payment->get_option( 'monri_merchant_key' );
-		$token = $this->payment->get_option( 'monri_authenticity_token' );
+		// Generate digest key
+		$key    = $this->payment->get_option( 'monri_merchant_key' );
+		$token  = $this->payment->get_option( 'monri_authenticity_token' );
 		$digest = hash( 'sha512', $key . $order_id . $total . $currency );
-		$config = [
-			'src' => $this->payment->get_option_bool( 'test_mode' ) ? self::ENDPOINT_TEST : self::ENDPOINT,
-			'data-authenticity-token' => $token,
-			'data-amount'           => $total,
-			'data-currency'         => $currency,
+
+		// Combine first and last name in one string
+		$full_name = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
+
+		$config = array(
+			'src'                       => $this->payment->get_option_bool( 'test_mode' ) ? self::ENDPOINT_TEST : self::ENDPOINT,
+			'data-authenticity-token'   => $token,
+			'data-amount'               => $total,
+			'data-currency'             => $currency,
 			'data-order-number'         => $order_id,
-			'data-order-info'         => 'Monri Lightbox',
-			'data-digest'         => $digest,
-			'data-transaction-type'         => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
-			'data-language'         => $this->payment->get_option( 'form_language' ),
-			'data-success-url-override'  => $this->payment->get_return_url( $order ) . '&nocache=1',
-			'data-cancel-url-override'   => $order->get_cancel_order_url(),
-		];
+			'data-order-info'           => 'Monri Lightbox',
+			'data-digest'               => $digest,
+			'data-transaction-type'     => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
+			'data-language'             => $this->payment->get_option( 'form_language' ),
+			'data-success-url-override' => $this->payment->get_return_url( $order ) . '&nocache=1',
+			'data-cancel-url-override'  => $order->get_cancel_order_url(),
+			'data-ch-full-name'         => wc_trim_string( $full_name, 30, '' ),
+			'data-ch-address'           => wc_trim_string( $order->get_billing_address_1(), 100, '' ),
+			'data-ch-city'              => wc_trim_string( $order->get_billing_city(), 30, '' ),
+			'data-ch-zip'               => wc_trim_string( $order->get_billing_postcode(), 9, '' ),
+			'data-ch-country'           => $order->get_billing_country(),
+			'data-ch-phone'             => wc_trim_string( $order->get_billing_phone(), 30, '' ),
+			'data-ch-email'             => wc_trim_string( $order->get_billing_email(), 100, '' ),
+			'result'                    => 'success',
+			'messages'                  => array(),
+		);
 
 		$order->add_meta_data( 'monri_transaction_type', $config['data-transaction-type'] );
 		$order->save();
 
-		return [
-			'result'   => 'success',
-			// new checkout will create order but wont redirect if there is no redirect url
-			//'redirect' => $order_pay_url,
-			'messages' => [],
-			'monri_data'=> $config
-		];
+		return $config;
 	}
 
 
 	/**
 	 * Old checkout
+	 *
 	 * @return void
 	 */
 	public function payment_fields() {
 		// Prevents rendering this file multiple times - JS part gets duplicated and executed twice
-		if ( isset( $_REQUEST['wc-ajax'] ) && $_REQUEST['wc-ajax'] === "update_order_review" ) {
-			wc_get_template( 'lightbox-iframe-form.php', array(
-			), basename( MONRI_WC_PLUGIN_PATH ), MONRI_WC_PLUGIN_PATH . 'templates/' );
+		if ( isset( $_REQUEST['wc-ajax'] ) && $_REQUEST['wc-ajax'] === 'update_order_review' ) {
+			wc_get_template(
+				'lightbox-iframe-form.php',
+				array(),
+				basename( MONRI_WC_PLUGIN_PATH ),
+				MONRI_WC_PLUGIN_PATH . 'templates/'
+			);
 		}
 	}
 
@@ -121,31 +124,31 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 	 * New checkout
 	 */
 	public function prepare_blocks_data() {
-		$cart = WC()->cart;
-		$total = (float) $cart->get_total( 'edit' );
-		$cart_id = $cart->get_cart_hash();
+		$cart     = WC()->cart;
+		$total    = (float) $cart->get_total( 'edit' );
+		$cart_id  = $cart->get_cart_hash();
 		$currency = get_woocommerce_currency();
 		if ( $currency === 'KM' ) {
 			$currency = 'BAM';
 		}
 
-		//Generate digest key
-		$key   = $this->payment->get_option( 'monri_merchant_key' );
-		$token = $this->payment->get_option( 'monri_authenticity_token' );
+		// Generate digest key
+		$key    = $this->payment->get_option( 'monri_merchant_key' );
+		$token  = $this->payment->get_option( 'monri_authenticity_token' );
 		$digest = hash( 'sha512', $key . $cart_id . $total . $currency );
 
-		return [
-			'lightbox' => [
+		return array(
+			'lightbox' => array(
 				'data-authenticity-token' => $token,
-				'data-amount'           => $cart->get_total(),
-				'data-currency'         => $currency,
-				'data-order-number'         => $cart_id,
+				'data-amount'             => $cart->get_total(),
+				'data-currency'           => $currency,
+				'data-order-number'       => $cart_id,
 				'data-order-info'         => 'Monri Lightbox',
-				'data-digest'         => $digest,
-				'data-transaction-type'         => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
-				'data-language'         => $this->payment->get_option( 'form_language' ),
-			]
-		];
+				'data-digest'             => $digest,
+				'data-transaction-type'   => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
+				'data-language'           => $this->payment->get_option( 'form_language' ),
+			),
+		);
 	}
 
 	// Xdebug wont pause here after we pay and go to success url??
@@ -155,7 +158,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		if ( ! $order || $order->get_payment_method() !== $this->payment->id ) {
 			return;
 		}
-		Monri_WC_Logger::log( "Response data: " . sanitize_textarea_field( print_r( $_GET, true ) ), __METHOD__ );
+		Monri_WC_Logger::log( 'Response data: ' . sanitize_textarea_field( print_r( $_GET, true ) ), __METHOD__ );
 
 		$requested_order_id = sanitize_text_field( $_GET['order_number'] );
 		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
@@ -170,13 +173,13 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			return;
 		}
 
-		if ( ! in_array( $order->get_status(), [ 'pending', 'failed' ], true ) ) {
+		if ( ! in_array( $order->get_status(), array( 'pending', 'failed' ), true ) ) {
 			return;
 		}
 
 		$response_code    = ! empty( $_GET['response_code'] ) ? sanitize_text_field( $_GET['response_code'] ) : '';
 		$transaction_type = $order->get_meta( 'monri_transaction_type' );
-		Monri_WC_Logger::log( "Transaction type: " . $order->get_meta( 'monri_transaction_type' ), __METHOD__ );
+		Monri_WC_Logger::log( 'Transaction type: ' . $order->get_meta( 'monri_transaction_type' ), __METHOD__ );
 		if ( $response_code === '0000' ) {
 			if ( $transaction_type === 'purchase' ) {
 				$order->payment_complete();
@@ -205,9 +208,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 
 		} else {
 			$order->update_status( 'failed', "Response not authorized - response code is $response_code." );
-			//$order->add_order_note( __( 'Transaction Declined: ', 'monri' ) . sanitize_text_field( $_GET['Error'] ) );
+			// $order->add_order_note( __( 'Transaction Declined: ', 'monri' ) . sanitize_text_field( $_GET['Error'] ) );
 		}
-
 	}
 
 	/**
@@ -239,9 +241,9 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		}
 
 		$calculated_url .= '?' . $query_string;
-		$calculated_url = preg_replace( '/&digest=[^&]*/', '', $calculated_url );
+		$calculated_url  = preg_replace( '/&digest=[^&]*/', '', $calculated_url );
 
-		//generate known digest
+		// generate known digest
 		$check_digest = hash( 'sha512', $this->payment->get_option( 'monri_merchant_key' ) . $calculated_url );
 
 		return hash_equals( $check_digest, $digest );
@@ -249,7 +251,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 
 	public function process_capture( $order_id, $from, $to ) {
 
-		if ( ! ( in_array( $from, [ 'pending', 'on-hold' ] ) && in_array( $to, wc_get_is_paid_statuses() ) ) ) {
+		if ( ! ( in_array( $from, array( 'pending', 'on-hold' ) ) && in_array( $to, wc_get_is_paid_statuses() ) ) ) {
 			return false;
 		}
 		$order          = wc_get_order( $order_id );
@@ -264,9 +266,9 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			return false;
 		}
 
-		$response = Monri_WC_Api::instance()->capture( $monri_order_id, $amount * 100, $currency );
-		$formatted_response = json_decode(json_encode($response), true);
-		if ( is_wp_error( $response ) || !(isset( $formatted_response['response-code']) && $formatted_response['response-code'] === '0000')) {
+		$response           = Monri_WC_Api::instance()->capture( $monri_order_id, $amount * 100, $currency );
+		$formatted_response = json_decode( json_encode( $response ), true );
+		if ( is_wp_error( $response ) || ! ( isset( $formatted_response['response-code'] ) && $formatted_response['response-code'] === '0000' ) ) {
 			Monri_WC_Logger::log( $formatted_response, __METHOD__ );
 			$order->add_order_note(
 				sprintf( __( 'There was an error submitting the capture to Monri.', 'monri' ) )
@@ -276,11 +278,13 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		}
 
 		$order->payment_complete( $monri_order_id );
-		$order->add_order_note( sprintf(
-		/* translators: %s: amount which was successfully captured */
-			__( 'Capture of %s successfully sent to Monri.', 'monri' ),
-			wc_price( $amount, array( 'currency' => $order->get_currency() ) )
-		) );
+		$order->add_order_note(
+			sprintf(
+			/* translators: %s: amount which was successfully captured */
+				__( 'Capture of %s successfully sent to Monri.', 'monri' ),
+				wc_price( $amount, array( 'currency' => $order->get_currency() ) )
+			)
+		);
 
 		return true;
 	}
@@ -289,14 +293,14 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 	 * Void order on Monri side
 	 *
 	 * @param $order_id
-	 * @param string $from
-	 * @param string $to
+	 * @param string   $from
+	 * @param string   $to
 	 *
 	 * @return bool
 	 */
 	public function process_void( $order_id, $from, $to ) {
 
-		if ( ! ( in_array( $from, [ 'pending', 'on-hold' ] ) && in_array( $to, [ 'cancelled', 'failed' ] ) ) ) {
+		if ( ! ( in_array( $from, array( 'pending', 'on-hold' ) ) && in_array( $to, array( 'cancelled', 'failed' ) ) ) ) {
 			return false;
 		}
 
@@ -311,9 +315,9 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			return false;
 		}
 
-		$response = Monri_WC_Api::instance()->void( $monri_order_id, $amount * 100, $currency );
-		$formatted_response = json_decode(json_encode($response), true);
-		if ( is_wp_error( $response ) || !(isset( $formatted_response['response-code']) && $formatted_response['response-code'] === '0000')) {
+		$response           = Monri_WC_Api::instance()->void( $monri_order_id, $amount * 100, $currency );
+		$formatted_response = json_decode( json_encode( $response ), true );
+		if ( is_wp_error( $response ) || ! ( isset( $formatted_response['response-code'] ) && $formatted_response['response-code'] === '0000' ) ) {
 			Monri_WC_Logger::log( $formatted_response, __METHOD__ );
 			$order->add_order_note(
 				sprintf( __( 'There was an error submitting the void to Monri.', 'monri' ) )
@@ -322,85 +326,14 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			return false;
 		}
 
-		$order->add_order_note( sprintf(
-		/* translators: %s: amount which was successfully voided */
-			__( 'Void of %s successfully sent to Monri.', 'monri' ),
-			wc_price( $amount, array( 'currency' => $order->get_currency() ) )
-		) );
+		$order->add_order_note(
+			sprintf(
+			/* translators: %s: amount which was successfully voided */
+				__( 'Void of %s successfully sent to Monri.', 'monri' ),
+				wc_price( $amount, array( 'currency' => $order->get_currency() ) )
+			)
+		);
 
-		return true;
-	}
-
-	public function register_monri_data_endpoint() {
-		register_rest_route( 'monri/v1', '/order/(?P<order_id>\d+)', [
-			'methods'  => 'GET',
-			'callback' => [ $this, 'get_monri_data' ],
-			'permission_callback' => [ $this, 'check_order_permission' ]
-		]);
-	}
-
-
-	//todo: refactor with process_payment?
-	public function get_monri_data(WP_REST_Request $request) {
-		$order_id = $request->get_param('order_id');
-		$order = wc_get_order( $order_id );
-
-		$total = (int) wc_get_order( $order_id )->get_total() * 100 ;
-		$currency = get_woocommerce_currency();
-		if ( $currency === 'KM' ) {
-			$currency = 'BAM';
-		}
-
-		//Generate digest key
-		$key   = $this->payment->get_option( 'monri_merchant_key' );
-		$token = $this->payment->get_option( 'monri_authenticity_token' );
-		$digest = hash( 'sha512', $key . $order_id . $total . $currency );
-		//Combine first and last name in one string
-		$full_name = $order->get_billing_first_name() . " " . $order->get_billing_last_name();
-		$config = [
-			'src' => $this->payment->get_option_bool( 'test_mode' ) ? self::ENDPOINT_TEST : self::ENDPOINT,
-			'data-authenticity-token' => $token,
-			'data-amount'           => $total,
-			'data-currency'         => $currency,
-			'data-order-number'         => $order_id,
-			'data-order-info'         => 'Monri Lightbox',
-			'data-digest'         => $digest,
-			'data-transaction-type'         => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
-			'data-language'         => $this->payment->get_option( 'form_language' ),
-			'data-success-url-override'  => $this->payment->get_return_url( $order ) . '&nocache=1',
-			'data-cancel-url-override'   => $order->get_cancel_order_url(),
-			'data-ch-full-name' => wc_trim_string( $full_name, 30, '' ),
-			'data-ch-address'   => wc_trim_string( $order->get_billing_address_1(), 100, '' ),
-			'data-ch-city'      => wc_trim_string( $order->get_billing_city(), 30, '' ),
-			'data-ch-zip'       => wc_trim_string( $order->get_billing_postcode(), 9, '' ),
-			'data-ch-country'   => $order->get_billing_country(),
-			'data-ch-phone'     => wc_trim_string( $order->get_billing_phone(), 30, '' ),
-			'data-ch-email'     => wc_trim_string( $order->get_billing_email(), 100, '' ),
-		];
-
-		$order->add_meta_data( 'monri_transaction_type', $config['data-transaction-type'] );
-		$order->save();
-
-		return $config;
-	}
-
-	/**
-	 * @param WP_REST_Request $request
-	 *
-	 * @return bool
-	 */
-	public function check_order_permission( WP_REST_Request $request ) {
-		//todo: come up with something better. all guests have user_id = 0 so they are view each others data!!
-		$order_id = $request->get_param('order_id');
-		$user_id = $request->get_param('customer_id');
-		$order = wc_get_order( $order_id );
-
-		if ( ! $order ) {
-			return false;
-		}
-		if ( $order->get_user_id() !== $user_id ) {
-			return false;
-		}
 		return true;
 	}
 }
