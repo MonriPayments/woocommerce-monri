@@ -33,6 +33,10 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             script.setAttribute('data-ch-city', result['data-ch-city']);
             script.setAttribute('data-ch-country', result['data-ch-country']);
 
+            if( result['data-number-of-installments'] ) {
+                script.setAttribute('data-number-of-installments', result['data-number-of-installments']);
+            }
+
             script.onload = function() {
                 $('button.monri-lightbox-button-el').click();
             }
