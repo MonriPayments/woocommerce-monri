@@ -149,7 +149,13 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 	}
 
 
-	// Xdebug wont pause here after we pay and go to success url??
+	/**
+	 * Monri returns on thankyou page
+	 *
+	 * @param int $order_id
+	 *
+	 * @return void
+	 */
 	public function process_return( $order_id ) {
 
 		$order = wc_get_order( $order_id );
@@ -247,6 +253,15 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		return hash_equals( $check_digest, $digest );
 	}
 
+	/**
+	 * Capture order on Monri side
+	 *
+	 * @param $order_id
+	 * @param string   $from
+	 * @param string   $to
+	 *
+	 * @return bool
+	 */
 	public function process_capture( $order_id, $from, $to ) {
 
 		if ( ! ( in_array( $from, array( 'pending', 'on-hold' ) ) && in_array( $to, wc_get_is_paid_statuses() ) ) ) {
