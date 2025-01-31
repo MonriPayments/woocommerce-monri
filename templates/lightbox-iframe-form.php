@@ -24,6 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             script.setAttribute('data-language', result['data-language']);
             script.setAttribute('data-success-url-override', result['data-success-url-override']);
             script.setAttribute('data-cancel-url-override', result['data-cancel-url-override']);
+            script.setAttribute('data-callback-url-override', result['data-callback-url-override']);
             script.setAttribute('data-ch-full-name', result['data-ch-full-name']);
             script.setAttribute('data-ch-zip', result['data-ch-zip']);
             script.setAttribute('data-ch-phone', result['data-ch-phone']);

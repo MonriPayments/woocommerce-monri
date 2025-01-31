@@ -42,6 +42,7 @@ export const WebPayLightbox = () => {
                     script.setAttribute('data-language', monriData['data-language']);
                     script.setAttribute('data-success-url-override', monriData['data-success-url-override']);
                     script.setAttribute('data-cancel-url-override', monriData['data-cancel-url-override']);
+                    script.setAttribute('data-callback-url-override', monriData['data-callback-url-override']);
                     script.setAttribute('data-ch-full-name', monriData['data-ch-full-name']);
                     script.setAttribute('data-ch-zip', monriData['data-ch-zip']);
                     script.setAttribute('data-ch-phone', monriData['data-ch-phone']);
