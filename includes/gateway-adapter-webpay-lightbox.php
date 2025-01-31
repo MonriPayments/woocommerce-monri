@@ -31,7 +31,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		add_action( 'woocommerce_order_status_changed', array( $this, 'process_capture' ), null, 4 );
 		add_action( 'woocommerce_order_status_changed', array( $this, 'process_void' ), null, 4 );
 		add_action( 'woocommerce_receipt_' . $this->payment->id, array( $this, 'process_payment' ) );
-
 	}
 
 
@@ -45,8 +44,12 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 	public function process_payment( $order_id ) {
 		$order = wc_get_order( $order_id );
 
+		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
+			$order_id = Monri_WC_Utils::get_test_order_id( $order_id );
+		}
+
 		$order_total = $order->get_total() * 100;
-		$currency = get_woocommerce_currency();
+		$currency    = get_woocommerce_currency();
 		if ( $currency === 'KM' ) {
 			$currency = 'BAM';
 		}
@@ -60,27 +63,27 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		$full_name = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
 
 		$config = array(
-			'src'                       => $this->payment->get_option_bool( 'test_mode' ) ? self::ENDPOINT_TEST : self::ENDPOINT,
-			'data-authenticity-token'   => $token,
-			'data-amount'               => $order_total,
-			'data-currency'             => $currency,
-			'data-order-number'         => $order_id,
-			'data-order-info'           => 'Monri Lightbox',
-			'data-digest'               => $digest,
-			'data-transaction-type'     => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
-			'data-language'             => $this->payment->get_option( 'form_language' ),
-			'data-success-url-override' => $this->payment->get_return_url( $order ) . '&nocache=1',
-			'data-cancel-url-override'  => $order->get_cancel_order_url(),
+			'src'                        => $this->payment->get_option_bool( 'test_mode' ) ? self::ENDPOINT_TEST : self::ENDPOINT,
+			'data-authenticity-token'    => $token,
+			'data-amount'                => $order_total,
+			'data-currency'              => $currency,
+			'data-order-number'          => $order_id,
+			'data-order-info'            => $order_id . '_' . gmdate( 'dmy' ),
+			'data-digest'                => $digest,
+			'data-transaction-type'      => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
+			'data-language'              => $this->payment->get_option( 'form_language' ),
+			'data-success-url-override'  => $this->payment->get_return_url( $order ) . '&nocache=1',
+			'data-cancel-url-override'   => $order->get_cancel_order_url(),
 			'data-callback-url-override' => add_query_arg( 'wc-api', 'monri_callback', get_home_url() ),
-			'data-ch-full-name'         => wc_trim_string( $full_name, 30, '' ),
-			'data-ch-address'           => wc_trim_string( $order->get_billing_address_1(), 100, '' ),
-			'data-ch-city'              => wc_trim_string( $order->get_billing_city(), 30, '' ),
-			'data-ch-zip'               => wc_trim_string( $order->get_billing_postcode(), 9, '' ),
-			'data-ch-country'           => $order->get_billing_country(),
-			'data-ch-phone'             => wc_trim_string( $order->get_billing_phone(), 30, '' ),
-			'data-ch-email'             => wc_trim_string( $order->get_billing_email(), 100, '' ),
-			'result'                    => 'success',
-			'messages'                  => array(),
+			'data-ch-full-name'          => wc_trim_string( $full_name, 30, '' ),
+			'data-ch-address'            => wc_trim_string( $order->get_billing_address_1(), 100, '' ),
+			'data-ch-city'               => wc_trim_string( $order->get_billing_city(), 30, '' ),
+			'data-ch-zip'                => wc_trim_string( $order->get_billing_postcode(), 9, '' ),
+			'data-ch-country'            => $order->get_billing_country(),
+			'data-ch-phone'              => wc_trim_string( $order->get_billing_phone(), 30, '' ),
+			'data-ch-email'              => wc_trim_string( $order->get_billing_email(), 100, '' ),
+			'result'                     => 'success',
+			'messages'                   => array(),
 		);
 
 		$number_of_installments = WC()->session->get( 'monri_installments' );
@@ -115,15 +118,14 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 
 				$selected = (int) WC()->session->get( 'monri_installments' );
 
-				for ( $i = 1; $i <= (int) $this->payment->get_option( 'number_of_allowed_installments', 12 ); $i ++ ) {
-					$installments[] = [
+				for ( $i = 1; $i <= (int) $this->payment->get_option( 'number_of_allowed_installments', 12 ); $i++ ) {
+					$installments[] = array(
 						'label'          => ( $i === 1 ) ? __( 'No installments', 'monri' ) : (string) $i,
 						'value'          => (string) $i,
 						'selected'       => ( $selected === $i ),
-						'price_increase' => $this->payment->get_option( "price_increase_$i", 0 )
-					];
+						'price_increase' => $this->payment->get_option( "price_increase_$i", 0 ),
+					);
 				}
-
 			}
 
 			// Prevents rendering this file multiple times - JS part gets duplicated and executed twice
@@ -134,9 +136,14 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 					basename( MONRI_WC_PLUGIN_PATH ),
 					MONRI_WC_PLUGIN_PATH . 'templates/'
 				);
-				wc_get_template( 'installments.php', array(
-					'installments' => $installments
-				), basename( MONRI_WC_PLUGIN_PATH ), MONRI_WC_PLUGIN_PATH . 'templates/' );
+				wc_get_template(
+					'installments.php',
+					array(
+						'installments' => $installments,
+					),
+					basename( MONRI_WC_PLUGIN_PATH ),
+					MONRI_WC_PLUGIN_PATH . 'templates/'
+				);
 			}
 		}
 	}
