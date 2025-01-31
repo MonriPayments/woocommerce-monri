@@ -13,7 +13,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	/**
 	 * @var Monri_WC_Gateway
 	 */
-	private $payment;
+	protected $payment;
 
 	/**
 	 * @var string[]

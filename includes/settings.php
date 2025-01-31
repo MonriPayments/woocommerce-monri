@@ -100,7 +100,8 @@ class Monri_WC_Settings {
 				'default'     => true,
 				'options'     => array(
 					'form'       => __( 'Form', 'monri' ),
-					'components' => __( 'Components (beta)', 'monri' )
+					'components' => __( 'Components (beta)', 'monri' ),
+					'lightbox' => __( 'LightBox', 'monri' )
 				),
 				'desc_tip'    => true,
 				'custom_attributes' => [
@@ -264,7 +265,7 @@ class Monri_WC_Settings {
 				'desc_tip'    => true,
 				'custom_attributes' => [
 					'data-depends' => '{
-						"monri_web_pay_integration_type":"form",
+						"monri_web_pay_integration_type":["form", "lightbox"],
 						"paying_in_installments":"1"
 					}'
 				]
@@ -342,7 +343,7 @@ class Monri_WC_Settings {
 				'default'     => __( '0', 'monri' ),
 				'custom_attributes' => [
 					'data-depends' => '{
-						"monri_web_pay_integration_type":"form",
+						"monri_web_pay_integration_type":[ "form", "lightbox" ],
 						"paying_in_installments":"1"
 					}'
 				]
