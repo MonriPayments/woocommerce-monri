@@ -182,6 +182,20 @@ class Monri_WC_Settings {
 					}'
 				]
 			),
+
+			'monri_web_pay_form_tokenization_enabled' => array(
+				'title'       => __( 'Tokenization Enable/Disable', 'monri' ),
+				'type'        => 'checkbox',
+				'label'   => __( 'Enable Tokenization', 'monri' ),
+				'desc_tip'    => true,
+				'default'     => 'no',
+				'custom_attributes' => [
+					'data-depends' => '{
+						"monri_payment_gateway_service":"monri-web-pay",
+						"monri_web_pay_integration_type":[ "form" ]
+					}'
+				]
+			),
 			'monri_ws_pay_form_tokenization_shop_id' => array(
 				'title'       => __( 'Tokenization Shop ID', 'monri' ),
 				'type'        => 'text',
@@ -326,7 +340,8 @@ class Monri_WC_Settings {
 				'description' => __( 'Select additional payment methods, if they are set on Monri Webpay.', 'monri' ),
 				'custom_attributes' => [
 					'data-depends' => '{
-						"monri_payment_gateway_service":"monri-web-pay"
+						"monri_payment_gateway_service":"monri-web-pay",
+						"monri_web_pay_integration_type":[ "form" ]
 					}'
 				]
 			),
