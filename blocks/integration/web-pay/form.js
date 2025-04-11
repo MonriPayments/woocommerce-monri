@@ -14,10 +14,17 @@ export const WebPayForm = () => {
     </Fragment>;
 };
 
-export const getPaymentMethod = (payment) => {
-    return {
+export const getPaymentMethod = () => {
+    const payment = {
         ...getDefaultPaymentMethod(),
         content: <WebPayForm />,
         edit: <WebPayForm />,
-    };
+    }
+
+    if (useMonriData().supports.indexOf('tokenization') !== -1) {
+        payment.supports.showSaveOption = true;
+        payment.supports.showSavedCards = true;
+    }
+
+    return payment;
 };
