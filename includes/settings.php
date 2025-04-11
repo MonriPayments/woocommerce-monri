@@ -183,7 +183,7 @@ class Monri_WC_Settings {
 				]
 			),
 
-			'monri_web_pay_form_tokenization_enabled' => array(
+			'monri_web_pay_tokenization_enabled' => array(
 				'title'       => __( 'Tokenization Enable/Disable', 'monri' ),
 				'type'        => 'checkbox',
 				'label'   => __( 'Enable Tokenization', 'monri' ),
@@ -192,7 +192,7 @@ class Monri_WC_Settings {
 				'custom_attributes' => [
 					'data-depends' => '{
 						"monri_payment_gateway_service":"monri-web-pay",
-						"monri_web_pay_integration_type":[ "form" ]
+						"monri_web_pay_integration_type":[ "form", "lightbox" ]
 					}'
 				]
 			),

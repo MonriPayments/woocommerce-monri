@@ -86,6 +86,41 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			'messages'                   => array(),
 		);
 
+		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in() ) {
+
+			$use_token = null;
+			if ( isset( $_POST['wc-monri-payment-token'] ) &&
+			     ! in_array( $_POST['wc-monri-payment-token'], [ 'not-selected', 'new', '' ], true )
+			) {
+				$token_id = sanitize_text_field( $_POST['wc-monri-payment-token'] );
+
+				$tokens   = $this->payment->get_tokens();
+
+				if ( ! isset( $tokens[ $token_id ] ) ) {
+					throw new Exception( esc_html( __( 'Token does not exist.', 'monri' ) ) );
+				}
+
+				/** @var Monri_WC_Payment_Token_Webpay $use_token */
+				$use_token = $tokens[ $token_id ];
+			}
+
+			$new_token = isset( $_POST['wc-monri-new-payment-method'] ) &&
+			             in_array( $_POST['wc-monri-new-payment-method'], [ 'true', '1', 1 ], true );
+
+			// paying with tokenized card
+			if ( $use_token ) {
+				$config['data-supported-payment-methods'] = $use_token->get_token();
+
+			} else {
+				// tokenize/save new card
+				if ( $new_token ) {
+					$config['data-tokenize-pan'] = 1;
+				}
+
+			}
+
+		}
+
 		$number_of_installments = WC()->session->get( 'monri_installments' );
 		if ( $number_of_installments > 1 ) {
 			$config['data-number-of-installments'] = $number_of_installments;
@@ -97,6 +132,12 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		return $config;
 	}
 
+	/**
+	 * @return bool
+	 */
+	public function tokenization_enabled() {
+		return $this->payment->get_option_bool( 'monri_web_pay_tokenization_enabled' );
+	}
 
 	/**
 	 * Old checkout
@@ -145,6 +186,13 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 					MONRI_WC_PLUGIN_PATH . 'templates/'
 				);
 			}
+
+		}
+
+		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in() ) {
+			$this->payment->tokenization_script();
+			$this->payment->saved_payment_methods();
+			$this->payment->save_payment_method_checkbox();
 		}
 	}
 

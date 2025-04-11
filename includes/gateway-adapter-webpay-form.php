@@ -59,7 +59,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	 * @return bool
 	 */
 	public function tokenization_enabled() {
-		return $this->payment->get_option_bool( 'monri_web_pay_form_tokenization_enabled' );
+		return $this->payment->get_option_bool( 'monri_web_pay_tokenization_enabled' );
 	}
 
 	/**

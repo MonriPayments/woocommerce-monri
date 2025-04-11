@@ -10,6 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 <script>
     (function($) {
         $('form.checkout').on('checkout_place_order_success', function (t, result) {
+            console.log('hi')
             let script = document.createElement('script');
             script.src = result['src'];
             script.className = "lightbox-button";
@@ -35,6 +36,14 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
             if( result['data-number-of-installments'] ) {
                 script.setAttribute('data-number-of-installments', result['data-number-of-installments']);
+            }
+
+            if( result['data-supported-payment-methods'] ) {
+                script.setAttribute('data-supported-payment-methods', result['data-supported-payment-methods']);
+            }
+
+            if( result['data-tokenize-pan'] ) {
+                script.setAttribute('data-tokenize-pan', result['data-tokenize-pan']);
             }
 
             script.onload = function() {

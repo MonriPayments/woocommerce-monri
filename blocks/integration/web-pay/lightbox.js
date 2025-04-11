@@ -78,11 +78,18 @@ export const WebPayLightbox = () => {
     </Fragment>;
 };
 
-export const getPaymentMethod = (payment) => {
-    return {
+export const getPaymentMethod = () => {
+    const payment = {
         ...getDefaultPaymentMethod(),
         content: <WebPayLightbox />,
         edit: <WebPayLightbox />,
-    };
+    }
+
+    if (useMonriData().supports.indexOf('tokenization') !== -1) {
+        payment.supports.showSaveOption = true;
+        payment.supports.showSavedCards = true;
+    }
+
+    return payment;
 };
 
