@@ -55,6 +55,14 @@ export const WebPayLightbox = () => {
                         script.setAttribute('data-number-of-installments', monriData['data-number-of-installments']);
                     }
 
+                    if( monriData['data-tokenize-pan'] ) {
+                        script.setAttribute('data-tokenize-pan', monriData['data-tokenize-pan']);
+                    }
+
+                    if( monriData['data-supported-payment-methods'] ) {
+                        script.setAttribute('data-supported-payment-methods', monriData['data-supported-payment-methods']);
+                    }
+
                     document.querySelector('.wc-block-components-form').appendChild(script);
                     script.onload = () => {
                         document.querySelector('button.monri-lightbox-button-el').click();

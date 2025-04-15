@@ -40,6 +40,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 	 * @param $order_id
 	 *
 	 * @return array
+	 * @throws Exception
 	 */
 	public function process_payment( $order_id ) {
 		$order = wc_get_order( $order_id );
@@ -172,12 +173,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			// Prevents rendering this file multiple times - JS part gets duplicated and executed twice
 			if ( isset( $_REQUEST['wc-ajax'] ) && $_REQUEST['wc-ajax'] === 'update_order_review' ) {
 				wc_get_template(
-					'lightbox-iframe-form.php',
-					array(),
-					basename( MONRI_WC_PLUGIN_PATH ),
-					MONRI_WC_PLUGIN_PATH . 'templates/'
-				);
-				wc_get_template(
 					'installments.php',
 					array(
 						'installments' => $installments,
@@ -187,6 +182,15 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 				);
 			}
 
+		}
+
+		if ( isset( $_REQUEST['wc-ajax'] ) && $_REQUEST['wc-ajax'] === 'update_order_review' ) {
+			wc_get_template(
+				'lightbox-iframe-form.php',
+				array(),
+				basename( MONRI_WC_PLUGIN_PATH ),
+				MONRI_WC_PLUGIN_PATH . 'templates/'
+			);
 		}
 
 		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in() ) {
@@ -257,6 +261,17 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			WC()->cart->empty_cart();
 			$order->update_meta_data( 'monri_order_number', sanitize_key( $_GET['order_number'] ) );
 			$order->save();
+
+			// save token if needed
+			if ( $this->tokenization_enabled() && $order->get_user_id() ) {
+				$token_data = [];
+				foreach ( [ 'cc_type', 'masked_pan', 'pan_token' ] as $key ) {
+					if ( isset( $_GET[ $key ] ) ) {
+						$token_data[ $key ] = sanitize_text_field( $_GET[ $key ] );
+					}
+				}
+				$this->save_user_token( $order->get_user_id(), $token_data );
+			}
 
 		} else {
 			$order->update_status( 'failed', "Response not authorized - response code is $response_code." );

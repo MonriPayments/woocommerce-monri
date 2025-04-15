@@ -531,6 +531,9 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		if ( ! isset( $data['pan_token'], $data['cc_type'], $data['masked_pan'] ) ) {
 			return null;
 		}
+		if ($this->check_if_token_already_exists($user_id, $data['masked_pan'])) {
+			return null;
+		}
 
 		$wc_token = new Monri_WC_Payment_Token_Webpay();
 
@@ -544,5 +547,25 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		$wc_token->set_card_type( $ccType );
 
 		$wc_token->save();
+	}
+
+	/**
+	 * Check if payment token already exists to avoid making duplicates
+	 * @param $user_id
+	 * @param $masked_pan
+	 *
+	 * @return bool
+	 */
+	private function check_if_token_already_exists($user_id, $masked_pan) {
+		$masked_pan_array = explode("-", $masked_pan);
+		$last4 = end( $masked_pan_array );
+
+		$user_tokens = WC_Payment_Tokens::get_customer_tokens( $user_id );
+		foreach ($user_tokens as $user_token) {
+			if ($user_token->get_last4() === $last4) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
