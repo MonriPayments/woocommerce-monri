@@ -10,7 +10,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 <script>
     (function($) {
         $('form.checkout').on('checkout_place_order_success', function (t, result) {
-            console.log('hi')
             let script = document.createElement('script');
             script.src = result['src'];
             script.className = "lightbox-button";
