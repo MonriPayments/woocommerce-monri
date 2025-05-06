@@ -123,6 +123,14 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 			$data['installments'] = 0;
 		}
 
+		if ( $data['service'] === 'monri-web-pay' &&
+		     $data['integration_type'] === 'components' &&
+		     $this->get_setting( 'monri_web_pay_tokenization_enabled' ) === 'yes' ) {
+			$data['tokenization'] = true;
+		} else {
+			$data['tokenization'] = false;
+		}
+
 		return $data;
 	}
 

@@ -45,6 +45,31 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		} );
 
 		add_action( 'woocommerce_after_checkout_validation', [ $this, 'after_checkout_validation' ], null, 2);
+
+		// add tokenization support
+		if ( $this->tokenization_enabled() ) {
+			$this->supports[] = 'tokenization';
+
+			require_once __DIR__ . '/payment-token-webpay.php';
+
+			add_filter( 'woocommerce_payment_token_class', function ( $value, $type ) {
+				// Prevents token to display as new payment method in new checkout while enabling us to view user tokens
+				$check_user_tokens = WC()->session->get('check_user_token');
+				if ( $type === 'Monri_Webpay' && (!is_checkout() || $check_user_tokens) ) {
+					WC()->session->set('check_user_token', 0);
+					return Monri_WC_Payment_Token_Webpay::class;
+				}
+
+				return $value;
+			}, 0, 2 );
+		}
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function tokenization_enabled() {
+		return $this->payment->get_option_bool( 'monri_web_pay_tokenization_enabled' );
 	}
 
 	/**
@@ -79,7 +104,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 					'client_secret'      => $client_secret,
 					'locale'             => $this->payment->get_option( 'form_language' ),
 				),
-				'installments' => $installments
+				'installments' => $installments,
+				'tokenization' => $this->tokenization_enabled(),
 			), basename( MONRI_WC_PLUGIN_PATH ), MONRI_WC_PLUGIN_PATH . 'templates/' );
 		}
 	}
@@ -148,6 +174,17 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			$order->update_meta_data( 'monri_order_number', $monri_order_number );
 			$order->save();
 
+			// save token if needed
+			if ( $this->tokenization_enabled() && $order->get_user_id() ) {
+				$token_data = [];
+				foreach ( [ 'expiration_date', 'masked', 'brand', 'token' ] as $key ) {
+					if ( isset( $transaction['payment_method']['data'][ $key ] ) ) {
+						$token_data[ $key ] = sanitize_text_field( $transaction['payment_method']['data'][ $key ] );
+					}
+				}
+				$this->save_user_token( $order->get_user_id(), $token_data );
+			}
+
 		} else {
 			$order->update_status( 'failed', "Response not authorized - response code is $response_code." );
 		}
@@ -190,8 +227,23 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			'order_number'     => wp_generate_uuid4(), //uniqid('woocommerce-', true),
 			'currency'         => $currency,
 			'transaction_type' => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
-			'order_info'       => 'woocommerce order'
+			'order_info'       => 'woocommerce order',
 		];
+
+
+		if ( $this->tokenization_enabled() && is_user_logged_in() ) {
+
+			$tokens   = $this->payment->get_tokens();
+
+			$supported_payment_methods = ['card'];
+
+			foreach ( $tokens as $token ) {
+				$supported_payment_methods[] = $token->get_token();
+			}
+
+			$data['supported_payment_methods'] = $supported_payment_methods;
+
+		}
 
 		$data = wp_json_encode( $data );
 
@@ -464,5 +516,61 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 				)
 			);
 		}
+	}
+
+	/**
+	 * @param int $user_id
+	 * @param $data
+	 *
+	 * @return void
+	 */
+	public function save_user_token( $user_id, $data ) {
+
+		if ( ! isset( $data['token'], $data['brand'], $data['masked'], $data['expiration_date'] ) ) {
+			return null;
+		}
+		if ($this->check_if_token_already_exists($user_id, $data['masked'])) {
+			return null;
+		}
+
+		$wc_token = new Monri_WC_Payment_Token_Webpay();
+
+		$wc_token->set_gateway_id( $this->payment->id );
+		$wc_token->set_token( $data['token'] );
+		$wc_token->set_user_id( $user_id );
+
+		$masked_pan_array = explode("-", $data['masked']);
+		$wc_token->set_last4( end( $masked_pan_array ) );
+		$ccType = $data['brand'] ?? null;
+		$wc_token->set_card_type( $ccType );
+
+		$expiration_year = substr( $data['expiration_date'], 0, 2 );
+		$expiration_month = substr( $data['expiration_date'], 2, 2 );
+
+		$wc_token->set_expiry_month( $expiration_month );
+		$wc_token->set_expiry_year( $expiration_year );
+		$wc_token->save();
+	}
+
+	/**
+	 * Check if payment token already exists to avoid making duplicates
+	 * @param $user_id
+	 * @param $masked_pan
+	 *
+	 * @return bool
+	 */
+	private function check_if_token_already_exists($user_id, $masked_pan) {
+		$masked_pan_array = explode("-", $masked_pan);
+		$last4 = end( $masked_pan_array );
+
+		//Enables us to get user tokens while on checkout
+		WC()->session->set('check_user_token', 1);
+		$user_tokens = WC_Payment_Tokens::get_customer_tokens( $user_id );
+		foreach ($user_tokens as $user_token) {
+			if ($user_token->get_last4() === $last4) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

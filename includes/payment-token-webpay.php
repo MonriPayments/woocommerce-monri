@@ -15,6 +15,8 @@ class Monri_WC_Payment_Token_Webpay extends WC_Payment_Token {
 	protected $extra_data = array(
 		'last4'        => '',
 		'card_type'    => '',
+		'expiry_year'  => '',
+		'expiry_month' => '',
 	);
 
 	/**
@@ -77,4 +79,46 @@ class Monri_WC_Payment_Token_Webpay extends WC_Payment_Token {
 		$this->set_prop( 'last4', $last4 );
 	}
 
+
+	/**
+	 * Returns the card expiration year (YYYY).
+	 *
+	 * @param string $context What the value is for. Valid values are view and edit.
+	 *
+	 * @return string Expiration year
+	 */
+	public function get_expiry_year( $context = 'view' ) {
+		return $this->get_prop( 'expiry_year', $context );
+	}
+
+	/**
+	 * Set the expiration year for the card (YYYY format).
+	 *
+	 * @param string $year Credit card expiration year.
+	 *
+	 * @since 2.6.0
+	 */
+	public function set_expiry_year( $year ) {
+		$this->set_prop( 'expiry_year', $year );
+	}
+
+	/**
+	 * Returns the card expiration month (MM).
+	 *
+	 * @param string $context What the value is for. Valid values are view and edit.
+	 *
+	 * @return string Expiration month
+	 */
+	public function get_expiry_month( $context = 'view' ) {
+		return $this->get_prop( 'expiry_month', $context );
+	}
+
+	/**
+	 * Set the expiration month for the card (formats into MM format).
+	 *
+	 * @param string $month Credit card expiration month.
+	 */
+	public function set_expiry_month( $month ) {
+		$this->set_prop( 'expiry_month', str_pad( $month, 2, '0', STR_PAD_LEFT ) );
+	}
 }

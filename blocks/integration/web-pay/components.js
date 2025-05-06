@@ -31,7 +31,9 @@ export const WebPayComponents = (props) => {
 
         const components = monriRef.current.components({clientSecret: clientSecret});
 
-        cardRef.current = components.create('card', {style: {invalid: {color: 'red'}}, showInstallmentsSelection: settings.installments});
+        cardRef.current = components.create('card', {style: {invalid: {color: 'red'}},
+            showInstallmentsSelection: settings.installments,
+            tokenizePanOffered: settings.tokenization});
         cardRef.current.mount(monriWrapperId);
 
     }, [clientSecret]);
