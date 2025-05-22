@@ -84,7 +84,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			'data-ch-phone'              => wc_trim_string( $order->get_billing_phone(), 30, '' ),
 			'data-ch-email'              => wc_trim_string( $order->get_billing_email(), 100, '' ),
 			'result'                     => 'success',
-			'messages'                   => array(),
+			'messages'                   => '',
 		);
 
 		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in() ) {
