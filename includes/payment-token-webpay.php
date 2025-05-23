@@ -3,7 +3,7 @@
 class Monri_WC_Payment_Token_Webpay extends WC_Payment_Token {
 
 	/**
-	 * @var string Toke Type String
+	 * @var string Token Type String
 	 */
 	protected $type = 'Monri_Webpay';
 
