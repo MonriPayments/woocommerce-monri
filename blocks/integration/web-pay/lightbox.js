@@ -86,6 +86,8 @@ export const WebPayLightbox = () => {
 };
 
 export const SavedTokenHandler = () => {
+    const settings = useMonriData();
+    const showInstallments = settings.installments;
     //https://github.com/woocommerce/woocommerce-blocks
     const {
         isComplete: checkoutIsComplete,
@@ -105,7 +107,10 @@ export const SavedTokenHandler = () => {
         }
     }, [checkoutIsComplete]);
 
-    return null;
+    return <Fragment>
+        {decodeEntities(settings.description || '')}
+        {showInstallments ? <Installments /> : ''}
+    </Fragment>;
 };
 
 export const getPaymentMethod = () => {
