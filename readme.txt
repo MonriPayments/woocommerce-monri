@@ -48,6 +48,7 @@ https://github.com/MonriPayments/woocommerce-monri
 * Added Monri tokenization for Monri WebPay Redirect
 * Added Monri tokenization for Monri WebPay Lightbox
 * Fixed issue where Monri WebPay Lightbox would not work properly on old checkout if installments were disabled
+* Fixed issue in admin settings where additional payment methods would show for Monri WebPay Components
 
 = 3.5.0 - 2025-03-19 =
 * Monri Lightbox
