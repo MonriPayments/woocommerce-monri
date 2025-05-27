@@ -37,6 +37,14 @@ if ( ! defined( 'ABSPATH' ) ) exit;
                 script.setAttribute('data-number-of-installments', result['data-number-of-installments']);
             }
 
+            if( result['data-supported-payment-methods'] ) {
+                script.setAttribute('data-supported-payment-methods', result['data-supported-payment-methods']);
+            }
+
+            if( result['data-tokenize-pan'] ) {
+                script.setAttribute('data-tokenize-pan', result['data-tokenize-pan']);
+            }
+
             script.onload = function() {
                 $('button.monri-lightbox-button-el').click();
             }

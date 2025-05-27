@@ -38,6 +38,28 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			require_once __DIR__ . '/installments-fee.php';
 			( new Monri_WC_Installments_Fee() )->init();
 		}
+
+		// add tokenization support
+		if ( $this->tokenization_enabled() ) {
+			$this->supports[] = 'tokenization';
+
+			require_once __DIR__ . '/payment-token-webpay.php';
+
+			add_filter( 'woocommerce_payment_token_class', function ( $value, $type ) {
+				if ( $type === 'Monri_Webpay' ) {
+					return Monri_WC_Payment_Token_Webpay::class;
+				}
+
+				return $value;
+			}, 0, 2 );
+		}
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function tokenization_enabled() {
+		return $this->payment->get_option_bool( 'monri_web_pay_tokenization_enabled' );
 	}
 
 	/**
@@ -75,6 +97,12 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			), basename( MONRI_WC_PLUGIN_PATH ), MONRI_WC_PLUGIN_PATH . 'templates/' );
 
 		}
+
+		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in() ) {
+			$this->payment->tokenization_script();
+			$this->payment->saved_payment_methods();
+			$this->payment->save_payment_method_checkbox();
+		}
 	}
 
 	/**
@@ -92,6 +120,15 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		if ( isset( $number_of_installments ) ) {
 			$order->add_meta_data( 'monri_installments', $number_of_installments );
 			$order->save();
+		}
+
+		//Since we are redirecting in Monri Webpay the post data of the current request won't persist
+		if ( isset( $_POST['wc-monri-new-payment-method'] ) ) {
+			WC()->session->set( 'wc-monri-new-payment-method', $_POST['wc-monri-new-payment-method'] );
+		}
+
+		if ( isset( $_POST['wc-monri-payment-token'] ) ) {
+			WC()->session->set( 'wc-monri-payment-token', $_POST['wc-monri-payment-token'] );
 		}
 
 		return [
@@ -161,6 +198,45 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			'callback_url_override' => add_query_arg( 'wc-api', 'monri_callback', get_home_url() ),
 			'supported_payment_methods' => $supported_payment_methods
 		);
+
+		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in() ) {
+
+			$use_token = null;
+			if ( !empty( WC()->session->get( 'wc-monri-payment-token' ) ) &&
+			     ! in_array( WC()->session->get( 'wc-monri-payment-token' ), [ 'not-selected', 'new', '' ], true )
+			) {
+				$token_id = sanitize_text_field( WC()->session->get( 'wc-monri-payment-token' ) );
+				WC()->session->set( 'wc-monri-payment-token', null );
+
+				$tokens   = $this->payment->get_tokens();
+
+				if ( ! isset( $tokens[ $token_id ] ) ) {
+					throw new Exception( esc_html( __( 'Token does not exist.', 'monri' ) ) );
+				}
+
+				/** @var Monri_WC_Payment_Token_Webpay $use_token */
+				$use_token = $tokens[ $token_id ];
+			}
+
+			$new_token = !empty( WC()->session->get( 'wc-monri-new-payment-method') ) &&
+			             in_array( WC()->session->get( 'wc-monri-new-payment-method') , [ 'true', '1', 1 ], true );
+
+			// paying with tokenized card
+			if ( $use_token ) {
+
+				$args['supported_payment_methods'] = $use_token->get_token();
+
+			} else {
+				// tokenize/save new card
+				if ( $new_token ) {
+					$args['tokenize_pan'] = 1;
+					WC()->session->set( 'wc-monri-new-payment-method', false);
+				}
+
+			}
+
+		}
+
 
 		$order->add_meta_data( 'monri_transaction_type', $args['transaction_type'] );
 		$order->save();
@@ -277,6 +353,17 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			WC()->cart->empty_cart();
 			$order->update_meta_data( 'monri_order_number', sanitize_key( $_GET['order_number'] ) );
 			$order->save();
+
+			// save token if needed
+			if ( $this->tokenization_enabled() && $order->get_user_id() ) {
+				$token_data = [];
+				foreach ( [ 'cc_type', 'masked_pan', 'pan_token' ] as $key ) {
+					if ( isset( $_GET[ $key ] ) ) {
+						$token_data[ $key ] = sanitize_text_field( $_GET[ $key ] );
+					}
+				}
+				$this->save_user_token( $order->get_user_id(), $token_data );
+			}
 
 		} else {
 			$order->update_status( 'failed', "Response not authorized - response code is $response_code." );
@@ -431,5 +518,54 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		) );
 
 		return true;
+	}
+
+	/**
+	 * @param int $user_id
+	 * @param $data
+	 *
+	 * @return void
+	 */
+	public function save_user_token( $user_id, $data ) {
+
+		if ( ! isset( $data['pan_token'], $data['cc_type'], $data['masked_pan'] ) ) {
+			return null;
+		}
+		if ($this->check_if_token_already_exists($user_id, $data['masked_pan'])) {
+			return null;
+		}
+
+		$wc_token = new Monri_WC_Payment_Token_Webpay();
+
+		$wc_token->set_gateway_id( $this->payment->id );
+		$wc_token->set_token( $data['pan_token'] );
+		$wc_token->set_user_id( $user_id );
+
+		$masked_pan_array = explode("-", $data['masked_pan']);
+		$wc_token->set_last4( end( $masked_pan_array ) );
+		$ccType = $data['cc_type'] ?? null;
+		$wc_token->set_card_type( $ccType );
+
+		$wc_token->save();
+	}
+
+	/**
+	 * Check if payment token already exists to avoid making duplicates
+	 * @param $user_id
+	 * @param $masked_pan
+	 *
+	 * @return bool
+	 */
+	private function check_if_token_already_exists($user_id, $masked_pan) {
+		$masked_pan_array = explode("-", $masked_pan);
+		$last4 = end( $masked_pan_array );
+
+		$user_tokens = WC_Payment_Tokens::get_customer_tokens( $user_id );
+		foreach ($user_tokens as $user_token) {
+			if ($user_token->get_last4() === $last4) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

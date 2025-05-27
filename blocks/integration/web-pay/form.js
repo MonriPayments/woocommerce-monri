@@ -14,10 +14,28 @@ export const WebPayForm = () => {
     </Fragment>;
 };
 
-export const getPaymentMethod = (payment) => {
-    return {
+export const SavedTokenHandler = () => {
+    const settings = useMonriData();
+
+    const showInstallments = settings.installments;
+    return <Fragment>
+        {decodeEntities(settings.description || '')}
+        {showInstallments ? <Installments /> : ''}
+    </Fragment>;
+};
+
+export const getPaymentMethod = () => {
+    const payment = {
         ...getDefaultPaymentMethod(),
         content: <WebPayForm />,
         edit: <WebPayForm />,
-    };
+        savedTokenComponent: <SavedTokenHandler />,
+    }
+
+    if (useMonriData().supports.indexOf('tokenization') !== -1) {
+        payment.supports.showSaveOption = true;
+        payment.supports.showSavedCards = true;
+    }
+
+    return payment;
 };

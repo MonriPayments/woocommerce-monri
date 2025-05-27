@@ -40,6 +40,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 	 * @param $order_id
 	 *
 	 * @return array
+	 * @throws Exception
 	 */
 	public function process_payment( $order_id ) {
 		$order = wc_get_order( $order_id );
@@ -83,8 +84,43 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			'data-ch-phone'              => wc_trim_string( $order->get_billing_phone(), 30, '' ),
 			'data-ch-email'              => wc_trim_string( $order->get_billing_email(), 100, '' ),
 			'result'                     => 'success',
-			'messages'                   => array(),
+			'messages'                   => '',
 		);
+
+		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in() ) {
+
+			$use_token = null;
+			if ( isset( $_POST['wc-monri-payment-token'] ) &&
+			     ! in_array( $_POST['wc-monri-payment-token'], [ 'not-selected', 'new', '' ], true )
+			) {
+				$token_id = sanitize_text_field( $_POST['wc-monri-payment-token'] );
+
+				$tokens   = $this->payment->get_tokens();
+
+				if ( ! isset( $tokens[ $token_id ] ) ) {
+					throw new Exception( esc_html( __( 'Token does not exist.', 'monri' ) ) );
+				}
+
+				/** @var Monri_WC_Payment_Token_Webpay $use_token */
+				$use_token = $tokens[ $token_id ];
+			}
+
+			$new_token = isset( $_POST['wc-monri-new-payment-method'] ) &&
+			             in_array( $_POST['wc-monri-new-payment-method'], [ 'true', '1', 1 ], true );
+
+			// paying with tokenized card
+			if ( $use_token ) {
+				$config['data-supported-payment-methods'] = $use_token->get_token();
+
+			} else {
+				// tokenize/save new card
+				if ( $new_token ) {
+					$config['data-tokenize-pan'] = 1;
+				}
+
+			}
+
+		}
 
 		$number_of_installments = WC()->session->get( 'monri_installments' );
 		if ( $number_of_installments > 1 ) {
@@ -97,6 +133,12 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		return $config;
 	}
 
+	/**
+	 * @return bool
+	 */
+	public function tokenization_enabled() {
+		return $this->payment->get_option_bool( 'monri_web_pay_tokenization_enabled' );
+	}
 
 	/**
 	 * Old checkout
@@ -131,12 +173,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			// Prevents rendering this file multiple times - JS part gets duplicated and executed twice
 			if ( isset( $_REQUEST['wc-ajax'] ) && $_REQUEST['wc-ajax'] === 'update_order_review' ) {
 				wc_get_template(
-					'lightbox-iframe-form.php',
-					array(),
-					basename( MONRI_WC_PLUGIN_PATH ),
-					MONRI_WC_PLUGIN_PATH . 'templates/'
-				);
-				wc_get_template(
 					'installments.php',
 					array(
 						'installments' => $installments,
@@ -145,6 +181,22 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 					MONRI_WC_PLUGIN_PATH . 'templates/'
 				);
 			}
+
+		}
+
+		if ( isset( $_REQUEST['wc-ajax'] ) && $_REQUEST['wc-ajax'] === 'update_order_review' ) {
+			wc_get_template(
+				'lightbox-iframe-form.php',
+				array(),
+				basename( MONRI_WC_PLUGIN_PATH ),
+				MONRI_WC_PLUGIN_PATH . 'templates/'
+			);
+		}
+
+		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in() ) {
+			$this->payment->tokenization_script();
+			$this->payment->saved_payment_methods();
+			$this->payment->save_payment_method_checkbox();
 		}
 	}
 
@@ -209,6 +261,17 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			WC()->cart->empty_cart();
 			$order->update_meta_data( 'monri_order_number', sanitize_key( $_GET['order_number'] ) );
 			$order->save();
+
+			// save token if needed
+			if ( $this->tokenization_enabled() && $order->get_user_id() ) {
+				$token_data = [];
+				foreach ( [ 'cc_type', 'masked_pan', 'pan_token' ] as $key ) {
+					if ( isset( $_GET[ $key ] ) ) {
+						$token_data[ $key ] = sanitize_text_field( $_GET[ $key ] );
+					}
+				}
+				$this->save_user_token( $order->get_user_id(), $token_data );
+			}
 
 		} else {
 			$order->update_status( 'failed', "Response not authorized - response code is $response_code." );
