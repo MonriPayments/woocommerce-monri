@@ -41,7 +41,8 @@ class Monri_WC_Settings {
 			'36' => '36',
 			'24' => '24',
 			'12' => '12',
-			'6'  => '6'
+			'6'  => '6',
+			'3'  => '3'
 		);
 
 		$form_language = array(
