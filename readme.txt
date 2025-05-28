@@ -2,9 +2,9 @@
 Contributors: monripayments
 Tags: monri, credit card, payment, woocommerce
 Requires at least: 5.3
-Tested up to: 6.7.1
+Tested up to: 6.8.2
 Requires PHP: 7.3
-Stable tag: 3.5.0
+Stable tag: 3.6.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -43,6 +43,12 @@ You can find more details about the development of this plugin at:
 https://github.com/MonriPayments/woocommerce-monri
 
 == Changelog ==
+
+= 3.6.0 - 2025-05-26 =
+* Added Monri tokenization for Monri WebPay Redirect
+* Added Monri tokenization for Monri WebPay Lightbox
+* Fixed issue where Monri WebPay Lightbox would not work properly on old checkout if installments were disabled
+* Fixed issue in admin settings where additional payment methods would show for Monri WebPay Components
 
 = 3.5.0 - 2025-03-19 =
 * Monri Lightbox
