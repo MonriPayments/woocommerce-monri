@@ -61,19 +61,15 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			}, 0, 2 );
 
 			add_filter( 'woocommerce_get_customer_payment_tokens', function( $tokens, $customer_id , $gateway_id ) {
-				if ( !is_checkout() ) {
+				// Gateway id is not usually sent here. We use it to get user payment tokens when saving new payment token
+				if ( ! is_checkout() || $gateway_id === 'monri' ) {
 					return $tokens;
 				}
 
-				// Lets us get customer tokens when trying to save new token while preventing display of tokens on checkout
-				if ($gateway_id === 'monri') {
-					return $tokens;
-				}
-
-				$filtered_tokens = array_filter( $tokens, function( $token ) {
+				// Else we hide Monri saved payment options on checkout
+				return array_filter( $tokens, function( $token ) {
 					return $token->get_type() !== 'Monri_Webpay';
 				});
-				return $filtered_tokens;
 			}, 10, 3);
 
 		}
@@ -241,7 +237,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			'order_number'     => wp_generate_uuid4(), //uniqid('woocommerce-', true),
 			'currency'         => $currency,
 			'transaction_type' => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
-			'order_info'       => 'woocommerce order',
+			'order_info'       => 'woocommerce order'
 		];
 
 
