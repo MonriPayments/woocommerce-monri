@@ -53,15 +53,29 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			require_once __DIR__ . '/payment-token-webpay.php';
 
 			add_filter( 'woocommerce_payment_token_class', function ( $value, $type ) {
-				// Prevents token to display as new payment method in new checkout while enabling us to view user tokens
-				$check_user_tokens = WC()->session->get('check_user_token');
-				if ( $type === 'Monri_Webpay' && (!is_checkout() || $check_user_tokens) ) {
-					WC()->session->set('check_user_token', 0);
+ 				if ( $type === 'Monri_Webpay' ) {
 					return Monri_WC_Payment_Token_Webpay::class;
 				}
 
 				return $value;
 			}, 0, 2 );
+
+			add_filter( 'woocommerce_get_customer_payment_tokens', function( $tokens, $customer_id , $gateway_id ) {
+				if ( !is_checkout() ) {
+					return $tokens;
+				}
+
+				// Lets us get customer tokens when trying to save new token while preventing display of tokens on checkout
+				if ($gateway_id === 'monri') {
+					return $tokens;
+				}
+
+				$filtered_tokens = array_filter( $tokens, function( $token ) {
+					return $token->get_type() !== 'Monri_Webpay';
+				});
+				return $filtered_tokens;
+			}, 10, 3);
+
 		}
 	}
 
@@ -563,9 +577,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		$masked_pan_array = explode("-", $masked_pan);
 		$last4 = end( $masked_pan_array );
 
-		//Enables us to get user tokens while on checkout
-		WC()->session->set('check_user_token', 1);
-		$user_tokens = WC_Payment_Tokens::get_customer_tokens( $user_id );
+		$user_tokens = WC_Payment_Tokens::get_customer_tokens( $user_id, 'monri' );
 		foreach ($user_tokens as $user_token) {
 			if ($user_token->get_last4() === $last4) {
 				return true;
