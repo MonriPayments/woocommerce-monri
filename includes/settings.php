@@ -37,13 +37,7 @@ class Monri_WC_Settings {
 			'1' => __( 'Authorize', 'monri' )
 		);
 
-		$number_of_allowed_installments = array(
-			'36' => '36',
-			'24' => '24',
-			'12' => '12',
-			'6'  => '6',
-			'3'  => '3'
-		);
+		$number_of_allowed_installments = array_combine($r = array_map('strval', range(2, 36)), $r);
 
 		$form_language = array(
 			'en'    => 'English',

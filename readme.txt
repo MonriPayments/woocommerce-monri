@@ -45,7 +45,7 @@ https://github.com/MonriPayments/woocommerce-monri
 == Changelog ==
 
 = 3.6.1 - 2025-06-2 =
-* Added 3 as new option for maximum number of installments in Monri Webpay
+* Added customizable number of maximum installments
 * Updated NPM dependencies
 
 = 3.6.0 - 2025-05-26 =
