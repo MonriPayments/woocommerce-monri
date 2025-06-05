@@ -4,7 +4,7 @@ Tags: monri, credit card, payment, woocommerce
 Requires at least: 5.3
 Tested up to: 6.8.2
 Requires PHP: 7.3
-Stable tag: 3.6.0
+Stable tag: 3.6.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -43,6 +43,10 @@ You can find more details about the development of this plugin at:
 https://github.com/MonriPayments/woocommerce-monri
 
 == Changelog ==
+
+= 3.6.1 - 2025-06-2 =
+* Added customizable number of maximum installments
+* Updated NPM dependencies
 
 = 3.6.0 - 2025-05-26 =
 * Added Monri tokenization for Monri WebPay Redirect
