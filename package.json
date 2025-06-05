@@ -21,7 +21,7 @@
   "homepage": "https://github.com/favicode/woocommerce-monri#readme",
   "devDependencies": {
     "@woocommerce/dependency-extraction-webpack-plugin": "^2.3.0",
-    "@wordpress/scripts": "^27.2.0",
+    "@wordpress/scripts": "^30.17.0",
     "archiver": "^6.0.1",
     "colors": "^1.4.0",
     "shelljs": "^0.8.5",
