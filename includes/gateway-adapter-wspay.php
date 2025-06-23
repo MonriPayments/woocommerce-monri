@@ -33,7 +33,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	protected $transaction_info_map = [
 		'WsPayOrderId' => 'Transaction ID',
 		'ApprovalCode' => 'Approval code',
-		'PaymentType'  => 'Credit cart type',
+		'PaymentType'  => 'Credit card type',
+		'CreditCardNumber'  => 'Credit card',
 		'PaymentPlan'  => 'Payment plan',
 		'DateTime'     => 'Date/Time',
 		'STAN'         => 'STAN',
