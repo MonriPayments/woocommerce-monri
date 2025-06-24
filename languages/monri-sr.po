@@ -371,8 +371,12 @@ msgid "Approval code"
 msgstr "Broj odobrenja"
 
 #: templates/transaction-info.php:11
-msgid "Credit cart type"
+msgid "Credit card type"
 msgstr "Tip kreditne kartice"
+
+#: templates/transaction-info.php:11
+msgid "Credit card number"
+msgstr "Broj kreditne kartice"
 
 #: templates/transaction-info.php:11
 msgid "Payment plan"
