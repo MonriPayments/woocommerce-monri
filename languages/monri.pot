@@ -384,7 +384,11 @@ msgid "Approval code"
 msgstr ""
 
 #: templates/transaction-info.php:11
-msgid "Credit cart type"
+msgid "Credit card type"
+msgstr ""
+
+#: templates/transaction-info.php:11
+msgid "Credit card number"
 msgstr ""
 
 #: templates/transaction-info.php:11
