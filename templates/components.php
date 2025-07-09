@@ -4,6 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 /** @var array $config */
 /** @var array $installments */
+/** @var array $tokenization */
 ?>
 
 <div id="monri-components"></div>
@@ -18,7 +19,11 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
         var style = {invalid: {color: 'red'}};
 
-        var card = components.create('card', {style: style<?php if( $installments ): ?>, showInstallmentsSelection: true<?php endif ?>});
+        var card = components.create('card',
+            {style: style
+                <?php if( $installments ): ?>, showInstallmentsSelection: true<?php endif ?>
+	            <?php if( $tokenization ): ?>, tokenizePanOffered: true<?php endif ?>
+            });
         card.mount('monri-components');
 
         card.onChange(function (event) {

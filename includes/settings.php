@@ -187,7 +187,7 @@ class Monri_WC_Settings {
 				'custom_attributes' => [
 					'data-depends' => '{
 						"monri_payment_gateway_service":"monri-web-pay",
-						"monri_web_pay_integration_type":[ "form", "lightbox" ]
+						"monri_web_pay_integration_type":[ "form", "lightbox", "components" ]
 					}'
 				]
 			),
