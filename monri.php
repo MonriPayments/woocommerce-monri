@@ -8,7 +8,7 @@ Author URI: https://monri.com
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 WC requires at least: 4.3.0
-WC tested up to: 9.9.5
+WC tested up to: 10.0.2
 */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
