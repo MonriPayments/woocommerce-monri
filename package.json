@@ -1,6 +1,6 @@
 {
   "name": "woocommerce-monri",
-  "version": "3.7.0",
+  "version": "3.7.1",
   "description": "Monri WooCommerce Plugin",
   "main": "index.js",
   "scripts": {
@@ -21,11 +21,11 @@
   "homepage": "https://github.com/favicode/woocommerce-monri#readme",
   "devDependencies": {
     "@woocommerce/dependency-extraction-webpack-plugin": "^2.3.0",
-    "@wordpress/scripts": "^27.2.0",
+    "@wordpress/scripts": "^30.19.0",
     "archiver": "^6.0.1",
     "colors": "^1.4.0",
     "shelljs": "^0.8.5",
     "rimraf": "^5.0.5",
-    "webpack": "^5.90.3"
+    "webpack": "^5.100.0"
   }
 }
