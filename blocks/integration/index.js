@@ -2,6 +2,7 @@ import { getPaymentMethod as getWebPayForm } from './web-pay/form';
 import { getPaymentMethod as getWebPayComponents } from './web-pay/components';
 import { getPaymentMethod as getWebPayLightbox } from './web-pay/lightbox';
 import { getPaymentMethod as getWsPayForm } from "./ws-pay/form";
+import { getPaymentMethod as getKeksPayForm } from "./components-keks-pay/iframe";
 import { useMonriData } from "./use-monri-data";
 
 export const useIntegration = () => {
@@ -20,3 +21,6 @@ export const useIntegration = () => {
             }
     }
 };
+
+export const useKeksIntegration = () => getKeksPayForm();
+

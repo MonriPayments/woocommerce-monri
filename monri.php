@@ -31,6 +31,14 @@ function monri_wc_init() {
 	function woocommerce_add_monri_gateway( $methods ) {
 		$methods[] = Monri_WC_Gateway::class;
 
+		$settings = get_option( 'woocommerce_monri_settings', [] );
+		$supported_payment_methods = $settings['monri_web_pay_supported_payment_methods'] ?? [];
+
+		if ( $settings['monri_web_pay_integration_type'] === 'components' && is_array($supported_payment_methods) && in_array( 'keks-pay-hr', $supported_payment_methods ) ) {
+			require_once __DIR__ . '/includes/gateway-webpay-components-keks.php';
+			$methods[] = Monri_WC_Gateway_Webpay_Components_Keks::class;
+		}
+
 		return $methods;
 	}
 
@@ -81,6 +89,13 @@ function monri_wc_block_support() {
 			'woocommerce_blocks_payment_method_type_registration',
 			function ( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
 				$payment_method_registry->register( new Monri_WC_Blocks_Support() );
+
+				$settings = get_option( 'woocommerce_monri_settings', [] );
+				$supported_payment_methods = $settings['monri_web_pay_supported_payment_methods'] ?? [];
+				if ( $settings['monri_web_pay_integration_type'] === 'components' && is_array($supported_payment_methods) && in_array( 'keks-pay-hr', $supported_payment_methods ) ) {
+					require_once __DIR__ . '/includes/blocks-support-components-keks.php';
+					$payment_method_registry->register( new Monri_WC_Keks_Blocks_Support() );
+				}
 			}
 		);
 	}
