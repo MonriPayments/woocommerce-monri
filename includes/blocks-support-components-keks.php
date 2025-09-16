@@ -56,7 +56,10 @@ final class Monri_WC_Components_Keks_Blocks_Support extends AbstractPaymentMetho
 			);
 		$script_url        = MONRI_WC_PLUGIN_URL . $script_path;
 
-		$script_asset['dependencies'][] = 'monri-components-keks';
+		if ( wp_script_is( 'monri-components-keks' ) ) {
+			$script_asset['dependencies'][] = 'monri-components-keks';
+		}
+
 		wp_register_script(
 			'monri-keks-blocks',
 			$script_url,

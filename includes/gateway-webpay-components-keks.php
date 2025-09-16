@@ -13,7 +13,7 @@ class Monri_WC_Gateway_Webpay_Components_Keks extends WC_Payment_Gateway {
 	 *
 	 * @var string[]
 	 */
-	public $supports = array( 'products', 'refunds' );
+	public $supports = array( 'products' );
 
 	/**
 	 * Gateway ID
