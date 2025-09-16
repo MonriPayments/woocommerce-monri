@@ -85,6 +85,7 @@ class Monri_WC_Gateway_Webpay_Components_Keks extends WC_Payment_Gateway {
 					'client_secret'      => $this->request_authorize( wc_get_order( $order_id ) ),
 					'authenticity_token' => $this->get_option( 'monri_authenticity_token' ),
 					'locale'             => $this->get_option( 'form_language' ),
+					'return_url'          => $this->get_return_url( wc_get_order( $order_id ) ),
 				),
 			),
 			basename( MONRI_WC_PLUGIN_PATH ),
