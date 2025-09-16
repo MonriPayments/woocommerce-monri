@@ -5,14 +5,14 @@ use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodTyp
 /**
  * Payments Blocks integration
  */
-final class Monri_WC_Keks_Blocks_Support extends AbstractPaymentMethodType {
+final class Monri_WC_Components_Keks_Blocks_Support extends AbstractPaymentMethodType {
 
 	/**
 	 * Payment method name/id/slug.
 	 *
 	 * @var string
 	 */
-	protected $name = 'monri-components-keks';
+	protected $name = 'monri_components_keks';
 	/**
 	 * Initializes the payment method type.
 	 */
@@ -36,12 +36,7 @@ final class Monri_WC_Keks_Blocks_Support extends AbstractPaymentMethodType {
 	 * @return boolean
 	 */
 	public function is_active() {
-		$settings                  = get_option( 'woocommerce_monri_settings', array() );
-		$supported_payment_methods = $settings['monri_web_pay_supported_payment_methods'] ?? array();
-		if ( $settings['monri_web_pay_integration_type'] === 'components' && is_array($supported_payment_methods) && in_array( 'keks-pay-hr', $supported_payment_methods ) ) {
-			return true;
-		}
-		return false;
+		return Monri_WC_Settings::instance()->include_components_keks();
 	}
 
 	/**
@@ -80,5 +75,18 @@ final class Monri_WC_Keks_Blocks_Support extends AbstractPaymentMethodType {
 		}
 
 		return array( 'monri-keks-blocks' );
+	}
+
+	/**
+	 * Returns an array of key=>value pairs of data made available to the payment methods script.
+	 *
+	 * @return array
+	 */
+	public function get_payment_method_data() {
+		$data = [
+			'keks_enabled' => true,
+		];
+
+		return $data;
 	}
 }

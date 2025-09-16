@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
         var keksPay = componentsKeks.create('keks-pay', {
             style: style,
             trx_token: "<?php echo esc_js( $config['client_secret'] ) ?>",
-            environment: "<?php echo esc_js( $config['is_test'] ) ?>",
+            environment: "<?php echo esc_js( $config['env'] ) ?>",
         })
         // Add an instance of the keks-pay Component into the `keks-pay-element` <div>.
         keksPay.mount('keks-pay-element');

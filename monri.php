@@ -31,10 +31,8 @@ function monri_wc_init() {
 	function woocommerce_add_monri_gateway( $methods ) {
 		$methods[] = Monri_WC_Gateway::class;
 
-		$settings = get_option( 'woocommerce_monri_settings', [] );
-		$supported_payment_methods = $settings['monri_web_pay_supported_payment_methods'] ?? [];
-
-		if ( $settings['monri_web_pay_integration_type'] === 'components' && is_array($supported_payment_methods) && in_array( 'keks-pay-hr', $supported_payment_methods ) ) {
+		//temporary solution. Hide keks payment method settings in admin until the method is fully independent from components
+		if (Monri_WC_Settings::instance()->include_components_keks() && !is_admin()) {
 			require_once __DIR__ . '/includes/gateway-webpay-components-keks.php';
 			$methods[] = Monri_WC_Gateway_Webpay_Components_Keks::class;
 		}
@@ -90,11 +88,9 @@ function monri_wc_block_support() {
 			function ( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
 				$payment_method_registry->register( new Monri_WC_Blocks_Support() );
 
-				$settings = get_option( 'woocommerce_monri_settings', [] );
-				$supported_payment_methods = $settings['monri_web_pay_supported_payment_methods'] ?? [];
-				if ( $settings['monri_web_pay_integration_type'] === 'components' && is_array($supported_payment_methods) && in_array( 'keks-pay-hr', $supported_payment_methods ) ) {
+				if (Monri_WC_Settings::instance()->include_components_keks()) {
 					require_once __DIR__ . '/includes/blocks-support-components-keks.php';
-					$payment_method_registry->register( new Monri_WC_Keks_Blocks_Support() );
+					$payment_method_registry->register( new Monri_WC_Components_Keks_Blocks_Support() );
 				}
 			}
 		);

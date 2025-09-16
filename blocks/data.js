@@ -8,3 +8,7 @@ export const getMonriData = () => {
 
     return monriData;
 };
+
+export const getMonriComponentsKeksData = () => {
+    return getSetting('monri_components_keks_data', null);
+};

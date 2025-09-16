@@ -4,7 +4,12 @@ import {
 import {useIntegration, useKeksIntegration} from "./integration";
 
 const paymentMethod = useIntegration();
-const KeksPaymentMethod = useKeksIntegration();
-//todo: separate this logic into 2 different files?
-registerPaymentMethod(paymentMethod);
-registerPaymentMethod(KeksPaymentMethod);
+const keksPaymentMethod = useKeksIntegration();
+//todo: separate this logic into 2 different files so that each payment method does not need to check settings for each payment method?
+if (paymentMethod) {
+    registerPaymentMethod(paymentMethod);
+}
+
+if (keksPaymentMethod) {
+    registerPaymentMethod(keksPaymentMethod);
+}

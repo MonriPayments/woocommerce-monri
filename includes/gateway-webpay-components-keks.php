@@ -17,7 +17,7 @@ class Monri_WC_Gateway_Webpay_Components_Keks extends WC_Payment_Gateway {
 	 *
 	 * @var string
 	 */
-	public $id = 'monri-components-keks';
+	public $id = 'monri_components_keks';
 
 	/**
 	 * Components Keks constructor.
@@ -70,7 +70,7 @@ class Monri_WC_Gateway_Webpay_Components_Keks extends WC_Payment_Gateway {
 			'components-keks.php',
 			array(
 				'config' => array(
-					'is_test'            => $this->get_option_bool( 'test_mode' ) ? 'test' : 'prod',
+					'env'            => $this->get_option_bool( 'test_mode' ) ? 'test' : 'prod',
 					'client_secret'      => $this->request_authorize( wc_get_order( $order_id ) ),
 					'authenticity_token' => $this->get_option( 'monri_authenticity_token' ),
 					'locale'             => $this->get_option( 'form_language' ),
@@ -179,12 +179,5 @@ class Monri_WC_Gateway_Webpay_Components_Keks extends WC_Payment_Gateway {
 	 */
 	public function init_settings() {
 		$this->settings = get_option( 'woocommerce_monri_settings', array() );
-	}
-
-	/**
-	 * Temporary solution for admin options until keks pay is completely independat of monri components
-	 */
-	public function admin_options() {
-		echo '<p>' . esc_html__( 'This payment method is managed by the main Monri Payments settings.', 'monri' ) . '</p>';
 	}
 }
