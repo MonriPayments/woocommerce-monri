@@ -23,8 +23,8 @@ final class Monri_WC_Components_Keks_Blocks_Support extends AbstractPaymentMetho
 			'enqueue_block_editor_assets',
 			function () {
 				$script_url = $this->get_setting( 'test_mode' ) ?
-				Monri_WC_Gateway_Adapter_Webpay_Components::SCRIPT_ENDPOINT_TEST :
-				Monri_WC_Gateway_Adapter_Webpay_Components::SCRIPT_ENDPOINT;
+					Monri_WC_Gateway_Webpay_Components_Keks::SCRIPT_ENDPOINT_TEST :
+					Monri_WC_Gateway_Webpay_Components_Keks::SCRIPT_ENDPOINT;
 				wp_enqueue_script( 'monri-components-keks', $script_url, array(), MONRI_WC_VERSION );
 			}
 		);
@@ -56,12 +56,7 @@ final class Monri_WC_Components_Keks_Blocks_Support extends AbstractPaymentMetho
 			);
 		$script_url        = MONRI_WC_PLUGIN_URL . $script_path;
 
-		if ( $this->get_setting( 'monri_payment_gateway_service' ) === 'monri-web-pay' &&
-			$this->get_setting( 'monri_web_pay_integration_type' ) === 'components' &&
-			wp_script_is( 'monri-components' )
-		) {
-			$script_asset['dependencies'][] = 'monri-components';
-		}
+		$script_asset['dependencies'][] = 'monri-components-keks';
 		wp_register_script(
 			'monri-keks-blocks',
 			$script_url,

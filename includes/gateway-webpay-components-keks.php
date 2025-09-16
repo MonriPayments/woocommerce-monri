@@ -5,6 +5,9 @@ class Monri_WC_Gateway_Webpay_Components_Keks extends WC_Payment_Gateway {
 	public const AUTHORIZATION_ENDPOINT_TEST = 'https://ipgtest.monri.com/v2/payment/new';
 	public const AUTHORIZATION_ENDPOINT      = 'https://ipg.monri.com/v2/payment/new';
 
+	public const SCRIPT_ENDPOINT_TEST = 'https://ipgtest.monri.com/dist/components.js';
+	public const SCRIPT_ENDPOINT = 'https://ipg.monri.com/dist/components.js';
+
 	/**
 	 * Supported features
 	 *
@@ -31,6 +34,14 @@ class Monri_WC_Gateway_Webpay_Components_Keks extends WC_Payment_Gateway {
 		$this->description = __( 'Pay with Monri Keks', 'monri' );
 
 		add_action( 'woocommerce_receipt_' . $this->id, array( $this, 'process_components_keks' ) );
+
+		// load components.js on frontend checkout
+		add_action( 'template_redirect', function () {
+			if ( is_checkout() ) {
+				$script_url = $this->get_option_bool( 'test_mode' ) ? self::SCRIPT_ENDPOINT_TEST : self::SCRIPT_ENDPOINT;
+				wp_enqueue_script( 'monri-components-keks', $script_url, [], MONRI_WC_VERSION );
+			}
+		} );
 	}
 
 
@@ -99,11 +110,7 @@ class Monri_WC_Gateway_Webpay_Components_Keks extends WC_Payment_Gateway {
 			self::AUTHORIZATION_ENDPOINT_TEST :
 			self::AUTHORIZATION_ENDPOINT;
 
-		if ( is_admin() ) { // admin page editor.
-			$order_total = 10;
-		} else {
-			$order_total = (float) $order->get_total();
-		}
+		$order_total = (float) $order->get_total();
 
 		$amount_in_minor_units = (int) round( $order_total * 100 );
 

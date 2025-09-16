@@ -89,6 +89,7 @@ function monri_wc_block_support() {
 				$payment_method_registry->register( new Monri_WC_Blocks_Support() );
 
 				if (Monri_WC_Settings::instance()->include_components_keks()) {
+					require_once __DIR__ . '/includes/gateway-webpay-components-keks.php';
 					require_once __DIR__ . '/includes/blocks-support-components-keks.php';
 					$payment_method_registry->register( new Monri_WC_Components_Keks_Blocks_Support() );
 				}
