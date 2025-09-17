@@ -1,10 +1,11 @@
 import {
     registerPaymentMethod,
 } from '@woocommerce/blocks-registry';
-import {useIntegration, useKeksIntegration} from "./integration";
+import {useGooglePayIntegration, useIntegration, useKeksIntegration} from "./integration";
 
 const paymentMethod = useIntegration();
 const keksPaymentMethod = useKeksIntegration();
+const googlePayPaymentMethod = useGooglePayIntegration();
 //todo: separate this logic into 2 different files so that each payment method does not need to check settings for each payment method?
 if (paymentMethod) {
     registerPaymentMethod(paymentMethod);
@@ -12,4 +13,8 @@ if (paymentMethod) {
 
 if (keksPaymentMethod) {
     registerPaymentMethod(keksPaymentMethod);
+}
+
+if (googlePayPaymentMethod) {
+    registerPaymentMethod(googlePayPaymentMethod);
 }

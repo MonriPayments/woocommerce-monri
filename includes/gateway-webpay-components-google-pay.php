@@ -1,6 +1,6 @@
 <?php
 
-class Monri_WC_Gateway_Webpay_Components_Keks extends Monri_WC_Gateway_Webpay_Components_Abstract {
+class Monri_WC_Gateway_Webpay_Components_Google_Pay extends Monri_WC_Gateway_Webpay_Components_Abstract {
 
 	/**
 	 * Supported features
@@ -14,18 +14,18 @@ class Monri_WC_Gateway_Webpay_Components_Keks extends Monri_WC_Gateway_Webpay_Co
 	 *
 	 * @var string
 	 */
-	public $id = 'monri_components_keks';
+	public $id = 'monri_components_google_pay';
 
 	/**
-	 * Components Keks constructor.
+	 * Components Google Pay constructor.
 	 *
 	 * @return void
 	 */
 	public function __construct() {
 		$this->init_settings();
 		$this->has_fields  = false;
-		$this->title       = __( 'Monri Keks', 'monri' );
-		$this->description = __( 'Pay with Monri Keks', 'monri' );
+		$this->title       = __( 'Monri Google Pay', 'monri' );
+		$this->description = __( 'Pay with Monri Google Pay', 'monri' );
 
 		add_action( 'woocommerce_receipt_' . $this->id, array( $this, 'process_components' ) );
 
@@ -35,7 +35,7 @@ class Monri_WC_Gateway_Webpay_Components_Keks extends Monri_WC_Gateway_Webpay_Co
 			function () {
 				if ( is_checkout() ) {
 					$script_url = $this->get_option_bool( 'test_mode' ) ? self::SCRIPT_ENDPOINT_TEST : self::SCRIPT_ENDPOINT;
-					wp_enqueue_script( 'monri-components-keks', $script_url, array(), MONRI_WC_VERSION );
+					wp_enqueue_script( 'monri-components-google-pay', $script_url, array(), MONRI_WC_VERSION );
 				}
 			}
 		);
@@ -52,7 +52,7 @@ class Monri_WC_Gateway_Webpay_Components_Keks extends Monri_WC_Gateway_Webpay_Co
 
 		$order = wc_get_order( $order_id );
 		wc_get_template(
-			'components-keks.php',
+			'components-google-pay.php',
 			array(
 				'config' => array(
 					'env'                => $this->get_option_bool( 'test_mode' ) ? 'test' : 'prod',

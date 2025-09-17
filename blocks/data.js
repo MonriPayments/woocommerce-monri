@@ -10,5 +10,9 @@ export const getMonriData = () => {
 };
 
 export const getMonriComponentsKeksData = () => {
-    return getSetting('monri_components_keks_data', null);
+    return getSetting('monri_components_keks_pay_data', null);
+};
+
+export const getMonriComponentsGooglePayData = () => {
+    return getSetting('monri_components_google_pay_data', null);
 };

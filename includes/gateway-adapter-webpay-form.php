@@ -168,9 +168,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 		//Combine first and last name in one string
 		$full_name = $order->get_billing_first_name() . " " . $order->get_billing_last_name();
-		$supported_payment_methods = $this->payment->get_option( 'monri_web_pay_supported_payment_methods' );
-		$supported_payment_methods = !empty($supported_payment_methods) ?
-			implode(',', $supported_payment_methods) . ',card' : 'card';
+		$supported_payment_methods = 'card';
 
 
 		//Array of order information

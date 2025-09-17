@@ -1,18 +1,10 @@
 <?php
-use Automattic\WooCommerce\StoreApi\Schemas\V1\CartSchema;
 
 abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Gateway {
 	public const AUTHORIZATION_ENDPOINT_TEST = 'https://ipgtest.monri.com/v2/payment/new';
 	public const AUTHORIZATION_ENDPOINT      = 'https://ipg.monri.com/v2/payment/new';
 	public const SCRIPT_ENDPOINT_TEST        = 'https://ipgtest.monri.com/dist/components.js';
 	public const SCRIPT_ENDPOINT             = 'https://ipg.monri.com/dist/components.js';
-
-	/**
-	 * Supported features
-	 *
-	 * @var string[]
-	 */
-	public $supports = array( 'products' );
 
 	/**
 	 * Process the payment and return the result

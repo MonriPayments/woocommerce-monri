@@ -1,4 +1,4 @@
-import {getMonriData, getMonriComponentsKeksData} from "../data";
+import {getMonriData, getMonriComponentsKeksData, getMonriComponentsGooglePayData} from "../data";
 
 export const useMonriData = () => {
     return getMonriData();
@@ -6,4 +6,8 @@ export const useMonriData = () => {
 
 export const useMonriComponentsKeksData = () => {
     return getMonriComponentsKeksData();
+};
+
+export const useMonriComponentsGooglePayData = () => {
+    return getMonriComponentsGooglePayData();
 };

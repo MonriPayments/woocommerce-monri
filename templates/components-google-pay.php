@@ -7,7 +7,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 /** @var array $tokenization */
 ?>
 
-<div id="keks-pay-element"></div>
+
+<div id="google-pay-element"></div>
 <p id="monri-error" style="color:red;" role="alert"></p>
 <input type="hidden" id="monri-transaction" name="monri-transaction" autocomplete="off" value=""/>
 
@@ -16,12 +17,12 @@ if ( ! defined( 'ABSPATH' ) ) exit;
         var config = <?php echo wp_json_encode( $config ); ?>;
         var transaction = {
             ch_full_name: config.ch_full_name,
-            ch_address: config.ch_address,
-            ch_city: config.ch_city,
-            ch_zip: config.ch_zip,
-            ch_phone: config.ch_phone,
-            ch_country: config.ch_country,
-            ch_email: config.ch_email,
+            ch_address: config.address,
+            ch_city: config.city,
+            ch_zip: config.zip,
+            ch_phone: config.phone,
+            ch_country: config.country,
+            ch_email: config.email,
             ch_language: config.locale,
         }
         console.log(transaction);
@@ -31,16 +32,16 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
         var style = {invalid: {color: 'red'}};
 
-        var keksPay = components.create('keks-pay', {
+        var googlePay = components.create('google-pay', {
             style: style,
             trx_token: "<?php echo esc_js( $config['client_secret'] ) ?>",
             environment: "<?php echo esc_js( $config['env'] ) ?>",
             transaction: transaction,
         })
-        console.log('keksPay', keksPay);
-        keksPay.mount('keks-pay-element');
+        console.log('googlePay', googlePay);
+        googlePay.mount('google-pay-element');
 
-        keksPay.onChange(function (event) {
+        googlePay.onChange(function (event) {
             console.log('onChange', event);
         });
 

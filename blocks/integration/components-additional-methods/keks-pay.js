@@ -4,9 +4,6 @@ import { getDefaultPaymentMethod } from "../default-payment-method";
 import {Fragment} from "react";
 
 
-/**
- * React component that renders the Keks payment fields
- */
 export const KeksPay = () => {
     return <Fragment>
         {decodeEntities('Pay with Monri Keks')}
@@ -23,7 +20,7 @@ export const getPaymentMethod = () => {
 
     return {
         ...getDefaultPaymentMethod(),
-        name: 'monri_components_keks',
+        name: 'monri_components_keks_pay',
         label: 'Monri Keks',
         content: <KeksPay />,
         edit: <KeksPay />,

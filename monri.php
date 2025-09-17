@@ -34,8 +34,13 @@ function monri_wc_init() {
 
 		//temporary solution. Hide keks payment method settings in admin until the method is fully independent from components
 		if (Monri_WC_Settings::instance()->include_components_keks() && !is_admin()) {
-			require_once __DIR__ . '/includes/gateway-webpay-components-keks.php';
-			$methods[] = Monri_WC_Gateway_Webpay_Components_Keks::class;
+			require_once __DIR__ . '/includes/gateway-webpay-components-keks-pay.php';
+			$methods[] = Monri_WC_Gateway_Webpay_Components_Keks_Pay::class;
+		}
+
+		if (Monri_WC_Settings::instance()->include_components_google_pay() && !is_admin()) {
+			require_once __DIR__ . '/includes/gateway-webpay-components-google-pay.php';
+			$methods[] = Monri_WC_Gateway_Webpay_Components_Google_Pay::class;
 		}
 
 		return $methods;
@@ -90,9 +95,15 @@ function monri_wc_block_support() {
 				$payment_method_registry->register( new Monri_WC_Blocks_Support() );
 
 				if (Monri_WC_Settings::instance()->include_components_keks()) {
-					require_once __DIR__ . '/includes/gateway-webpay-components-keks.php';
-					require_once __DIR__ . '/includes/blocks-support-components-keks.php';
-					$payment_method_registry->register( new Monri_WC_Components_Keks_Blocks_Support() );
+					require_once __DIR__ . '/includes/gateway-webpay-components-keks-pay.php';
+					require_once __DIR__ . '/includes/blocks-support-components-keks-pay.php';
+					$payment_method_registry->register( new Monri_WC_Components_Keks_Pay_Blocks_Support() );
+				}
+
+				if (Monri_WC_Settings::instance()->include_components_google_pay()) {
+					require_once __DIR__ . '/includes/gateway-webpay-components-google-pay.php';
+					require_once __DIR__ . '/includes/blocks-support-components-google-pay.php';
+					$payment_method_registry->register( new Monri_WC_Components_Google_Pay_Blocks_Support() );
 				}
 			}
 		);
