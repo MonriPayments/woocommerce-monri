@@ -1,12 +1,6 @@
 <?php
-use Automattic\WooCommerce\StoreApi\Schemas\V1\CartSchema;
 
-class Monri_WC_Gateway_Webpay_Components_Keks extends WC_Payment_Gateway {
-	public const AUTHORIZATION_ENDPOINT_TEST = 'https://ipgtest.monri.com/v2/payment/new';
-	public const AUTHORIZATION_ENDPOINT      = 'https://ipg.monri.com/v2/payment/new';
-
-	public const SCRIPT_ENDPOINT_TEST = 'https://ipgtest.monri.com/dist/components.js';
-	public const SCRIPT_ENDPOINT = 'https://ipg.monri.com/dist/components.js';
+class Monri_WC_Gateway_Webpay_Components_Keks extends Monri_WC_Gateway_Webpay_Components_Abstract {
 
 	/**
 	 * Supported features
@@ -33,38 +27,17 @@ class Monri_WC_Gateway_Webpay_Components_Keks extends WC_Payment_Gateway {
 		$this->title       = __( 'Monri Keks', 'monri' );
 		$this->description = __( 'Pay with Monri Keks', 'monri' );
 
-		add_action( 'woocommerce_receipt_' . $this->id, array( $this, 'process_components_keks' ) );
+		add_action( 'woocommerce_receipt_' . $this->id, array( $this, 'process_components' ) );
 
 		// load components.js on frontend checkout
-		add_action( 'template_redirect', function () {
-			if ( is_checkout() ) {
-				$script_url = $this->get_option_bool( 'test_mode' ) ? self::SCRIPT_ENDPOINT_TEST : self::SCRIPT_ENDPOINT;
-				wp_enqueue_script( 'monri-components-keks', $script_url, [], MONRI_WC_VERSION );
+		add_action(
+			'template_redirect',
+			function () {
+				if ( is_checkout() ) {
+					$script_url = $this->get_option_bool( 'test_mode' ) ? self::SCRIPT_ENDPOINT_TEST : self::SCRIPT_ENDPOINT;
+					wp_enqueue_script( 'monri-components-keks', $script_url, array(), MONRI_WC_VERSION );
+				}
 			}
-		} );
-	}
-
-
-	/**
-	 * Process the payment and return the result
-	 *
-	 * @param int $order_id
-	 *
-	 * @return array
-	 * @throws Exception
-	 */
-	public function process_payment( $order_id ) {
-
-		$order = wc_get_order( $order_id );
-		// QR code can be rendered only once per order?
-//		if ( $order->get_meta( 'keks_qr_code_rendered' ) === 'yes' ) {
-//			$order->set_status( 'cancelled', 'Order has been cancelled. Please go to checkout and try again.' );
-//		}
-//		$order->update_meta_data( 'keks_qr_code_rendered', 'yes' );
-//		$order->save();
-		return array(
-			'result'   => 'success',
-			'redirect' => $order->get_checkout_payment_url( true ),
 		);
 	}
 
@@ -75,117 +48,30 @@ class Monri_WC_Gateway_Webpay_Components_Keks extends WC_Payment_Gateway {
 	 *
 	 * @return void
 	 */
-	public function process_components_keks( $order_id ) {
+	public function process_components( $order_id ) {
 
+		$order = wc_get_order( $order_id );
 		wc_get_template(
 			'components-keks.php',
 			array(
 				'config' => array(
-					'env'            => $this->get_option_bool( 'test_mode' ) ? 'test' : 'prod',
-					'client_secret'      => $this->request_authorize( wc_get_order( $order_id ) ),
+					'env'                => $this->get_option_bool( 'test_mode' ) ? 'test' : 'prod',
+					'client_secret'      => $this->request_authorize( $order ),
 					'authenticity_token' => $this->get_option( 'monri_authenticity_token' ),
 					'locale'             => $this->get_option( 'form_language' ),
-					'return_url'          => $this->get_return_url( wc_get_order( $order_id ) ),
+					'return_url'         => $this->get_return_url( $order ),
+					'ch_full_name'       => wc_trim_string( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() ),
+					'ch_address'         => wc_trim_string( $order->get_billing_address_1(), 100, '' ),
+					'ch_city'            => wc_trim_string( $order->get_billing_city(), 100, '' ),
+					'ch_zip'             => wc_trim_string( $order->get_billing_postcode(), 100, '' ),
+					'ch_country'         => wc_trim_string( $order->get_billing_country(), 100, '' ),
+					'ch_phone'           => wc_trim_string( $order->get_billing_phone(), 100, '' ),
+					'ch_email'           => wc_trim_string( $order->get_billing_email(), 100, '' ),
+					'orderInfo'          => $order_id . '_' . gmdate( 'dmy' ),
 				),
 			),
 			basename( MONRI_WC_PLUGIN_PATH ),
 			MONRI_WC_PLUGIN_PATH . 'templates/'
 		);
-	}
-
-	/**
-	 * Generate client secret for Keks QR code
-	 *
-	 * @param WC_Order $order
-	 *
-	 * @return mixed
-	 */
-	private function request_authorize( $order ) {
-		$order_id = $order->get_id();
-		if ( $this->get_option_bool( 'test_mode' ) ) {
-			$order_id = Monri_WC_Utils::get_test_order_id( $order_id );
-
-		}
-
-		$url = $this->get_option_bool( 'test_mode' ) ?
-			self::AUTHORIZATION_ENDPOINT_TEST :
-			self::AUTHORIZATION_ENDPOINT;
-
-		$order_total = (float) $order->get_total();
-
-		$amount_in_minor_units = (int) round( $order_total * 100 );
-
-		$currency = get_woocommerce_currency();
-		if ( $currency === 'KM' ) {
-			$currency = 'BAM';
-		}
-
-		$data = array(
-			'amount'           => $amount_in_minor_units,
-			'order_number'     => $order_id,
-			'currency'         => $currency,
-			'transaction_type' => $this->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
-			'order_info'       => 'woocommerce order',
-		);
-
-		$data = wp_json_encode( $data );
-
-		$timestamp = time();
-		$digest    = hash(
-			'sha512',
-			$this->get_option( 'monri_merchant_key' ) .
-			$timestamp .
-			$this->get_option( 'monri_authenticity_token' ) .
-			$data
-		);
-
-		$authorization = "WP3-v2 {$this->get_option( 'monri_authenticity_token' )} $timestamp $digest";
-
-		Monri_WC_Logger::log( $data, __METHOD__ );
-
-		$response = wp_remote_post(
-			$url,
-			array(
-				'body'      => $data,
-				'headers'   => array(
-					'Content-Type'   => 'application/json',
-					'Content-Length' => strlen( $data ),
-					'Authorization'  => $authorization,
-				),
-				'timeout'   => 10,
-				'sslverify' => true,
-			)
-		);
-
-		Monri_WC_Logger::log( $response, __METHOD__ );
-
-		if ( is_wp_error( $response ) ) {
-			$response = array(
-				'status' => 'error',
-				'error'  => $response->get_error_message(),
-			);
-		}
-
-		$body = wp_remote_retrieve_body( $response );
-
-		return json_decode( $body, true )['client_secret'];
-	}
-
-	/**
-	 * Gateway options getter
-	 *
-	 * @param string $key
-	 *
-	 * @return bool
-	 */
-	public function get_option_bool( $key ) {
-		return in_array( $this->get_option( $key ), array( 'yes', '1', true ), true );
-	}
-
-	/**
-	 * Init settings for gateways.
-	 */
-	public function init_settings() {
-		$this->settings = get_option( 'woocommerce_monri_settings', array() );
 	}
 }

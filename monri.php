@@ -27,6 +27,7 @@ function monri_wc_init() {
 	}
 
 	require_once __DIR__ . '/includes/gateway.php';
+	require_once __DIR__ . '/includes/gateway-webpay-components-abstract.php';
 
 	function woocommerce_add_monri_gateway( $methods ) {
 		$methods[] = Monri_WC_Gateway::class;
