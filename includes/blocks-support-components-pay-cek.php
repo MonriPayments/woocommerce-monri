@@ -5,14 +5,14 @@ use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodTyp
 /**
  * Payments Blocks integration
  */
-final class Monri_WC_Components_Keks_Pay_Blocks_Support extends AbstractPaymentMethodType {
+final class Monri_WC_Components_Pay_Cek_Blocks_Support extends AbstractPaymentMethodType {
 
 	/**
 	 * Payment method name/id/slug.
 	 *
 	 * @var string
 	 */
-	protected $name = 'monri_components_keks_pay';
+	protected $name = 'monri_components_pay_cek';
 	/**
 	 * Initializes the payment method type.
 	 */
@@ -25,7 +25,7 @@ final class Monri_WC_Components_Keks_Pay_Blocks_Support extends AbstractPaymentM
 				$script_url = $this->get_setting( 'test_mode' ) ?
 					Monri_WC_Gateway_Webpay_Components_Abstract::SCRIPT_ENDPOINT_TEST :
 					Monri_WC_Gateway_Webpay_Components_Abstract::SCRIPT_ENDPOINT;
-				wp_enqueue_script( 'monri-components-keks-pay', $script_url, array(), MONRI_WC_VERSION );
+				wp_enqueue_script( 'monri-components-pay-cek', $script_url, array(), MONRI_WC_VERSION );
 			}
 		);
 	}
@@ -37,7 +37,7 @@ final class Monri_WC_Components_Keks_Pay_Blocks_Support extends AbstractPaymentM
 	 */
 	public function is_active() {
 		//todo: temporary. Fix once fully indepedent from components
-		return Monri_WC_Settings::instance()->include_components_keks();
+		return Monri_WC_Settings::instance()->include_components_pay_cek();
 	}
 
 	/**
@@ -46,7 +46,7 @@ final class Monri_WC_Components_Keks_Pay_Blocks_Support extends AbstractPaymentM
 	 * @return array
 	 */
 	public function get_payment_method_script_handles() {
-		//todo: load separate script for keks
+		//todo: load separate script for pay cek
 		$script_path       = '/assets/js/blocks/index.js';
 		$script_asset_path = MONRI_WC_PLUGIN_PATH . 'assets/js/blocks/index.asset.php';
 		$script_asset      = file_exists( $script_asset_path )
@@ -57,12 +57,12 @@ final class Monri_WC_Components_Keks_Pay_Blocks_Support extends AbstractPaymentM
 			);
 		$script_url        = MONRI_WC_PLUGIN_URL . $script_path;
 
-		if ( wp_script_is( 'monri-components-keks-pay' ) ) {
-			$script_asset['dependencies'][] = 'monri-components-keks-pay';
+		if ( wp_script_is( 'monri-components-pay-cek' ) ) {
+			$script_asset['dependencies'][] = 'monri-components-pay-cek';
 		}
 
 		wp_register_script(
-			'monri-keks-blocks',
+			'monri-pay-cek-blocks',
 			$script_url,
 			$script_asset['dependencies'],
 			$script_asset['version'],
@@ -70,10 +70,10 @@ final class Monri_WC_Components_Keks_Pay_Blocks_Support extends AbstractPaymentM
 		);
 
 		if ( function_exists( 'wp_set_script_translations' ) ) {
-			wp_set_script_translations( 'monri-keks-blocks', 'monri', MONRI_WC_PLUGIN_PATH . 'languages/' );
+			wp_set_script_translations( 'monri-pay-cek-blocks', 'monri', MONRI_WC_PLUGIN_PATH . 'languages/' );
 		}
 
-		return array( 'monri-keks-blocks' );
+		return array( 'monri-pay-cek-blocks' );
 	}
 
 	/**
@@ -83,7 +83,7 @@ final class Monri_WC_Components_Keks_Pay_Blocks_Support extends AbstractPaymentM
 	 */
 	public function get_payment_method_data() {
 		$data = [
-			'keks_enabled' => true,
+			'pay_cek_enabled' => true,
 		];
 
 		return $data;

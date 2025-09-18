@@ -23,8 +23,8 @@ final class Monri_WC_Components_Google_Pay_Blocks_Support extends AbstractPaymen
 			'enqueue_block_editor_assets',
 			function () {
 				$script_url = $this->get_setting( 'test_mode' ) ?
-					Monri_WC_Gateway_Webpay_Components_Google_Pay::SCRIPT_ENDPOINT_TEST :
-					Monri_WC_Gateway_Webpay_Components_Google_Pay::SCRIPT_ENDPOINT;
+					Monri_WC_Gateway_Webpay_Components_Abstract::SCRIPT_ENDPOINT_TEST :
+					Monri_WC_Gateway_Webpay_Components_Abstract::SCRIPT_ENDPOINT;
 				wp_enqueue_script( 'monri-components-google-pay', $script_url, array(), MONRI_WC_VERSION );
 			}
 		);

@@ -1,7 +1,7 @@
 import { decodeEntities } from '@wordpress/html-entities';
 import { useMonriComponentsGooglePayData } from "../use-monri-data";
 import {Fragment} from "react";
-import { __, sprintf } from '@wordpress/i18n';
+import { __ } from '@wordpress/i18n';
 
 
 
@@ -14,10 +14,10 @@ export const GooglePay = () => {
 export const getPaymentMethod = () => {
 
     const settings = useMonriComponentsGooglePayData();
-    const label = decodeEntities( settings.title ) || __( 'Monri Google Pay', 'monri' );
     if (!settings?.google_pay_enabled) {
         return null;
     }
+    const label = decodeEntities( settings.title ) || __( 'Monri Google Pay', 'monri' );
 
     return {
         name: 'monri_components_google_pay',

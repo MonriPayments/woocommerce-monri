@@ -4,6 +4,7 @@ import { getPaymentMethod as getWebPayLightbox } from './web-pay/lightbox';
 import { getPaymentMethod as getWsPayForm } from "./ws-pay/form";
 import { getPaymentMethod as getKeksPayForm } from "./components-additional-methods/keks-pay";
 import { getPaymentMethod as getGooglePayForm } from "./components-additional-methods/google-pay";
+import { getPaymentMethod as getPayCekForm } from "./components-additional-methods/pay-cek";
 import { useMonriData } from "./use-monri-data";
 
 export const useIntegration = () => {
@@ -26,4 +27,6 @@ export const useIntegration = () => {
 export const useKeksIntegration = () => getKeksPayForm();
 
 export const useGooglePayIntegration = () => getGooglePayForm();
+
+export const usePayCekIntegration = () => getPayCekForm();
 

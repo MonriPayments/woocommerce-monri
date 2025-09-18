@@ -445,4 +445,19 @@ class Monri_WC_Settings {
 		return false;
 	}
 
+	/**
+	 * Temporary function to check if PayCek is enabled
+	 *
+	 * @return bool
+	 */
+	public function include_components_pay_cek() {
+		$settings = get_option( 'woocommerce_monri_settings', [] );
+		$supported_payment_methods = $settings['monri_web_pay_supported_payment_methods'] ?? [];
+
+		if ( $settings['monri_web_pay_integration_type'] === 'components' && is_array($supported_payment_methods) && in_array( 'pay-cek', $supported_payment_methods ) ) {
+			return true;
+		}
+		return false;
+	}
+
 }
