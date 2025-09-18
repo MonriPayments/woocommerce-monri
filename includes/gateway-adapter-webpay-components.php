@@ -288,7 +288,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		}
 
 		$body          = wp_remote_retrieve_body( $response );
-		$client_secret = json_decode( $body, true )['client_secret'];
+		$client_secret = json_decode( $body, true )['client_secret'] ?? '';
 		// save data to session so that we can reuse it on site refresh
 		WC()->session->set(
 			$amount_in_minor_units . '_client_secret_timestamp',

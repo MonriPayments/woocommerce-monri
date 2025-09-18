@@ -1,7 +1,7 @@
 import { decodeEntities } from '@wordpress/html-entities';
 import { useMonriComponentsKeksData } from "../use-monri-data";
-import { getDefaultPaymentMethod } from "../default-payment-method";
 import {Fragment} from "react";
+import { __, sprintf } from '@wordpress/i18n';
 
 
 export const KeksPay = () => {
@@ -14,16 +14,18 @@ export const KeksPay = () => {
 export const getPaymentMethod = () => {
 
     const settings = useMonriComponentsKeksData();
+    const label = decodeEntities( settings.title ) || __( 'Monri Keks', 'monri' );
     if (!settings?.keks_enabled) {
         return null;
     }
 
     return {
-        ...getDefaultPaymentMethod(),
         name: 'monri_components_keks_pay',
-        label: 'Monri Keks',
+        label,
+        ariaLabel: label,
         content: <KeksPay />,
         edit: <KeksPay />,
+        canMakePayment: () => true,
         supports: { features: ['products'] },
     };
 };
