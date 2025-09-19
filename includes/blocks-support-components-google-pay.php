@@ -36,7 +36,7 @@ final class Monri_WC_Components_Google_Pay_Blocks_Support extends AbstractPaymen
 	 * @return boolean
 	 */
 	public function is_active() {
-		//todo: temporary. Fix once fully indepedent from components
+		// todo: temporary. Fix once fully indepedent from components
 		return Monri_WC_Settings::instance()->include_components_google_pay();
 	}
 
@@ -46,7 +46,7 @@ final class Monri_WC_Components_Google_Pay_Blocks_Support extends AbstractPaymen
 	 * @return array
 	 */
 	public function get_payment_method_script_handles() {
-		//todo: load separate script for google pay
+		// todo: load separate script for google pay
 		$script_path       = '/assets/js/blocks/index.js';
 		$script_asset_path = MONRI_WC_PLUGIN_PATH . 'assets/js/blocks/index.asset.php';
 		$script_asset      = file_exists( $script_asset_path )
@@ -82,9 +82,9 @@ final class Monri_WC_Components_Google_Pay_Blocks_Support extends AbstractPaymen
 	 * @return array
 	 */
 	public function get_payment_method_data() {
-		$data = [
+		$data = array(
 			'google_pay_enabled' => true,
-		];
+		);
 
 		return $data;
 	}

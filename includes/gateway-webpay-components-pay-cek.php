@@ -28,9 +28,9 @@ class Monri_WC_Gateway_Webpay_Components_Pay_Cek extends Monri_WC_Gateway_Webpay
 		$this->description = __( 'Pay with Monri PayCek', 'monri' );
 
 		add_action( 'woocommerce_receipt_' . $this->id, array( $this, 'process_components' ) );
-		add_action( 'woocommerce_before_thankyou', [ $this, 'process_return' ] );
+		add_action( 'woocommerce_before_thankyou', array( $this, 'process_return' ) );
 
-		// load components.js on frontend checkout
+		// load components.js on frontend checkout.
 		add_action(
 			'template_redirect',
 			function () {
@@ -90,7 +90,6 @@ class Monri_WC_Gateway_Webpay_Components_Pay_Cek extends Monri_WC_Gateway_Webpay
 			return;
 		}
 
-		$this->sync_order_status($order);
-
+		$this->sync_order_status( $order );
 	}
 }

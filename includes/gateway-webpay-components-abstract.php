@@ -126,20 +126,19 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 	 * Checks order status on Monri and updates order accordingly
 	 *
 	 * @param WC_Order $order
-	 * @param bool $forceStatus
 	 * @return bool
 	 */
 	public function sync_order_status( $order ) {
 
-		$monri_order_number = $order->get_meta( 'monri_order_number');
+		$monri_order_number = $order->get_meta( 'monri_order_number' );
 
 		if ( ! $monri_order_number ) {
 			return false;
 		}
 
-		$response = Monri_WC_Api::instance()->orders_show( $monri_order_number );
-		$formatted_response = json_decode(json_encode($response), true);
-		if ( is_wp_error( $response )) {
+		$response           = Monri_WC_Api::instance()->orders_show( $monri_order_number );
+		$formatted_response = json_decode( wp_json_encode( $response ), true );
+		if ( is_wp_error( $response ) ) {
 			Monri_WC_Logger::log( $formatted_response, __METHOD__ );
 			$order->add_order_note(
 				sprintf( __( 'There was an error getting the order status', 'monri' ) )
@@ -148,17 +147,17 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 			return false;
 		}
 
-		// Check status of order
-		switch ($response->status) {
+		// Check status of order.
+		switch ( $response->status ) {
 			case 'approved':
 				if ( $order->get_status() === 'pending' ) {
-					$order->payment_complete($monri_order_number);
+					$order->payment_complete( $monri_order_number );
 				}
 				break;
 
 			case 'declined':
 				if ( $order->get_status() === 'pending' ) {
-					$order->update_status('cancelled');
+					$order->update_status( 'cancelled' );
 				}
 				break;
 

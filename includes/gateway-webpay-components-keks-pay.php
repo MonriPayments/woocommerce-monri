@@ -29,7 +29,7 @@ class Monri_WC_Gateway_Webpay_Components_Keks_Pay extends Monri_WC_Gateway_Webpa
 
 		add_action( 'woocommerce_receipt_' . $this->id, array( $this, 'process_components' ) );
 
-		// load components.js on frontend checkout
+		// load components.js on frontend checkout.
 		add_action(
 			'template_redirect',
 			function () {
@@ -44,7 +44,7 @@ class Monri_WC_Gateway_Webpay_Components_Keks_Pay extends Monri_WC_Gateway_Webpa
 	/**
 	 * Passes config data to template file
 	 *
-	 * @param $order_id
+	 * @param int $order_id
 	 *
 	 * @return void
 	 */

@@ -36,7 +36,7 @@ final class Monri_WC_Components_Keks_Pay_Blocks_Support extends AbstractPaymentM
 	 * @return boolean
 	 */
 	public function is_active() {
-		//todo: temporary. Fix once fully indepedent from components
+		// todo: temporary. Fix once fully indepedent from components
 		return Monri_WC_Settings::instance()->include_components_keks();
 	}
 
@@ -46,7 +46,7 @@ final class Monri_WC_Components_Keks_Pay_Blocks_Support extends AbstractPaymentM
 	 * @return array
 	 */
 	public function get_payment_method_script_handles() {
-		//todo: load separate script for keks
+		// todo: load separate script for keks
 		$script_path       = '/assets/js/blocks/index.js';
 		$script_asset_path = MONRI_WC_PLUGIN_PATH . 'assets/js/blocks/index.asset.php';
 		$script_asset      = file_exists( $script_asset_path )
@@ -82,9 +82,9 @@ final class Monri_WC_Components_Keks_Pay_Blocks_Support extends AbstractPaymentM
 	 * @return array
 	 */
 	public function get_payment_method_data() {
-		$data = [
+		$data = array(
 			'keks_enabled' => true,
-		];
+		);
 
 		return $data;
 	}
