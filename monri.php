@@ -32,7 +32,7 @@ function monri_wc_init() {
 	function woocommerce_add_monri_gateway( $methods ) {
 		$methods[] = Monri_WC_Gateway::class;
 
-		//temporary solution. Hide keks payment method settings in admin until the method is fully independent from components
+		//temporary solution. Hide alternative payment methods settings in admin until the method is fully independent from components
 		if (Monri_WC_Settings::instance()->include_components_keks() && !is_admin()) {
 			require_once __DIR__ . '/includes/gateway-webpay-components-keks-pay.php';
 			$methods[] = Monri_WC_Gateway_Webpay_Components_Keks_Pay::class;
