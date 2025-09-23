@@ -14,7 +14,7 @@ export const GooglePay = () => {
 export const getPaymentMethod = () => {
 
     const settings = useMonriComponentsGooglePayData();
-    if (!settings?.google_pay_enabled) {
+    if (!settings) {
         return null;
     }
     const label = decodeEntities( settings.title ) || __( 'Monri Google Pay', 'monri' );
@@ -26,7 +26,9 @@ export const getPaymentMethod = () => {
         content: <GooglePay />,
         edit: <GooglePay />,
         canMakePayment: () => true,
-        supports: { features: ['products'] },
+        supports: {
+            features: settings.supports,
+        },
     };
 };
 

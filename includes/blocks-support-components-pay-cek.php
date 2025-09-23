@@ -13,10 +13,20 @@ final class Monri_WC_Components_Pay_Cek_Blocks_Support extends AbstractPaymentMe
 	 * @var string
 	 */
 	protected $name = 'monri_components_pay_cek';
+
+	/**
+	 * The gateway instance.
+	 *
+	 * @var Monri_WC_Gateway_Webpay_Components_Pay_Cek
+	 */
+	private $gateway;
+
 	/**
 	 * Initializes the payment method type.
 	 */
 	public function initialize() {
+		$gateways       = WC()->payment_gateways->payment_gateways();
+		$this->gateway  = $gateways[ $this->name ];
 		$this->settings = get_option( 'woocommerce_monri_settings', array() );
 
 		add_action(
@@ -83,7 +93,7 @@ final class Monri_WC_Components_Pay_Cek_Blocks_Support extends AbstractPaymentMe
 	 */
 	public function get_payment_method_data() {
 		$data = array(
-			'pay_cek_enabled' => true,
+			'supports'    => array_filter( $this->gateway->supports, [ $this->gateway, 'supports' ] )
 		);
 
 		return $data;

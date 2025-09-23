@@ -13,10 +13,21 @@ final class Monri_WC_Components_Google_Pay_Blocks_Support extends AbstractPaymen
 	 * @var string
 	 */
 	protected $name = 'monri_components_google_pay';
+
+	/**
+	 * The gateway instance.
+	 *
+	 * @var Monri_WC_Gateway_Webpay_Components_Google_Pay
+	 */
+	private $gateway;
+
+
 	/**
 	 * Initializes the payment method type.
 	 */
 	public function initialize() {
+		$gateways       = WC()->payment_gateways->payment_gateways();
+		$this->gateway  = $gateways[ $this->name ];
 		$this->settings = get_option( 'woocommerce_monri_settings', array() );
 
 		add_action(
@@ -83,7 +94,7 @@ final class Monri_WC_Components_Google_Pay_Blocks_Support extends AbstractPaymen
 	 */
 	public function get_payment_method_data() {
 		$data = array(
-			'google_pay_enabled' => true,
+			'supports'    => array_filter( $this->gateway->supports, [ $this->gateway, 'supports' ] )
 		);
 
 		return $data;

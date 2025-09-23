@@ -14,7 +14,7 @@ export const KeksPay = () => {
 export const getPaymentMethod = () => {
 
     const settings = useMonriComponentsKeksData();
-    if (!settings?.keks_enabled) {
+    if (!settings) {
         return null;
     }
     const label = decodeEntities( settings.title ) || __( 'Monri Keks', 'monri' );
@@ -26,7 +26,9 @@ export const getPaymentMethod = () => {
         content: <KeksPay />,
         edit: <KeksPay />,
         canMakePayment: () => true,
-        supports: { features: ['products'] },
+        supports: {
+            features: settings.supports,
+        },
     };
 };
 

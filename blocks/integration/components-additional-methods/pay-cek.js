@@ -14,11 +14,10 @@ export const PayCek = () => {
 export const getPaymentMethod = () => {
 
     const settings = useMonriComponentsPayCekData();
-    if (!settings?.pay_cek_enabled) {
+    if (!settings) {
         return null;
     }
     const label = decodeEntities( settings.title ) || __( 'Monri PayCek', 'monri' );
-
 
     return {
         name: 'monri_components_pay_cek',
@@ -27,7 +26,9 @@ export const getPaymentMethod = () => {
         content: <PayCek />,
         edit: <PayCek />,
         canMakePayment: () => true,
-        supports: { features: ['products'] },
+        supports: {
+            features: settings.supports,
+        },
     };
 };
 
