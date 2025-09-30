@@ -7,7 +7,7 @@ class Monri_WC_Gateway_Webpay_Components_Pay_Cek extends Monri_WC_Gateway_Webpay
 	 *
 	 * @var string[]
 	 */
-	public $supports = array( 'products' );
+	public $supports = array( 'products', 'refunds' );
 
 	/**
 	 * Gateway ID
@@ -74,22 +74,5 @@ class Monri_WC_Gateway_Webpay_Components_Pay_Cek extends Monri_WC_Gateway_Webpay
 			basename( MONRI_WC_PLUGIN_PATH ),
 			MONRI_WC_PLUGIN_PATH . 'templates/'
 		);
-	}
-
-	/**
-	 * Monri returns on thankyou page
-	 *
-	 * @param int $order_id
-	 *
-	 * @return void
-	 */
-	public function process_return( $order_id ) {
-
-		$order = wc_get_order( $order_id );
-		if ( ! $order || $order->get_payment_method() !== $this->id ) {
-			return;
-		}
-
-		$this->sync_order_status( $order );
 	}
 }
