@@ -8,8 +8,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 ?>
 
 
-<div id="google-pay-element"></div>
-<div id="keks-pay-element"></div>
 <div id="pay-cek-element"></div>
 <p id="monri-error" style="color:red;" role="alert"></p>
 <input type="hidden" id="monri-transaction" name="monri-transaction" autocomplete="off" value=""/>
@@ -27,7 +25,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             ch_email: config.ch_email,
             ch_language: config.locale,
         }
-        console.log(transaction);
 
         var monri = Monri(config.authenticity_token, {locale: config.locale});
         var components = monri.components({clientSecret: config.client_secret});
@@ -41,15 +38,12 @@ if ( ! defined( 'ABSPATH' ) ) exit;
         }).onStartPayment(() => {
             monri.confirmPayment(payCek, transaction)
                 .then(response => {
-                    console.log('response: ', response)
                     if (response.error) {
                         $('#monri-error').text(response.error.message);
                         return;
                     }
                     window.location.href = config.return_url;
-
                 })
-
         })
 
         payCek.mount('pay-cek-element');

@@ -7,7 +7,7 @@ const paymentMethod = useIntegration();
 const keksPaymentMethod = useKeksIntegration();
 const googlePayPaymentMethod = useGooglePayIntegration();
 const payCekPaymentMethod = usePayCekIntegration();
-//todo: separate this logic into 2 different files so that each payment method does not need to check settings for each payment method?
+//todo: separate this logic into different files so that each payment method does not need to check settings for each payment method?
 if (paymentMethod) {
     registerPaymentMethod(paymentMethod);
 }
