@@ -56,9 +56,8 @@ final class Monri_WC_Components_Keks_Pay_Blocks_Support extends AbstractPaymentM
 	 * @return array
 	 */
 	public function get_payment_method_script_handles() {
-		// todo: load separate script for keks
-		$script_path       = '/assets/js/blocks/index.js';
-		$script_asset_path = MONRI_WC_PLUGIN_PATH . 'assets/js/blocks/index.asset.php';
+		$script_path       = '/assets/js/blocks/keks-pay.js';
+		$script_asset_path = MONRI_WC_PLUGIN_PATH . 'assets/js/blocks/keks-pay.asset.php';
 		$script_asset      = file_exists( $script_asset_path )
 			? require $script_asset_path
 			: array(

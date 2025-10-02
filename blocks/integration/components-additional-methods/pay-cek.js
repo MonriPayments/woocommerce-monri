@@ -14,9 +14,7 @@ export const PayCek = () => {
 export const getPaymentMethod = () => {
 
     const settings = useMonriComponentsPayCekData();
-    if (!settings) {
-        return null;
-    }
+
     const label = decodeEntities( settings.title ) || __( 'Monri PayCek', 'monri' );
 
     return {

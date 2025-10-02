@@ -14,9 +14,7 @@ export const KeksPay = () => {
 export const getPaymentMethod = () => {
 
     const settings = useMonriComponentsKeksData();
-    if (!settings) {
-        return null;
-    }
+
     const label = decodeEntities( settings.title ) || __( 'Monri Keks', 'monri' );
 
     return {

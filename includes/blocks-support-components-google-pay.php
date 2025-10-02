@@ -57,9 +57,8 @@ final class Monri_WC_Components_Google_Pay_Blocks_Support extends AbstractPaymen
 	 * @return array
 	 */
 	public function get_payment_method_script_handles() {
-		// todo: load separate script for google pay
-		$script_path       = '/assets/js/blocks/index.js';
-		$script_asset_path = MONRI_WC_PLUGIN_PATH . 'assets/js/blocks/index.asset.php';
+		$script_path       = '/assets/js/blocks/google-pay.js';
+		$script_asset_path = MONRI_WC_PLUGIN_PATH . 'assets/js/blocks/google-pay.asset.php';
 		$script_asset      = file_exists( $script_asset_path )
 			? require $script_asset_path
 			: array(

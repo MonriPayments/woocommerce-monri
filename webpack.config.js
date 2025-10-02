@@ -13,6 +13,9 @@ module.exports = {
     ],
     entry: {
         index: './blocks/index.js',
+        "google-pay": './blocks/google-pay.js',
+        "keks-pay": './blocks/keks-pay.js',
+        "pay-cek": './blocks/pay-cek.js',
     },
     output: {
         path: resolve( process.cwd(), 'assets/js/blocks' ),

@@ -14,9 +14,7 @@ export const GooglePay = () => {
 export const getPaymentMethod = () => {
 
     const settings = useMonriComponentsGooglePayData();
-    if (!settings) {
-        return null;
-    }
+
     const label = decodeEntities( settings.title ) || __( 'Monri Google Pay', 'monri' );
 
     return {
