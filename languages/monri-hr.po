@@ -387,3 +387,16 @@ msgstr "Rate"
 #: templates/transaction-info.php:11
 msgid "Date/Time"
 msgstr "Datum/Vrijeme"
+
+#: templates/transaction-info.php:11
+msgid "Pay with Monri Google Pay"
+msgstr "Plaćanje putem Monri Google Paya"
+
+#: templates/transaction-info.php:11
+msgid "Pay with Monri Keks"
+msgstr "Plaćanje putem Monri Keks Paya"
+
+#: templates/transaction-info.php:11
+msgid "Pay with Monri PayCek"
+msgstr "Plaćanje putem Monri PayCeka"
+

@@ -42,6 +42,15 @@ if ( ! defined( 'ABSPATH' ) ) exit;
         googlePay.mount('google-pay-element');
         console.log("googlePay: ", googlePay);
 
+        //todo: currently not working. https://docs.monri.com/docs/google-pay
+        // googlePay.on('paymentSuccess', (result) => {
+        //     window.location.href = config.return_url;
+        // });
+        //
+        // googlePay.on('paymentError', (error) => {
+        //     $('#monri-error').text(error.message);
+        // });
+
     })(jQuery);
 
 </script>
