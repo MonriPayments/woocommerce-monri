@@ -7,7 +7,7 @@ import { __ } from '@wordpress/i18n';
 
 export const GooglePay = () => {
     return <Fragment>
-        {decodeEntities('Pay with Monri Google Pay')}
+        {decodeEntities(__('Pay with Monri Google Pay', 'monri'))}
     </Fragment>;
 };
 

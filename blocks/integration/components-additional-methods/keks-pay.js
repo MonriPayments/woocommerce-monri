@@ -6,7 +6,7 @@ import { __ } from '@wordpress/i18n';
 
 export const KeksPay = () => {
     return <Fragment>
-        {decodeEntities('Pay with Monri Keks')}
+        {decodeEntities(__('Pay with Monri Keks', 'monri'))}
     </Fragment>;
 };
 

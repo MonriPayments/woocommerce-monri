@@ -7,7 +7,7 @@ import { __ } from '@wordpress/i18n';
 
 export const PayCek = () => {
     return <Fragment>
-        {decodeEntities('Pay with Monri PayCek')}
+        {decodeEntities(__('Pay with Monri PayCek', 'monri'))}
     </Fragment>;
 };
 
