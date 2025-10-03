@@ -400,3 +400,6 @@ msgstr "Plaćanje putem Monri Keks Paya"
 msgid "Pay with Monri PayCek"
 msgstr "Plaćanje putem Monri PayCeka"
 
+#: templates/transaction-info.php:11
+msgid "After payment, please wait a moment while we verify your transaction..."
+msgstr "Nakon uplate, molimo pričekajte trenutak dok ne provjerimo vašu transakciju..."

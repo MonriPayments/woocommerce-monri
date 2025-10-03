@@ -99,6 +99,11 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 		$body = wp_remote_retrieve_body( $response );
 
 		$order->add_meta_data( 'monri_order_number', $order_id );
+		//used when checking if current user has permission to get status of this order
+		$order_hash = wp_generate_uuid4();
+		$order->update_meta_data('order_access_hash', $order_hash);
+		WC()->session->set('order_access_hash_' . $order->get_id(), $order_hash);
+
 		$order->save();
 
 		return json_decode( $body, true )['client_secret'];
@@ -164,15 +169,19 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 			return false;
 		}
 
-		// Check status of order.
-		switch ( $response->status ) {
-			case 'approved':
+		if (!isset( $formatted_response['response-code'] )) {
+			return false;
+		}
+
+		// Check response code of order.
+		switch ( $formatted_response['response-code'] ) {
+			case '0000':
 				if ( $order->get_status() === 'pending' ) {
 					$order->payment_complete( $monri_order_number );
 				}
 				break;
 
-			case 'declined':
+			case '1050':
 				if ( $order->get_status() === 'pending' ) {
 					$order->update_status( 'cancelled' );
 				}
@@ -337,4 +346,40 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 
 		return true;
 	}
+
+	function monri_get_transaction_status_rest($request) {
+		$order_number = sanitize_text_field($request['order_number']);
+
+		$response = Monri_WC_Api::instance()->orders_show($order_number);
+
+		if (is_wp_error($response)) {
+			return new WP_Error('order_error', $response->get_error_message(), array('status' => 400));
+		}
+		$formatted_response = json_decode( wp_json_encode( $response ), true );
+		return $formatted_response['status'] === 'approved' && $formatted_response['response-code'] === '0000';
+	}
+
+	/**
+	 * Check if current user has permission to fetch order status
+	 *
+	 * @param $request
+	 *
+	 * @return bool
+	 */
+	function monri_transaction_status_permission($request) {
+
+		$order_number = $request->get_param('order_number');
+		if ( $this->get_option_bool( 'test_mode' ) ) {
+			$order_number = Monri_WC_Utils::resolve_real_order_id( $order_number );
+		}
+
+		$order = wc_get_order($order_number);
+		if (!$order) {
+			return false;
+		}
+
+		$order_access_hash = WC()->session->get('order_access_hash_' . $order->get_id());
+		return $order_access_hash === $order->get_meta('order_access_hash');
+	}
+
 }
