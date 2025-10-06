@@ -14,6 +14,7 @@ module.exports = {
     entry: {
         index: './blocks/index.js',
         "google-pay": './blocks/google-pay.js',
+        "apple-pay": './blocks/apple-pay.js',
         "keks-pay": './blocks/keks-pay.js',
         "pay-cek": './blocks/pay-cek.js',
     },

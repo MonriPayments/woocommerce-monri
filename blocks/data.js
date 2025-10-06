@@ -17,6 +17,10 @@ export const getMonriComponentsGooglePayData = () => {
     return getSetting('monri_components_google_pay_data', null);
 };
 
+export const getMonriComponentsApplePayData = () => {
+    return getSetting('monri_components_apple_pay_data', null);
+};
+
 export const getMonriComponentsPayCekData = () => {
     return getSetting('monri_components_pay_cek_data', null);
 };

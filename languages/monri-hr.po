@@ -393,6 +393,10 @@ msgid "Pay with Monri Google Pay"
 msgstr "Plaćanje putem Monri Google Paya"
 
 #: templates/transaction-info.php:11
+msgid "Pay with Monri Apple Pay"
+msgstr "Plaćanje putem Monri Apple Paya"
+
+#: templates/transaction-info.php:11
 msgid "Pay with Monri Keks"
 msgstr "Plaćanje putem Monri Keks Paya"
 

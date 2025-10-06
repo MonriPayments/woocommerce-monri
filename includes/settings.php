@@ -330,7 +330,8 @@ class Monri_WC_Settings {
 				'options'     => array(
 					'keks-pay-hr' => __( 'KEKS pay', 'monri' ),
 					'pay-cek' => __( 'PayCek', 'monri' ),
-					'google-pay' => __( 'Google Pay', 'monri' )
+					'google-pay' => __( 'Google Pay', 'monri' ),
+					'apple-pay' => __( 'Apple Pay', 'monri' )
 				),
 				'desc_tip'    => true,
 				'description' => __( 'Select additional payment methods, if they are set on Monri Webpay.', 'monri' ),
@@ -440,6 +441,21 @@ class Monri_WC_Settings {
 		$supported_payment_methods = $settings['monri_web_pay_supported_payment_methods'] ?? [];
 
 		if ( $settings['monri_web_pay_integration_type'] === 'components' && is_array($supported_payment_methods) && in_array( 'google-pay', $supported_payment_methods ) ) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Temporary function to check if Apple Pay is enabled
+	 *
+	 * @return bool
+	 */
+	public function include_components_apple_pay() {
+		$settings = get_option( 'woocommerce_monri_settings', [] );
+		$supported_payment_methods = $settings['monri_web_pay_supported_payment_methods'] ?? [];
+
+		if ( $settings['monri_web_pay_integration_type'] === 'components' && is_array($supported_payment_methods) && in_array( 'apple-pay', $supported_payment_methods ) ) {
 			return true;
 		}
 		return false;

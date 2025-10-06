@@ -45,6 +45,11 @@ function monri_wc_init() {
 			$methods[] = Monri_WC_Gateway_Webpay_Components_Google_Pay::class;
 		}
 
+		if (Monri_WC_Settings::instance()->include_components_apple_pay() && !$is_wc_settings_page) {
+			require_once __DIR__ . '/includes/gateway-webpay-components-apple-pay.php';
+			$methods[] = Monri_WC_Gateway_Webpay_Components_Apple_Pay::class;
+		}
+
 		if (Monri_WC_Settings::instance()->include_components_pay_cek() && !$is_wc_settings_page) {
 			require_once __DIR__ . '/includes/gateway-webpay-components-pay-cek.php';
 			$methods[] = Monri_WC_Gateway_Webpay_Components_Pay_Cek::class;
@@ -113,6 +118,12 @@ function monri_wc_block_support() {
 					require_once __DIR__ . '/includes/gateway-webpay-components-google-pay.php';
 					require_once __DIR__ . '/includes/blocks-support-components-google-pay.php';
 					$payment_method_registry->register( new Monri_WC_Components_Google_Pay_Blocks_Support() );
+				}
+
+				if (Monri_WC_Settings::instance()->include_components_apple_pay() && !$is_wc_settings_page) {
+					require_once __DIR__ . '/includes/gateway-webpay-components-apple-pay.php';
+					require_once __DIR__ . '/includes/blocks-support-components-apple-pay.php';
+					$payment_method_registry->register( new Monri_WC_Components_Apple_Pay_Blocks_Support() );
 				}
 
 				if (Monri_WC_Settings::instance()->include_components_pay_cek() && !$is_wc_settings_page) {
