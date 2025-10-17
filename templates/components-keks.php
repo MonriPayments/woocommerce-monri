@@ -34,6 +34,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             $.ajax({
                 url: '/wp-json/monri/v1/transaction-status/' + encodeURIComponent(config.order_number),
                 method: 'GET',
+                data: {
+                    order_hash: config.order_hash
+                },
                 success: function(response) {
                     console.log(response)
                     if (response) {

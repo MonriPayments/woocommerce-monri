@@ -102,7 +102,7 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 		//used when checking if current user has permission to get status of this order
 		$order_hash = wp_generate_uuid4();
 		$order->update_meta_data('order_access_hash', $order_hash);
-		WC()->session->set('order_access_hash_' . $order->get_id(), $order_hash);
+
 
 		$order->save();
 
@@ -374,12 +374,12 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 		}
 
 		$order = wc_get_order($order_number);
-		if (!$order) {
+		$request_order_hash = $request->get_param('order_hash');
+		if (!$order || !$request_order_hash) {
 			return false;
 		}
 
-		$order_access_hash = WC()->session->get('order_access_hash_' . $order->get_id());
-		return $order_access_hash === $order->get_meta('order_access_hash');
+		return $request_order_hash === $order->get_meta('order_access_hash');
 	}
 
 }

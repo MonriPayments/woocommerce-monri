@@ -84,6 +84,7 @@ class Monri_WC_Gateway_Webpay_Components_Google_Pay extends Monri_WC_Gateway_Web
 					'ch_email'           => wc_trim_string( $order->get_billing_email(), 100, '' ),
 					'orderInfo'          => $order_id . '_' . gmdate( 'dmy' ),
 					'order_number'       => $order_id,
+					'order_hash'         => $order->get_meta( 'order_access_hash' ),
 				),
 			),
 			basename( MONRI_WC_PLUGIN_PATH ),
