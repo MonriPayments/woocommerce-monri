@@ -168,9 +168,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 		//Combine first and last name in one string
 		$full_name = $order->get_billing_first_name() . " " . $order->get_billing_last_name();
-		$supported_payment_methods = $this->payment->get_option( 'monri_web_pay_supported_payment_methods' );
-		$supported_payment_methods = !empty($supported_payment_methods) ?
-			implode(',', $supported_payment_methods) . ',card' : 'card';
+		$supported_payment_methods = 'card';
 
 
 		//Array of order information
@@ -384,6 +382,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	public function process_refund( $order_id, $amount = null ) {
 
 		$order          = wc_get_order( $order_id );
+		if ($order->get_payment_method() !== $this->payment->id ) {
+			return false;
+		}
+
 		$monri_order_id = $order->get_meta( 'monri_order_number' );
 		$currency       = $order->get_currency();
 
@@ -442,6 +444,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			return false;
 		}
 		$order          = wc_get_order( $order_id );
+		if ($order->get_payment_method() !== $this->payment->id ) {
+			return false;
+		}
+
 		$monri_order_id = $order->get_meta( 'monri_order_number' );
 		if ( empty( $monri_order_id ) ) {
 			return false;
@@ -490,6 +496,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		}
 
 		$order          = wc_get_order( $order_id );
+		if ($order->get_payment_method() !== $this->payment->id ) {
+			return false;
+		}
+
 		$monri_order_id = $order->get_meta( 'monri_order_number' );
 		if ( empty( $monri_order_id ) ) {
 			return false;

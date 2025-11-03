@@ -473,6 +473,10 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	public function process_refund( $order_id, $amount = null ) {
 
 		$order            = wc_get_order( $order_id );
+		if ($order->get_payment_method() !== $this->payment->id ) {
+			return false;
+		}
+
 		$transaction_info = $order->get_meta( '_monri_transaction_info' );
 		$is_tokenization  = $order->get_meta( '_monri_order_token_used' );
 		$wspay_order_id   = isset( $transaction_info['WsPayOrderId'] ) ? sanitize_text_field( $transaction_info['WsPayOrderId'] ) : null;
@@ -521,6 +525,10 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return false;
 		}
 		$order            = wc_get_order( $order_id );
+		if ($order->get_payment_method() !== $this->payment->id ) {
+			return false;
+		}
+
 		$transaction_info = $order->get_meta( '_monri_transaction_info' );
 		$is_tokenization  = $order->get_meta( '_monri_order_token_used' );
 		$transaction_type = $order->get_meta( 'monri_wspay_transaction_type' );
@@ -575,6 +583,10 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		}
 
 		$order            = wc_get_order( $order_id );
+		if ($order->get_payment_method() !== $this->payment->id ) {
+			return false;
+		}
+
 		$transaction_info = $order->get_meta( '_monri_transaction_info' );
 		$is_tokenization  = $order->get_meta( '_monri_order_token_used' );
 		if ( empty( $transaction_info ) ) {

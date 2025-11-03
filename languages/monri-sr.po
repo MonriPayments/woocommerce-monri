@@ -385,3 +385,23 @@ msgstr "Rate"
 #: templates/transaction-info.php:11
 msgid "Date/Time"
 msgstr "Datum/Vreme"
+
+#: templates/transaction-info.php:11
+msgid "Pay with Monri Google Pay"
+msgstr "Plaćanje pomoću Monri Google Paya"
+
+#: templates/transaction-info.php:11
+msgid "Pay with Monri Apple Pay"
+msgstr "Plaćanje pomoću Apple Google Paya"
+
+#: templates/transaction-info.php:11
+msgid "Pay with Monri Keks"
+msgstr "Plaćanje pomoću Monri Keks Paya"
+
+#: templates/transaction-info.php:11
+msgid "Pay with Monri PayCek"
+msgstr "Plaćanje pomoću Monri PayCeka"
+
+#: templates/transaction-info.php:11
+msgid "After payment, please wait a moment while we verify your transaction..."
+msgstr "Nakon uplate, molimo vas da sačekate trenutak dok ne potvrdimo vašu transakciju..."

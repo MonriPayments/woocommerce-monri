@@ -2,17 +2,17 @@
 /*
 Plugin Name: Monri Payments
 Description: Official Monri Payments gateway for WooCommerce
-Version: 3.7.1
+Version: 3.8.0
 Author: Monri Payments d.o.o.
 Author URI: https://monri.com
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 WC requires at least: 4.3.0
-WC tested up to: 10.0.2
+WC tested up to: 10.3.3
 */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'MONRI_WC_VERSION', '3.7.1' );
+define( 'MONRI_WC_VERSION', '3.8.0' );
 define( 'MONRI_WC_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'MONRI_WC_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'MONRI_WC_PLUGIN_INDEX', __FILE__ );
@@ -27,9 +27,33 @@ function monri_wc_init() {
 	}
 
 	require_once __DIR__ . '/includes/gateway.php';
+	require_once __DIR__ . '/includes/gateway-webpay-components-abstract.php';
 
 	function woocommerce_add_monri_gateway( $methods ) {
 		$methods[] = Monri_WC_Gateway::class;
+
+		//temporary solution. Hide alternative payment methods settings in admin until the method is fully independent from components.
+		$is_wc_settings_page = is_admin() && isset( $_GET['page'] ) && $_GET['page'] === 'wc-settings';
+
+		if (Monri_WC_Settings::instance()->include_components_keks() && !$is_wc_settings_page) {
+			require_once __DIR__ . '/includes/gateway-webpay-components-keks-pay.php';
+			$methods[] = Monri_WC_Gateway_Webpay_Components_Keks_Pay::class;
+		}
+
+		if (Monri_WC_Settings::instance()->include_components_google_pay() && !$is_wc_settings_page) {
+			require_once __DIR__ . '/includes/gateway-webpay-components-google-pay.php';
+			$methods[] = Monri_WC_Gateway_Webpay_Components_Google_Pay::class;
+		}
+
+		if (Monri_WC_Settings::instance()->include_components_apple_pay() && !$is_wc_settings_page) {
+			require_once __DIR__ . '/includes/gateway-webpay-components-apple-pay.php';
+			$methods[] = Monri_WC_Gateway_Webpay_Components_Apple_Pay::class;
+		}
+
+		if (Monri_WC_Settings::instance()->include_components_pay_cek() && !$is_wc_settings_page) {
+			require_once __DIR__ . '/includes/gateway-webpay-components-pay-cek.php';
+			$methods[] = Monri_WC_Gateway_Webpay_Components_Pay_Cek::class;
+		}
 
 		return $methods;
 	}
@@ -81,6 +105,32 @@ function monri_wc_block_support() {
 			'woocommerce_blocks_payment_method_type_registration',
 			function ( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
 				$payment_method_registry->register( new Monri_WC_Blocks_Support() );
+
+				//temporary solution. Hide alternative payment methods settings in admin until the method is fully independent from components.
+				$is_wc_settings_page = is_admin() && isset( $_GET['page'] ) && $_GET['page'] === 'wc-settings';
+				if (Monri_WC_Settings::instance()->include_components_keks() && !$is_wc_settings_page) {
+					require_once __DIR__ . '/includes/gateway-webpay-components-keks-pay.php';
+					require_once __DIR__ . '/includes/blocks-support-components-keks-pay.php';
+					$payment_method_registry->register( new Monri_WC_Components_Keks_Pay_Blocks_Support() );
+				}
+
+				if (Monri_WC_Settings::instance()->include_components_google_pay() && !$is_wc_settings_page) {
+					require_once __DIR__ . '/includes/gateway-webpay-components-google-pay.php';
+					require_once __DIR__ . '/includes/blocks-support-components-google-pay.php';
+					$payment_method_registry->register( new Monri_WC_Components_Google_Pay_Blocks_Support() );
+				}
+
+				if (Monri_WC_Settings::instance()->include_components_apple_pay() && !$is_wc_settings_page) {
+					require_once __DIR__ . '/includes/gateway-webpay-components-apple-pay.php';
+					require_once __DIR__ . '/includes/blocks-support-components-apple-pay.php';
+					$payment_method_registry->register( new Monri_WC_Components_Apple_Pay_Blocks_Support() );
+				}
+
+				if (Monri_WC_Settings::instance()->include_components_pay_cek() && !$is_wc_settings_page) {
+					require_once __DIR__ . '/includes/gateway-webpay-components-pay-cek.php';
+					require_once __DIR__ . '/includes/blocks-support-components-pay-cek.php';
+					$payment_method_registry->register( new Monri_WC_Components_Pay_Cek_Blocks_Support() );
+				}
 			}
 		);
 	}

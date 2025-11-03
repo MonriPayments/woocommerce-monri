@@ -389,3 +389,15 @@ msgstr ""
 #: templates/transaction-info.php:11
 msgid "Date/Time"
 msgstr ""
+
+#: templates/transaction-info.php:11
+msgid "Pay with Monri Google Pay"
+msgstr ""
+
+#: templates/transaction-info.php:11
+msgid "Pay with Monri Keks"
+msgstr ""
+
+#: templates/transaction-info.php:11
+msgid "Pay with Monri PayCek"
+msgstr ""

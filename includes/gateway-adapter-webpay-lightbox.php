@@ -331,6 +331,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			return false;
 		}
 		$order          = wc_get_order( $order_id );
+		if ($order->get_payment_method() !== $this->payment->id ) {
+			return false;
+		}
+
 		$monri_order_id = $order->get_meta( 'monri_order_number' );
 		if ( empty( $monri_order_id ) ) {
 			return false;
@@ -381,6 +385,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		}
 
 		$order          = wc_get_order( $order_id );
+		if ($order->get_payment_method() !== $this->payment->id ) {
+			return false;
+		}
+
 		$monri_order_id = $order->get_meta( 'monri_order_number' );
 		if ( empty( $monri_order_id ) ) {
 			return false;

@@ -288,7 +288,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		}
 
 		$body          = wp_remote_retrieve_body( $response );
-		$client_secret = json_decode( $body, true )['client_secret'];
+		$client_secret = json_decode( $body, true )['client_secret'] ?? '';
 		// save data to session so that we can reuse it on site refresh
 		WC()->session->set(
 			$amount_in_minor_units . '_client_secret_timestamp',
@@ -311,6 +311,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	public function process_refund( $order_id, $amount = null ) {
 
 		$order          = wc_get_order( $order_id );
+		if ($order->get_payment_method() !== $this->payment->id ) {
+			return false;
+		}
+
 		$monri_order_id = $order->get_meta( 'monri_order_number' );
 		$currency       = $order->get_currency();
 
@@ -368,6 +372,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			return false;
 		}
 		$order          = wc_get_order( $order_id );
+		if ($order->get_payment_method() !== $this->payment->id ) {
+			return false;
+		}
+
 		$monri_order_id = $order->get_meta( 'monri_order_number' );
 		if ( empty( $monri_order_id ) ) {
 			return false;
@@ -417,6 +425,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		}
 
 		$order          = wc_get_order( $order_id );
+		if ($order->get_payment_method() !== $this->payment->id ) {
+			return false;
+		}
+
 		$monri_order_id = $order->get_meta( 'monri_order_number' );
 		if ( empty( $monri_order_id ) ) {
 			return false;

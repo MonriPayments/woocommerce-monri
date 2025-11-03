@@ -34,12 +34,15 @@ class Monri_WC_Api {
 	/**
 	 * @param string $path
 	 * @param string $body
+	 * @param bool $log_request
 	 *
 	 * @return SimpleXmlElement|WP_Error
 	 */
-	private function request( $path, $body ) {
+	private function request( $path, $body, $log_request = true ) {
 
-		Monri_WC_Logger::log( func_get_args(), __METHOD__ );
+		if ($log_request) {
+			Monri_WC_Logger::log( func_get_args(), __METHOD__ );
+		}
 
 		$url = $this->test_mode ? self::TEST_ENDPOINT : self::ENDPOINT;
 
@@ -55,7 +58,9 @@ class Monri_WC_Api {
 			'timeout'    => 15
 		) );
 
-		Monri_WC_Logger::log( $response, __METHOD__ );
+		if ($log_request) {
+			Monri_WC_Logger::log( $response, __METHOD__ );
+		}
 
 		if ( is_wp_error( $response ) ) {
 			return $response;
@@ -91,7 +96,7 @@ class Monri_WC_Api {
 		$payload->addChild( 'authenticity-token', $authenticity_token );
 		$payload->addChild( 'digest', $this->digest( $order_number ) );
 
-		return $this->request( '/orders/show', $payload->asXML() );
+		return $this->request( '/orders/show', $payload->asXML(), false );
 	}
 
 	/**

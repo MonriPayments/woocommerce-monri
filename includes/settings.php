@@ -329,14 +329,16 @@ class Monri_WC_Settings {
 				'default'     => array(),
 				'options'     => array(
 					'keks-pay-hr' => __( 'KEKS pay', 'monri' ),
-					'pay-cek' => __( 'PayCek', 'monri' )
+					'pay-cek' => __( 'PayCek', 'monri' ),
+					'google-pay' => __( 'Google Pay', 'monri' ),
+					'apple-pay' => __( 'Apple Pay', 'monri' )
 				),
 				'desc_tip'    => true,
 				'description' => __( 'Select additional payment methods, if they are set on Monri Webpay.', 'monri' ),
 				'custom_attributes' => [
 					'data-depends' => '{
 						"monri_payment_gateway_service":"monri-web-pay",
-						"monri_web_pay_integration_type":[ "form" ]
+						"monri_web_pay_integration_type":[ "components" ]
 					}'
 				]
 			),
@@ -412,6 +414,86 @@ class Monri_WC_Settings {
 	function modify_monri_sanitized_fields( $settings ) {
 		unset( $settings['monri_ws_pay_callback_url'] );
 		return $settings;
+	}
+
+	/**
+	 * Temporary function to check if Keks Pay is enabled
+	 *
+	 * @return bool
+	 */
+	public function include_components_keks() {
+		$settings = get_option( 'woocommerce_monri_settings', [] );
+		$supported_payment_methods = $settings['monri_web_pay_supported_payment_methods'] ?? [];
+		$payment_gateway_service = $settings['monri_payment_gateway_service'] ?? '';
+
+		if ($payment_gateway_service !== 'monri-web-pay') {
+			return false;
+		}
+
+		if ( $settings['monri_web_pay_integration_type'] === 'components' && is_array($supported_payment_methods) && in_array( 'keks-pay-hr', $supported_payment_methods ) ) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Temporary function to check if Google Pay is enabled
+	 *
+	 * @return bool
+	 */
+	public function include_components_google_pay() {
+		$settings = get_option( 'woocommerce_monri_settings', [] );
+		$supported_payment_methods = $settings['monri_web_pay_supported_payment_methods'] ?? [];
+		$payment_gateway_service = $settings['monri_payment_gateway_service'] ?? '';
+
+		if ($payment_gateway_service !== 'monri-web-pay') {
+			return false;
+		}
+
+		if ( $settings['monri_web_pay_integration_type'] === 'components' && is_array($supported_payment_methods) && in_array( 'google-pay', $supported_payment_methods ) ) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Temporary function to check if Apple Pay is enabled
+	 *
+	 * @return bool
+	 */
+	public function include_components_apple_pay() {
+		$settings = get_option( 'woocommerce_monri_settings', [] );
+		$supported_payment_methods = $settings['monri_web_pay_supported_payment_methods'] ?? [];
+		$payment_gateway_service = $settings['monri_payment_gateway_service'] ?? '';
+
+		if ($payment_gateway_service !== 'monri-web-pay') {
+			return false;
+		}
+
+		if ( $settings['monri_web_pay_integration_type'] === 'components' && is_array($supported_payment_methods) && in_array( 'apple-pay', $supported_payment_methods ) ) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Temporary function to check if PayCek is enabled
+	 *
+	 * @return bool
+	 */
+	public function include_components_pay_cek() {
+		$settings = get_option( 'woocommerce_monri_settings', [] );
+		$supported_payment_methods = $settings['monri_web_pay_supported_payment_methods'] ?? [];
+		$payment_gateway_service = $settings['monri_payment_gateway_service'] ?? '';
+
+		if ($payment_gateway_service !== 'monri-web-pay') {
+			return false;
+		}
+
+		if ( $settings['monri_web_pay_integration_type'] === 'components' && is_array($supported_payment_methods) && in_array( 'pay-cek', $supported_payment_methods ) ) {
+			return true;
+		}
+		return false;
 	}
 
 }
