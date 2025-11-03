@@ -44,7 +44,7 @@ https://github.com/MonriPayments/woocommerce-monri
 
 == Changelog ==
 
-= 3.8.0 - 2025-11-3 =
+= 3.8.1 - 2025-11-3 =
 * Added extra logs for sync order status on additional payment methods
 
 = 3.8.0 - 2025-11-3 =
