@@ -4,7 +4,7 @@ Tags: monri, credit card, payment, woocommerce
 Requires at least: 5.3
 Tested up to: 6.8.2
 Requires PHP: 7.3
-Stable tag: 3.7.1
+Stable tag: 3.8.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -43,6 +43,15 @@ You can find more details about the development of this plugin at:
 https://github.com/MonriPayments/woocommerce-monri
 
 == Changelog ==
+
+= 3.8.0 - 2025-11-3 =
+* Added new Monri PayCek payment method on old and new checkout
+* Added alpha version of Monri Google Pay payment method on old and new checkout
+* Added alpha version of Monri Apple Pay payment method on old and new checkout
+* Added alpha version of Monri Keks Pay payment method on old and new checkout
+* Temporarily disabled settings for new payment methods
+* Added logic for refunds for new payment methods which support it
+* Removed supported payment methods from Monri WebPay. New methods must be agreed with Monri support
 
 = 3.7.1 - 2025-07-10 =
 * Updated NPM dependencies
