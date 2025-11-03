@@ -6,10 +6,12 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 <form action="" id="monri-lightbox-form">
 </form>
 
-
 <script>
     (function($) {
         $('form.checkout').on('checkout_place_order_success', function (t, result) {
+            var selectedGateway = $('input[name="payment_method"]:checked').val();
+            if (selectedGateway !== 'monri') return;
+
             let script = document.createElement('script');
             script.src = result['src'];
             script.className = "lightbox-button";
