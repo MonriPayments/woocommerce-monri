@@ -160,8 +160,8 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 
 		$response           = Monri_WC_Api::instance()->orders_show( $monri_order_number );
 		$formatted_response = json_decode( wp_json_encode( $response ), true );
+		Monri_WC_Logger::log( $formatted_response, __METHOD__ );
 		if ( is_wp_error( $response ) ) {
-			Monri_WC_Logger::log( $formatted_response, __METHOD__ );
 			$order->add_order_note(
 				sprintf( __( 'There was an error getting the order status', 'monri' ) )
 			);
