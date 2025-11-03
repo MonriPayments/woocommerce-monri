@@ -58,7 +58,9 @@ class Monri_WC_Api {
 			'timeout'    => 15
 		) );
 
-		Monri_WC_Logger::log( $response, __METHOD__ );
+		if ($log_request) {
+			Monri_WC_Logger::log( $response, __METHOD__ );
+		}
 
 		if ( is_wp_error( $response ) ) {
 			return $response;
