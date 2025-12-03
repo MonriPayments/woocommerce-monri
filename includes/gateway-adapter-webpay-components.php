@@ -155,12 +155,17 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 
 		$order = wc_get_order( $order_id );
 
-		$response_code = ! empty( $transaction['transaction_response']['response_code'] ) ?
-			sanitize_text_field( $transaction['transaction_response']['response_code'] ) :
+		// get order status using api
+		$order_status_response = Monri_WC_Api::instance()->orders_show( $transaction['order_number'] );
+		$formatted_response = json_decode( wp_json_encode( $order_status_response ), true );
+		Monri_WC_Logger::log( $formatted_response, __METHOD__ );
+
+		$response_code = ! empty( $formatted_response['response-code'] ) ?
+			sanitize_text_field( $formatted_response['response-code'] ) :
 			'';
 
-		$transaction_type        = ! empty( $transaction['transaction_type'] ) ?
-			sanitize_text_field( $transaction['transaction_type'] ) :
+		$transaction_type = ! empty( $formatted_response['transaction-type'] ) ?
+			sanitize_text_field( $formatted_response['transaction-type'] ) :
 			'';
 		$transaction_response_id = isset( $transaction['transaction_response']['id'] ) ?
 			sanitize_key( (string) $transaction['transaction_response']['id'] ) :
