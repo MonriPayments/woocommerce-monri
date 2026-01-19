@@ -1,4 +1,4 @@
-import {getMonriData, getMonriComponentsKeksData, getMonriComponentsGooglePayData, getMonriComponentsPayCekData, getMonriComponentsApplePayData} from "../data";
+import {getMonriData, getMonriComponentsKeksData, getMonriComponentsGooglePayData, getMonriComponentsPayCekData, getMonriComponentsApplePayData, getMonriComponentsAirCashData} from "../data";
 
 export const useMonriData = () => {
     return getMonriData();
@@ -18,4 +18,8 @@ export const useMonriComponentsApplePayData = () => {
 
 export const useMonriComponentsPayCekData = () => {
     return getMonriComponentsPayCekData();
+};
+
+export const useMonriComponentsAirCashData = () => {
+    return getMonriComponentsAirCashData();
 };

@@ -17,6 +17,7 @@ module.exports = {
         "apple-pay": './blocks/apple-pay.js',
         "keks-pay": './blocks/keks-pay.js',
         "pay-cek": './blocks/pay-cek.js',
+        "air-cash": './blocks/air-cash.js',
     },
     output: {
         path: resolve( process.cwd(), 'assets/js/blocks' ),

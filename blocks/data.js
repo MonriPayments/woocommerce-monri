@@ -24,3 +24,7 @@ export const getMonriComponentsApplePayData = () => {
 export const getMonriComponentsPayCekData = () => {
     return getSetting('monri_components_pay_cek_data', null);
 };
+
+export const getMonriComponentsAirCashData = () => {
+    return getSetting('monri_components_air_cash_data', null);
+};

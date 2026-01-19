@@ -55,6 +55,11 @@ function monri_wc_init() {
 			$methods[] = Monri_WC_Gateway_Webpay_Components_Pay_Cek::class;
 		}
 
+		if (Monri_WC_Settings::instance()->include_components_air_cash() && !$is_wc_settings_page) {
+			require_once __DIR__ . '/includes/gateway-webpay-components-air-cash.php';
+			$methods[] = Monri_WC_Gateway_Webpay_Components_Air_Cash::class;
+		}
+
 		return $methods;
 	}
 
@@ -130,6 +135,12 @@ function monri_wc_block_support() {
 					require_once __DIR__ . '/includes/gateway-webpay-components-pay-cek.php';
 					require_once __DIR__ . '/includes/blocks-support-components-pay-cek.php';
 					$payment_method_registry->register( new Monri_WC_Components_Pay_Cek_Blocks_Support() );
+				}
+
+				if (Monri_WC_Settings::instance()->include_components_air_cash() && !$is_wc_settings_page) {
+					require_once __DIR__ . '/includes/gateway-webpay-components-air-cash.php';
+					require_once __DIR__ . '/includes/blocks-support-components-air-cash.php';
+					$payment_method_registry->register( new Monri_WC_Components_Air_Cash_Blocks_Support() );
 				}
 			}
 		);
