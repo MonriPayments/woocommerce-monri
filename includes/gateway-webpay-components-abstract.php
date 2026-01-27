@@ -56,6 +56,7 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 			'transaction_type' => $this->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
 			'order_info'       => 'woocommerce order',
 			'ip'               => $order->get_customer_ip_address(),
+			'ch_full_name'     => wc_trim_string( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() ),
 		);
 
 		$data = wp_json_encode( $data );
