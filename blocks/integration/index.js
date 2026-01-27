@@ -7,6 +7,7 @@ import { getPaymentMethod as getGooglePayForm } from "./components-additional-me
 import { getPaymentMethod as getApplePayForm } from "./components-additional-methods/apple-pay";
 import { getPaymentMethod as getPayCekForm } from "./components-additional-methods/pay-cek";
 import { getPaymentMethod as getAirCashForm } from "./components-additional-methods/air-cash";
+import { getPaymentMethod as getFlikPayForm } from "./components-additional-methods/flik-pay";
 import { useMonriData } from "./use-monri-data";
 
 export const useIntegration = () => {
@@ -35,4 +36,6 @@ export const useApplePayIntegration = () => getApplePayForm();
 export const usePayCekIntegration = () => getPayCekForm();
 
 export const useAirCashIntegration = () => getAirCashForm();
+
+export const useFlikPayIntegration = () => getFlikPayForm();
 
