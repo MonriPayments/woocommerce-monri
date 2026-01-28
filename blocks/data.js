@@ -32,3 +32,7 @@ export const getMonriComponentsAirCashData = () => {
 export const getMonriComponentsFlikPayData = () => {
     return getSetting('monri_components_flik_pay_data', null);
 };
+
+export const getMonriComponentsIpsRsData = () => {
+    return getSetting('monri_components_ips_rs_data', null);
+};
