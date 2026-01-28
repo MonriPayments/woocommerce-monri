@@ -39,7 +39,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             monri.confirmPayment(payCek, transaction)
                 .then(response => {
                     if (response.error) {
-                        $('#monri-error').text(response.error.message);
+                        $('#monri-error').text( "<?php esc_html_e('Transaction declined, please reload the page.', 'monri'); ?>" );
                         return;
                     }
                     window.location.href = config.return_url;

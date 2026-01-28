@@ -44,22 +44,16 @@ if ( ! defined( 'ABSPATH' ) ) exit;
         applePay.mount('apple-pay-element');
         console.log("applePay: ", applePay);
 
-        function getOrderStatus() {
-            $.ajax({
-                url: '/wp-json/monri/v1/transaction-status/' + encodeURIComponent(config.order_number),
-                method: 'GET',
-                data: {
-                    order_hash: config.order_hash
-                },
-                success: function(response) {
-                    if (response) {
-                        window.location.href = config.return_url;
-                    }
-                },
-            });
-        }
-
-        setInterval(getOrderStatus, 3000);
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'PAYMENT_RESULT') {
+                const {transaction} = event.data;
+                if (transaction.status === 'approved') {
+                    window.location.href = config.return_url;
+                } else {
+                    $('#monri-error').text( "<?php esc_html_e('Transaction declined, please reload the page.', 'monri'); ?>" );
+                }
+            }
+        });
 
     })(jQuery);
 
