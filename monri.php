@@ -70,6 +70,11 @@ function monri_wc_init() {
 			$methods[] = Monri_WC_Gateway_Webpay_Components_Ips_Rs::class;
 		}
 
+		if (Monri_WC_Settings::instance()->include_components_ips_otp() && !$is_wc_settings_page) {
+			require_once __DIR__ . '/includes/gateway-webpay-components-ips-otp.php';
+			$methods[] = Monri_WC_Gateway_Webpay_Components_Ips_Otp::class;
+		}
+
 		return $methods;
 	}
 
@@ -163,6 +168,12 @@ function monri_wc_block_support() {
 					require_once __DIR__ . '/includes/gateway-webpay-components-ips-rs.php';
 					require_once __DIR__ . '/includes/blocks-support-components-ips-rs.php';
 					$payment_method_registry->register( new Monri_WC_Components_Ips_Rs_Blocks_Support() );
+				}
+
+				if (Monri_WC_Settings::instance()->include_components_ips_otp() && !$is_wc_settings_page) {
+					require_once __DIR__ . '/includes/gateway-webpay-components-ips-otp.php';
+					require_once __DIR__ . '/includes/blocks-support-components-ips-otp.php';
+					$payment_method_registry->register( new Monri_WC_Components_Ips_Otp_Blocks_Support() );
 				}
 			}
 		);

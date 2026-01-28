@@ -9,6 +9,7 @@ import { getPaymentMethod as getPayCekForm } from "./components-additional-metho
 import { getPaymentMethod as getAirCashForm } from "./components-additional-methods/air-cash";
 import { getPaymentMethod as getFlikPayForm } from "./components-additional-methods/flik-pay";
 import { getPaymentMethod as getIpsRsForm } from "./components-additional-methods/ips-rs";
+import { getPaymentMethod as getIpsOtpForm } from "./components-additional-methods/ips-otp";
 import { useMonriData } from "./use-monri-data";
 
 export const useIntegration = () => {
@@ -41,4 +42,6 @@ export const useAirCashIntegration = () => getAirCashForm();
 export const useFlikPayIntegration = () => getFlikPayForm();
 
 export const useIpsRsIntegration = () => getIpsRsForm();
+
+export const useIpsOtpIntegration = () => getIpsOtpForm();
 

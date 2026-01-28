@@ -6,7 +6,8 @@ import {
     getMonriComponentsApplePayData,
     getMonriComponentsAirCashData,
     getMonriComponentsFlikPayData,
-    getMonriComponentsIpsRsData,} from "../data";
+    getMonriComponentsIpsRsData,
+    getMonriComponentsIpsOtpData,} from "../data";
 
 export const useMonriData = () => {
     return getMonriData();
@@ -38,4 +39,8 @@ export const useMonriComponentsFlikPayData = () => {
 
 export const useMonriComponentsIpsRsData = () => {
     return getMonriComponentsIpsRsData();
+};
+
+export const useMonriComponentsIpsOtpData = () => {
+    return getMonriComponentsIpsOtpData();
 };

@@ -20,6 +20,7 @@ module.exports = {
         "air-cash": './blocks/air-cash.js',
         "flik-pay": './blocks/flik-pay.js',
         "ips-rs": './blocks/ips-rs.js',
+        "ips-otp": './blocks/ips-otp.js',
     },
     output: {
         path: resolve( process.cwd(), 'assets/js/blocks' ),

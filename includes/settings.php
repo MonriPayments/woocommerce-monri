@@ -335,6 +335,7 @@ class Monri_WC_Settings {
 					'air-cash' => __( 'Air Cash', 'monri' ),
 					'flik-pay' => __( 'Flik Pay', 'monri' ),
 					'ips-rs' => __( 'IPS RS', 'monri' ),
+					'ips-otp' => __( 'IPS OTP', 'monri' ),
 				),
 				'desc_tip'    => true,
 				'description' => __( 'Select additional payment methods, if they are set on Monri Webpay.', 'monri' ),
@@ -554,6 +555,26 @@ class Monri_WC_Settings {
 		}
 
 		if ( $settings['monri_web_pay_integration_type'] === 'components' && is_array($supported_payment_methods) && in_array( 'ips-rs', $supported_payment_methods ) ) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Temporary function to check if IPS OTP is enabled
+	 *
+	 * @return bool
+	 */
+	public function include_components_ips_otp() {
+		$settings = get_option( 'woocommerce_monri_settings', [] );
+		$supported_payment_methods = $settings['monri_web_pay_supported_payment_methods'] ?? [];
+		$payment_gateway_service = $settings['monri_payment_gateway_service'] ?? '';
+
+		if ($payment_gateway_service !== 'monri-web-pay') {
+			return false;
+		}
+
+		if ( $settings['monri_web_pay_integration_type'] === 'components' && is_array($supported_payment_methods) && in_array( 'ips-otp', $supported_payment_methods ) ) {
 			return true;
 		}
 		return false;

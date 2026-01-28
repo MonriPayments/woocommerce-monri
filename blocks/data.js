@@ -36,3 +36,7 @@ export const getMonriComponentsFlikPayData = () => {
 export const getMonriComponentsIpsRsData = () => {
     return getSetting('monri_components_ips_rs_data', null);
 };
+
+export const getMonriComponentsIpsOtpData = () => {
+    return getSetting('monri_components_ips_otp_data', null);
+};
