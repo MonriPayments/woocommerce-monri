@@ -2,9 +2,9 @@
 Contributors: monripayments
 Tags: monri, credit card, payment, woocommerce
 Requires at least: 5.3
-Tested up to: 6.8.2
+Tested up to: 6.9.1
 Requires PHP: 7.3
-Stable tag: 3.8.1
+Stable tag: 3.8.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -44,7 +44,11 @@ https://github.com/MonriPayments/woocommerce-monri
 
 == Changelog ==
 
-= 3.8.0 - 2025-11-3 =
+= 3.8.2 - 2026-01-02 =
+* Updated JS dependencies
+* Updated plugin for latest WordPress and WooCommerce
+
+= 3.8.1 - 2025-11-3 =
 * Added extra logs for sync order status on additional payment methods
 
 = 3.8.0 - 2025-11-3 =
