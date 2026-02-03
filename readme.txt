@@ -44,7 +44,7 @@ https://github.com/MonriPayments/woocommerce-monri
 
 == Changelog ==
 
-= 3.8.2 - 2026-01-02 =
+= 3.8.2 - 2026-02-01 =
 * Updated JS dependencies
 * Updated plugin for latest WordPress and WooCommerce
 
