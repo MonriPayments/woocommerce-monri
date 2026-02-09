@@ -2,9 +2,9 @@
 
 abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Gateway {
 	public const AUTHORIZATION_ENDPOINT_TEST = 'https://ipgtest.monri.com/v2/payment/new';
-	public const AUTHORIZATION_ENDPOINT      = 'https://ipg.monri.com/v2/payment/new';
-	public const SCRIPT_ENDPOINT_TEST        = 'https://ipgtest.monri.com/dist/components.js';
-	public const SCRIPT_ENDPOINT             = 'https://ipg.monri.com/dist/components.js';
+	public const AUTHORIZATION_ENDPOINT = 'https://ipg.monri.com/v2/payment/new';
+	public const SCRIPT_ENDPOINT_TEST = 'https://ipgtest.monri.com/dist/components.js';
+	public const SCRIPT_ENDPOINT = 'https://ipg.monri.com/dist/components.js';
 
 	/**
 	 * Process the payment and return the result
@@ -17,6 +17,7 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 	public function process_payment( $order_id ) {
 
 		$order = wc_get_order( $order_id );
+
 		return array(
 			'result'   => 'success',
 			'redirect' => $order->get_checkout_payment_url( true ),
@@ -50,13 +51,21 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 		}
 
 		$data = array(
-			'amount'           => $amount_in_minor_units,
-			'order_number'     => $order_id,
-			'currency'         => $currency,
-			'transaction_type' => $this->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
-			'order_info'       => 'woocommerce order',
-			'ip'               => $order->get_customer_ip_address(),
-			'ch_full_name'     => wc_trim_string( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() ),
+			'amount'               => $amount_in_minor_units,
+			'order_number'         => $order_id,
+			'currency'             => $currency,
+			'transaction_type'     => $this->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
+			'order_info'           => 'woocommerce order',
+			'ip'                   => $order->get_customer_ip_address(),
+			'ch_full_name'         => wc_trim_string( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() ),
+			'ch_address'           => wc_trim_string( $order->get_billing_address_1(), 100, '' ),
+			'ch_city'              => wc_trim_string( $order->get_billing_city(), 30, '' ),
+			'ch_zip'               => wc_trim_string( $order->get_billing_postcode(), 9, '' ),
+			'ch_country'           => $order->get_billing_country(),
+			'ch_phone'             => wc_trim_string( $order->get_billing_phone(), 30, '' ),
+			'ch_email'             => wc_trim_string( $order->get_billing_email(), 100, '' ),
+			'success_url_override' => $this->get_return_url( $order ),
+			'cancel_url_override'  => $order->get_cancel_order_url(),
 		);
 
 		$data = wp_json_encode( $data );
@@ -102,7 +111,7 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 		$order->update_meta_data( 'monri_order_number', $order_id );
 		//used when checking if current user has permission to get status of this order
 		$order_hash = wp_generate_uuid4();
-		$order->update_meta_data('order_access_hash', $order_hash);
+		$order->update_meta_data( 'order_access_hash', $order_hash );
 
 
 		$order->save();
@@ -149,6 +158,7 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 	 * Checks order status on Monri and updates order accordingly
 	 *
 	 * @param WC_Order $order
+	 *
 	 * @return bool
 	 */
 	public function sync_order_status( $order ) {
@@ -170,7 +180,7 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 			return false;
 		}
 
-		if (!isset( $formatted_response['response-code'] )) {
+		if ( ! isset( $formatted_response['response-code'] ) ) {
 			return false;
 		}
 
@@ -198,9 +208,9 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 	/**
 	 * Process a refund
 	 *
-	 * @param int        $order_id
+	 * @param int $order_id
 	 * @param float|null $amount Refund amount.
-	 * @param string     $reason
+	 * @param string $reason
 	 *
 	 * @return bool
 	 */
@@ -246,7 +256,7 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 	/**
 	 * Capture order on Monri side
 	 *
-	 * @param int    $order_id
+	 * @param int $order_id
 	 * @param string $from
 	 * @param string $to
 	 *
@@ -254,7 +264,10 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 	 */
 	public function process_capture( $order_id, $from, $to ) {
 
-		if ( ! ( in_array( $from, array( 'pending', 'on-hold' ), true ) && in_array( $to, wc_get_is_paid_statuses(), true ) ) ) {
+		if ( ! ( in_array( $from, array(
+				'pending',
+				'on-hold'
+			), true ) && in_array( $to, wc_get_is_paid_statuses(), true ) ) ) {
 			return false;
 		}
 		$order = wc_get_order( $order_id );
@@ -300,14 +313,17 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 	 * Void order on Monri side
 	 *
 	 * @param $order_id
-	 * @param string   $from
-	 * @param string   $to
+	 * @param string $from
+	 * @param string $to
 	 *
 	 * @return bool
 	 */
 	public function process_void( $order_id, $from, $to ) {
 
-		if ( ! ( in_array( $from, array( 'pending', 'on-hold' ), true ) && in_array( $to, array( 'cancelled', 'failed' ), true ) ) ) {
+		if ( ! ( in_array( $from, array( 'pending', 'on-hold' ), true ) && in_array( $to, array(
+				'cancelled',
+				'failed'
+			), true ) ) ) {
 			return false;
 		}
 
@@ -348,15 +364,16 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 		return true;
 	}
 
-	function monri_get_transaction_status_rest($request) {
-		$order_number = sanitize_text_field($request['order_number']);
+	function monri_get_transaction_status_rest( $request ) {
+		$order_number = sanitize_text_field( $request['order_number'] );
 
-		$response = Monri_WC_Api::instance()->orders_show($order_number);
+		$response = Monri_WC_Api::instance()->orders_show( $order_number );
 
-		if (is_wp_error($response)) {
-			return new WP_Error('order_error', $response->get_error_message(), array('status' => 400));
+		if ( is_wp_error( $response ) ) {
+			return new WP_Error( 'order_error', $response->get_error_message(), array( 'status' => 400 ) );
 		}
 		$formatted_response = json_decode( wp_json_encode( $response ), true );
+
 		return $formatted_response['status'] === 'approved' && $formatted_response['response-code'] === '0000';
 	}
 
@@ -367,20 +384,20 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 	 *
 	 * @return bool
 	 */
-	function monri_transaction_status_permission($request) {
+	function monri_transaction_status_permission( $request ) {
 
-		$order_number = $request->get_param('order_number');
+		$order_number = $request->get_param( 'order_number' );
 		if ( $this->get_option_bool( 'test_mode' ) ) {
 			$order_number = Monri_WC_Utils::resolve_real_order_id( $order_number );
 		}
 
-		$order = wc_get_order($order_number);
-		$request_order_hash = $request->get_param('order_hash');
-		if (!$order || !$request_order_hash) {
+		$order              = wc_get_order( $order_number );
+		$request_order_hash = $request->get_param( 'order_hash' );
+		if ( ! $order || ! $request_order_hash ) {
 			return false;
 		}
 
-		return $request_order_hash === $order->get_meta('order_access_hash');
+		return $request_order_hash === $order->get_meta( 'order_access_hash' );
 	}
 
 }
