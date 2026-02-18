@@ -60,7 +60,7 @@ function monri_wc_init() {
 			$methods[] = Monri_WC_Gateway_Webpay_Components_Air_Cash::class;
 		}
 
-		if (Monri_WC_Settings::instance()->include_components_air_cash() && !$is_wc_settings_page) {
+		if (Monri_WC_Settings::instance()->include_components_flik_pay() && !$is_wc_settings_page) {
 			require_once __DIR__ . '/includes/gateway-webpay-components-flik-pay.php';
 			$methods[] = Monri_WC_Gateway_Webpay_Components_Flik_Pay::class;
 		}
