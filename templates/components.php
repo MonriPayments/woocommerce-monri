@@ -34,6 +34,37 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             }
         });
 
+        function collectBrowserInfo() {
+            var screen_width = window && window.screen ? window.screen.width : '';
+            var screen_height = window && window.screen ? window.screen.height : '';
+            var color_depth = window && window.screen ? window.screen.colorDepth : '';
+            var user_agent = window && window.navigator ? window.navigator.userAgent : '';
+            var java_enabled = window && window.navigator ? navigator.javaEnabled() : false;
+
+            var language = '';
+            if (window && window.navigator) {
+                language = window.navigator.language
+                    ? window.navigator.language
+                    : window.navigator.browserLanguage || '';
+            }
+
+            var d = new Date();
+            var time_zone_offset = d.getTimezoneOffset();
+
+            return {
+                screenWidth: screen_width,
+                screenHeight: screen_height,
+                colorDepth: color_depth,
+                userAgent: user_agent,
+                timeZoneOffset: time_zone_offset,
+                language: language,
+                javaEnabled: java_enabled,
+                httpAccept: '*/*',
+                httpUserAgent: user_agent,
+                httpAcceptLanguage: language || '*'
+            };
+        }
+
         $('form.checkout').on('checkout_place_order_monri', function () {
             if ($('#monri-transaction').val()) {
                 return true;
@@ -68,9 +99,11 @@ if ( ! defined( 'ABSPATH' ) ) exit;
                 zip: $('#billing_postcode').val(),
                 phone: $('#billing_phone').val(),
                 country: $('#billing_country').val(),
-                email: $('#billing_email').val()
+                email: $('#billing_email').val(),
+                browserInfo: collectBrowserInfo()
             }
 
+            console.log('transactionParams: ', transactionParams)
             monri.confirmPayment(card, transactionParams).then(function (response) {
                 if (response.error) {
                     $('#monri-error').text(response.error.message);
