@@ -93,7 +93,6 @@ export const WebPayComponents = (props) => {
             }
         }
 
-        console.log('transactionParams: ', transactionParams);
         const result = await monriRef.current.confirmPayment(cardRef.current, transactionParams);
 
         if (result.error) {

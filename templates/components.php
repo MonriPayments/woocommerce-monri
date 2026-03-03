@@ -105,7 +105,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
                 browser_info: browser_info
             }
 
-            console.log('transactionParams: ', transactionParams)
             monri.confirmPayment(card, transactionParams).then(function (response) {
                 if (response.error) {
                     $('#monri-error').text(response.error.message);
