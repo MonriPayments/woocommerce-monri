@@ -52,16 +52,16 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             var time_zone_offset = d.getTimezoneOffset();
 
             return {
-                screenWidth: screen_width,
-                screenHeight: screen_height,
-                colorDepth: color_depth,
-                userAgent: user_agent,
-                timeZoneOffset: time_zone_offset,
+                screen_width: screen_width,
+                screen_height: screen_height,
+                color_depth: color_depth,
+                user_agent: user_agent,
+                time_zone_offset: time_zone_offset,
                 language: language,
-                javaEnabled: java_enabled,
-                httpAccept: '*/*',
-                httpUserAgent: user_agent,
-                httpAcceptLanguage: language || '*'
+                java_enabled: java_enabled,
+                http_accept: '*/*',
+                http_user_agent: user_agent,
+                http_accept_language: language || '*'
             };
         }
 
@@ -91,6 +91,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             if (response.result === 'failure' && response.messages) {
                 return;
             }
+            const browser_info = collectBrowserInfo();
+            browser_info.ip = '<?php echo esc_js( $config['ip_address'] ) ?>';
 
             const transactionParams = {
                 address: $('#billing_address_1').val(),
@@ -100,7 +102,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
                 phone: $('#billing_phone').val(),
                 country: $('#billing_country').val(),
                 email: $('#billing_email').val(),
-                browserInfo: collectBrowserInfo()
+                browser_info: browser_info
             }
 
             console.log('transactionParams: ', transactionParams)
