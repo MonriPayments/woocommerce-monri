@@ -56,7 +56,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             var $form = $("#monri_payment_form");
             $form.on('submit', function(){
                 var browserInfoJson = JSON.stringify(collectBrowserInfo());
-                console.log(browserInfoJson);
+
                 $('<input>').attr({
                     type: 'hidden',
                     name: 'browser_info',
