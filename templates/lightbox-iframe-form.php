@@ -8,6 +8,38 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 <script>
     (function($) {
+        function collectBrowserInfo(ip_address) {
+            var screen_width = window && window.screen ? window.screen.width : '';
+            var screen_height = window && window.screen ? window.screen.height : '';
+            var color_depth = window && window.screen ? window.screen.colorDepth : '';
+            var user_agent = window && window.navigator ? window.navigator.userAgent : '';
+            var java_enabled = window && window.navigator ? navigator.javaEnabled() : false;
+
+            var language = '';
+            if (window && window.navigator) {
+                language = window.navigator.language
+                    ? window.navigator.language
+                    : window.navigator.browserLanguage || '';
+            }
+
+            var d = new Date();
+            var time_zone_offset = d.getTimezoneOffset();
+
+            return {
+                screen_width: screen_width,
+                screen_height: screen_height,
+                color_depth: color_depth,
+                user_agent: user_agent,
+                time_zone_offset: time_zone_offset,
+                language: language,
+                java_enabled: java_enabled,
+                http_accept: '*/*',
+                http_user_agent: user_agent,
+                http_accept_language: language || '*',
+                ip: ip_address || ''
+            };
+        }
+
         $('form.checkout').on('checkout_place_order_success', function (t, result) {
             var selectedGateway = $('input[name="payment_method"]:checked').val();
             if (selectedGateway !== 'monri') return;
@@ -34,6 +66,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             script.setAttribute('data-ch-address', result['data-ch-address']);
             script.setAttribute('data-ch-city', result['data-ch-city']);
             script.setAttribute('data-ch-country', result['data-ch-country']);
+            script.setAttribute('data-browser-info', JSON.stringify(collectBrowserInfo(result['data-ip'])));
 
             if( result['data-number-of-installments'] ) {
                 script.setAttribute('data-number-of-installments', result['data-number-of-installments']);

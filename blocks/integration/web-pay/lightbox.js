@@ -6,6 +6,37 @@ import { useSelect } from '@wordpress/data';
 import { CHECKOUT_STORE_KEY, PAYMENT_STORE_KEY, } from '@woocommerce/block-data';
 import { Installments } from "../installments";
 
+const collectBrowserInfo = (ip_address) => {
+    const screen_width = window && window.screen ? window.screen.width : '';
+    const screen_height = window && window.screen ? window.screen.height : '';
+    const color_depth = window && window.screen ? window.screen.colorDepth : '';
+    const user_agent = window && window.navigator ? window.navigator.userAgent : '';
+    const java_enabled = window && window.navigator ? navigator.javaEnabled() : false;
+
+    let language = '';
+    if (window && window.navigator) {
+        language = window.navigator.language
+            ? window.navigator.language
+            : window.navigator.browserLanguage || '';
+    }
+
+    const time_zone_offset = new Date().getTimezoneOffset();
+
+    return {
+        screen_width: screen_width,
+        screen_height: screen_height,
+        color_depth: color_depth,
+        user_agent: user_agent,
+        time_zone_offset: time_zone_offset,
+        language: language,
+        java_enabled: java_enabled,
+        http_accept: '*/*',
+        http_user_agent: user_agent,
+        http_accept_language: language || '*',
+        ip: ip_address || ''
+    };
+};
+
 export const loadMonriData = (paymentResult) => {
     try {
         const monriData = paymentResult.paymentDetails;
@@ -31,6 +62,7 @@ export const loadMonriData = (paymentResult) => {
         script.setAttribute('data-ch-address', monriData['data-ch-address']);
         script.setAttribute('data-ch-city', monriData['data-ch-city']);
         script.setAttribute('data-ch-country', monriData['data-ch-country']);
+        script.setAttribute('data-browser-info', JSON.stringify(collectBrowserInfo(monriData['data-ip'])));
 
         if( monriData['data-number-of-installments'] ) {
             script.setAttribute('data-number-of-installments', monriData['data-number-of-installments']);
