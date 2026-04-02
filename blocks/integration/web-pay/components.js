@@ -6,6 +6,36 @@ import { useCartData } from "../use-cart-data";
 import Monri from "../../monri";
 import { getDefaultPaymentMethod } from "../default-payment-method";
 
+const collectBrowserInfo = () => {
+    const settings = useMonriData();
+    const screen_width = window?.screen?.width ?? '';
+    const screen_height = window?.screen?.height ?? '';
+    const color_depth = window?.screen?.colorDepth ?? '';
+    const user_agent = window?.navigator?.userAgent ?? '';
+    const java_enabled = window?.navigator?.javaEnabled?.() ?? false;
+    const ip = settings.components.ip_address
+
+    const language =
+        window?.navigator?.language ??
+        window?.navigator?.browserLanguage ??
+        '';
+
+    const time_zone_offset = new Date().getTimezoneOffset();
+
+    return {
+        screen_width,
+        screen_height,
+        color_depth,
+        user_agent,
+        time_zone_offset,
+        language,
+        java_enabled,
+        http_accept: '*/*',
+        http_user_agent: user_agent,
+        http_accept_language: language || '*',
+        ip
+    };
+};
 export const WebPayComponents = (props) => {
     const settings = useMonriData();
 
@@ -47,6 +77,7 @@ export const WebPayComponents = (props) => {
             phone: billingAddress.phone,
             country: billingAddress.country,
             email: billingAddress.email,
+            browser_info: collectBrowserInfo(),
         };
 
         for (const [field, value] of Object.entries(transactionParams)) {
