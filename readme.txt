@@ -2,7 +2,7 @@
 Contributors: monripayments
 Tags: monri, credit card, payment, woocommerce
 Requires at least: 5.3
-Tested up to: 6.9.1
+Tested up to: 6.9.4
 Requires PHP: 7.3
 Stable tag: 3.8.2
 License: GPLv3
