@@ -86,6 +86,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			'result'                     => 'success',
 			'messages'                   => '',
 			'data-ip'                    => $order->get_customer_ip_address(),
+			'data-supported-payment-methods' => 'card',
 		);
 
 		if ( $this->tokenization_enabled() && is_checkout() && is_user_logged_in() ) {
