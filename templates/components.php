@@ -34,6 +34,37 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             }
         });
 
+        function collectBrowserInfo() {
+            var screen_width = window && window.screen ? window.screen.width : '';
+            var screen_height = window && window.screen ? window.screen.height : '';
+            var color_depth = window && window.screen ? window.screen.colorDepth : '';
+            var user_agent = window && window.navigator ? window.navigator.userAgent : '';
+            var java_enabled = window && window.navigator ? navigator.javaEnabled() : false;
+
+            var language = '';
+            if (window && window.navigator) {
+                language = window.navigator.language
+                    ? window.navigator.language
+                    : window.navigator.browserLanguage || '';
+            }
+
+            var d = new Date();
+            var time_zone_offset = d.getTimezoneOffset();
+
+            return {
+                screen_width: screen_width,
+                screen_height: screen_height,
+                color_depth: color_depth,
+                user_agent: user_agent,
+                time_zone_offset: time_zone_offset,
+                language: language,
+                java_enabled: java_enabled,
+                http_accept: '*/*',
+                http_user_agent: user_agent,
+                http_accept_language: language || '*'
+            };
+        }
+
         $('form.checkout').on('checkout_place_order_monri', function () {
             if ($('#monri-transaction').val()) {
                 return true;
@@ -60,6 +91,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             if (response.result === 'failure' && response.messages) {
                 return;
             }
+            const browser_info = collectBrowserInfo();
+            browser_info.ip = '<?php echo esc_js( $config['ip_address'] ) ?>';
 
             const transactionParams = {
                 address: $('#billing_address_1').val(),
@@ -68,7 +101,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
                 zip: $('#billing_postcode').val(),
                 phone: $('#billing_phone').val(),
                 country: $('#billing_country').val(),
-                email: $('#billing_email').val()
+                email: $('#billing_email').val(),
+                browser_info: browser_info
             }
 
             monri.confirmPayment(card, transactionParams).then(function (response) {
