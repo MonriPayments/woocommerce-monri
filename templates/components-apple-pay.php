@@ -42,7 +42,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
         })
 
         applePay.mount('apple-pay-element');
-        console.log("applePay: ", applePay);
 
         window.addEventListener('message', (event) => {
             if (event.data.type === 'PAYMENT_RESULT') {

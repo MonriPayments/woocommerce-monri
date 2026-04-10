@@ -27,7 +27,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             trx_token: config.client_secret,
             environment: config.env
         })
-        console.log('keksPay', keksPay);
         keksPay.mount('keks-pay-element');
 
         function getOrderStatus() {
@@ -38,7 +37,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
                     order_hash: config.order_hash
                 },
                 success: function(response) {
-                    console.log(response)
                     if (response) {
                         window.location.href = config.return_url;
                     }
