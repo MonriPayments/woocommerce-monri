@@ -8,6 +8,26 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 <script>
     (function($) {
+        function handlePaymentResponse() {
+            const queryParams = new URLSearchParams(window.location.search);
+            const transactionResponse = queryParams.get("transaction_response");
+
+            if (transactionResponse) {
+                try {
+                    const decodedResponse = decodeURIComponent(transactionResponse);
+                    const response = JSON.parse(decodedResponse);
+
+                    if (response.status === "approved") {
+                        return true;
+                    } else {
+                        console.log("Plaćanje nije uspjelo", response);
+                    }
+                } catch (error) {
+                    console.error("Greška pri parsiranju odgovora na transakciju:", error);
+                }
+            }
+        }
+
         function collectBrowserInfo(ip_address) {
             var screen_width = window && window.screen ? window.screen.width : '';
             var screen_height = window && window.screen ? window.screen.height : '';
@@ -40,11 +60,29 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             };
         }
 
+        function clickMonriLightboxButton() {
+            var button = document.querySelector('button.monri-lightbox-button-el');
+            button.style.display = 'none';
+            button.click();
+        }
+
         $('form.checkout').on('checkout_place_order_success', function (t, result) {
+
+            if (handlePaymentResponse()) {
+                return true;
+            }
             var selectedGateway = $('input[name="payment_method"]:checked').val();
             if (selectedGateway !== 'monri') return;
 
+            // do not append new script if old one already exists, just trigger click on the button to open lightbox
+            var existingScript = document.getElementById('monri-lightbox-loader');
+            if (existingScript) {
+                clickMonriLightboxButton();
+                return false;
+            }
+
             let script = document.createElement('script');
+            script.id = 'monri-lightbox-loader';
             script.src = result['src'];
             script.className = "lightbox-button";
 
@@ -56,9 +94,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             script.setAttribute('data-digest', result['data-digest']);
             script.setAttribute('data-transaction-type', result['data-transaction-type']);
             script.setAttribute('data-language', result['data-language']);
-            script.setAttribute('data-success-url-override', result['data-success-url-override']);
-            script.setAttribute('data-cancel-url-override', result['data-cancel-url-override']);
-            script.setAttribute('data-callback-url-override', result['data-callback-url-override']);
             script.setAttribute('data-ch-full-name', result['data-ch-full-name']);
             script.setAttribute('data-ch-zip', result['data-ch-zip']);
             script.setAttribute('data-ch-phone', result['data-ch-phone']);
@@ -81,7 +116,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             }
 
             script.onload = function() {
-                $('button.monri-lightbox-button-el').click();
+                clickMonriLightboxButton();
             }
 
             script.onerror = function() {
