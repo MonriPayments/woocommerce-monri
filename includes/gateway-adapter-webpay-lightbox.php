@@ -28,8 +28,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		parent::init( $payment );
 
 		add_action( 'woocommerce_before_thankyou', array( $this, 'process_return' ) );
-		add_action( 'woocommerce_order_edit_status', array( $this, 'process_capture' ), 10, 2 );
-		add_action( 'woocommerce_order_edit_status', array( $this, 'process_void' ), 10, 2 );
+		add_action( 'woocommerce_order_status_changed', array( $this, 'process_capture' ), null, 4 );
+		add_action( 'woocommerce_order_status_changed', array( $this, 'process_void' ), null, 4 );
 		add_action( 'woocommerce_receipt_' . $this->payment->id, array( $this, 'process_payment' ) );
 	}
 
@@ -222,6 +222,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		// Instead, we get order details from Monri API.
 		$response           = Monri_WC_Api::instance()->orders_show( $monri_order_number );
 		$formatted_response = json_decode( wp_json_encode( $response ), true );
+		Monri_WC_Logger::log( 'Monri order response: ' . wp_json_encode( $response ), __METHOD__ );
 
 		if ( ! in_array( $order->get_status(), array( 'pending', 'failed' ), true ) ) {
 			return;
@@ -230,6 +231,9 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		$response_code    = ! empty( $formatted_response['response-code'] ) ? sanitize_text_field( $formatted_response['response-code'] ) : '';
 		$transaction_type = $order->get_meta( 'monri_transaction_type' );
 		Monri_WC_Logger::log( 'Transaction type: ' . $order->get_meta( 'monri_transaction_type' ), __METHOD__ );
+		// Set flag to prevent process_capture/process_void from running
+		$order->update_meta_data( '_monri_processing_return', 1 );
+		$order->save();
 		if ( $response_code === '0000' ) {
 			if ( $transaction_type === 'purchase' ) {
 				$order->payment_complete();
@@ -265,10 +269,13 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 				}
 				$this->save_user_token( $order->get_user_id(), $token_data );
 			}
+
 		} else {
 			$order->update_status( 'failed', "Response not authorized - response code is $response_code." );
 			// $order->add_order_note( __( 'Transaction Declined: ', 'monri' ) . sanitize_text_field( $_GET['Error'] ) );
 		}
+		// Remove the flag after status change
+		$order->delete_meta_data( '_monri_processing_return' );
 	}
 
 	/**
@@ -280,24 +287,23 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 	 *
 	 * @return bool
 	 */
-	public function process_capture( $order_id, $from = '', $to = '' ) {
+	public function process_capture( $order_id, $from, $to ) {
+
+		if ( ! ( in_array( $from, array( 'pending', 'on-hold' ) ) && in_array( $to, wc_get_is_paid_statuses() ) ) ) {
+			return false;
+		}
 		$order = wc_get_order( $order_id );
+
 		if ( ! $order ) {
 			return false;
 		}
 
-		// Workaround until lightbox is a completely separate payment method
-		// woocommerce_order_edit_status sends (order_id, new_status). Normalize to (from, to).
-		if ( $to === '' ) {
-			$to   = (string) $from;
-			$from = $order->get_status();
-		}
-
-		if ($order->get_payment_method() !== $this->payment->id ) {
+		// Don't run if triggered by process_return
+		if ( $order->get_meta( '_monri_processing_return' ) ) {
 			return false;
 		}
 
-		if ( ! ( in_array( $from, array( 'pending', 'on-hold' ) ) && in_array( $to, wc_get_is_paid_statuses() ) ) ) {
+		if ( $order->get_payment_method() !== $this->payment->id ) {
 			return false;
 		}
 
@@ -344,24 +350,24 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 	 *
 	 * @return bool
 	 */
-	public function process_void( $order_id, $from = '', $to = '' ) {
+	public function process_void( $order_id, $from, $to ) {
+
+		if ( ! ( in_array( $from, array( 'pending', 'on-hold' ) ) && in_array( $to, array( 'cancelled', 'failed' ) ) ) ) {
+			return false;
+		}
 
 		$order = wc_get_order( $order_id );
+
 		if ( ! $order ) {
 			return false;
 		}
 
-		// woocommerce_order_edit_status sends (order_id, new_status). Normalize to (from, to).
-		if ( $to === '' ) {
-			$to   = (string) $from;
-			$from = $order->get_status();
-		}
-
-		if ($order->get_payment_method() !== $this->payment->id ) {
+		// Don't run if triggered by process_return
+		if ( $order->get_meta( '_monri_processing_return' ) ) {
 			return false;
 		}
 
-		if ( ! ( in_array( $from, array( 'pending', 'on-hold' ) ) && in_array( $to, array( 'cancelled', 'failed' ) ) ) ) {
+		if ( $order->get_payment_method() !== $this->payment->id ) {
 			return false;
 		}
 
