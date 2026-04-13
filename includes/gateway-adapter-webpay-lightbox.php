@@ -74,6 +74,9 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			'data-transaction-type'      => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
 			'data-language'              => $this->payment->get_option( 'form_language' ),
 			'data-ch-full-name'          => wc_trim_string( $full_name, 30, '' ),
+			'data-success-url-override'  => $this->payment->get_return_url( $order ) . '&nocache=1',
+			'data-cancel-url-override'   => htmlspecialchars_decode($order->get_cancel_order_url()),
+			'data-callback-url-override' => add_query_arg( 'wc-api', 'monri_callback', get_home_url() ),
 			'data-ch-address'            => wc_trim_string( $order->get_billing_address_1(), 100, '' ),
 			'data-ch-city'               => wc_trim_string( $order->get_billing_city(), 30, '' ),
 			'data-ch-zip'                => wc_trim_string( $order->get_billing_postcode(), 9, '' ),
@@ -283,6 +286,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			return false;
 		}
 
+		// Workaround until lightbox is a completely separate payment method
 		// woocommerce_order_edit_status sends (order_id, new_status). Normalize to (from, to).
 		if ( $to === '' ) {
 			$to   = (string) $from;

@@ -8,25 +8,34 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 <script>
     (function($) {
-        function handlePaymentResponse() {
+        /**
+         * Handle Monri lightbox redirect back to checkout with transaction_response
+         * Redirects to thank you page if payment was approved
+         */
+        function handleMonriTransactionRedirect() {
             const queryParams = new URLSearchParams(window.location.search);
             const transactionResponse = queryParams.get("transaction_response");
 
-            if (transactionResponse) {
-                try {
-                    const decodedResponse = decodeURIComponent(transactionResponse);
-                    const response = JSON.parse(decodedResponse);
+            if (!transactionResponse) {
+                return;
+            }
 
-                    if (response.status === "approved") {
-                        return true;
-                    } else {
-                        console.log("Plaćanje nije uspjelo", response);
-                    }
-                } catch (error) {
-                    console.error("Greška pri parsiranju odgovora na transakciju:", error);
+            try {
+                const decodedResponse = decodeURIComponent(transactionResponse);
+                const response = JSON.parse(decodedResponse);
+                const successUrl = sessionStorage.getItem('monri_success_url');
+
+                if (response.status === "approved" && successUrl) {
+                    sessionStorage.removeItem('monri_success_url');
+                    window.location.href = successUrl;
                 }
+            } catch (error) {
+                console.error("Something went wrong:", error);
             }
         }
+
+        // Check for transaction_response on page load
+        handleMonriTransactionRedirect();
 
         function collectBrowserInfo(ip_address) {
             var screen_width = window && window.screen ? window.screen.width : '';
@@ -60,29 +69,11 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             };
         }
 
-        function clickMonriLightboxButton() {
-            var button = document.querySelector('button.monri-lightbox-button-el');
-            button.style.display = 'none';
-            button.click();
-        }
-
         $('form.checkout').on('checkout_place_order_success', function (t, result) {
-
-            if (handlePaymentResponse()) {
-                return true;
-            }
             var selectedGateway = $('input[name="payment_method"]:checked').val();
             if (selectedGateway !== 'monri') return;
 
-            // do not append new script if old one already exists, just trigger click on the button to open lightbox
-            var existingScript = document.getElementById('monri-lightbox-loader');
-            if (existingScript) {
-                clickMonriLightboxButton();
-                return false;
-            }
-
             let script = document.createElement('script');
-            script.id = 'monri-lightbox-loader';
             script.src = result['src'];
             script.className = "lightbox-button";
 
@@ -94,6 +85,10 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             script.setAttribute('data-digest', result['data-digest']);
             script.setAttribute('data-transaction-type', result['data-transaction-type']);
             script.setAttribute('data-language', result['data-language']);
+            script.setAttribute('data-success-url-override', result['data-success-url-override']);
+            script.setAttribute('data-cancel-url-override', result['data-cancel-url-override']);
+            script.setAttribute('data-callback-url-override', result['data-callback-url-override']);
+            script.setAttribute('data-callback-url-override', result['data-callback-url-override']);
             script.setAttribute('data-ch-full-name', result['data-ch-full-name']);
             script.setAttribute('data-ch-zip', result['data-ch-zip']);
             script.setAttribute('data-ch-phone', result['data-ch-phone']);
@@ -116,7 +111,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             }
 
             script.onload = function() {
-                clickMonriLightboxButton();
+                $('button.monri-lightbox-button-el').click();
             }
 
             script.onerror = function() {
@@ -124,6 +119,16 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             }
 
             document.querySelector('#monri-lightbox-form').appendChild(script);
+
+            // Save success url so that once payment is completed and user is redirected back, we can redirect them to the correct page
+            sessionStorage.setItem('monri_success_url', result['data-success-url-override']);
+
+            window.addEventListener('message', function(event) {
+                if (event.data && event.data.type === 'monri_lightbox_close') {
+                    window.location.reload();
+                }
+            });
+
             return false;
         });
 

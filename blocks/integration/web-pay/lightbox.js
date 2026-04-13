@@ -6,6 +6,34 @@ import { useSelect } from '@wordpress/data';
 import { CHECKOUT_STORE_KEY, PAYMENT_STORE_KEY, } from '@woocommerce/block-data';
 import { Installments } from "../installments";
 
+/**
+ * New Monri lightbox redirects to the current page with transaction_response instead of data-success-url-override.
+ * Handle Monri lightbox redirect back to checkout with transaction_response
+ * Redirects to thank you page if payment was approved
+ */
+const handleMonriTransactionRedirect = () => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const transactionResponse = queryParams.get("transaction_response");
+
+    if (!transactionResponse) {
+        return;
+    }
+
+    try {
+        const decodedResponse = decodeURIComponent(transactionResponse);
+        const response = JSON.parse(decodedResponse);
+        const successUrl = sessionStorage.getItem('monri_success_url');
+
+        if (response.status === "approved" && successUrl) {
+            sessionStorage.removeItem('monri_success_url');
+            window.location.href = successUrl;
+        }
+    } catch (error) {
+        console.error("Something went wrong:", error);
+    }
+};
+
+
 const collectBrowserInfo = (ip_address) => {
     const screen_width = window && window.screen ? window.screen.width : '';
     const screen_height = window && window.screen ? window.screen.height : '';
@@ -38,6 +66,12 @@ const collectBrowserInfo = (ip_address) => {
 };
 
 export const loadMonriData = (paymentResult) => {
+    window.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'monri_lightbox_close') {
+            window.location.reload();
+        }
+    });
+
     try {
         const monriData = paymentResult.paymentDetails;
         let script = document.createElement('script');
@@ -77,6 +111,9 @@ export const loadMonriData = (paymentResult) => {
         }
 
         document.querySelector('.wc-block-components-form').appendChild(script);
+
+        sessionStorage.setItem('monri_success_url', monriData['data-success-url-override']);
+
         script.onload = () => {
             document.querySelector('button.monri-lightbox-button-el').click();
         };
@@ -146,6 +183,9 @@ export const SavedTokenHandler = () => {
 };
 
 export const getPaymentMethod = () => {
+    // Check if returning from Monri payment
+    handleMonriTransactionRedirect();
+
     const payment = {
         ...getDefaultPaymentMethod(),
         content: <WebPayLightbox />,
