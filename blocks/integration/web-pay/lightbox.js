@@ -84,8 +84,6 @@ export const loadMonriData = (paymentResult) => {
 
         document.querySelector('.wc-block-components-form').appendChild(script);
 
-        sessionStorage.setItem('monri_success_url', monriData['data-success-url-override']);
-
         script.onload = () => {
             document.querySelector('button.monri-lightbox-button-el').click();
         };
