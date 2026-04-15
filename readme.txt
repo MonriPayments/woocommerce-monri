@@ -4,7 +4,7 @@ Tags: monri, credit card, payment, woocommerce
 Requires at least: 5.3
 Tested up to: 6.9.4
 Requires PHP: 7.3
-Stable tag: 3.8.2
+Stable tag: 3.8.3
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -43,6 +43,9 @@ You can find more details about the development of this plugin at:
 https://github.com/MonriPayments/woocommerce-monri
 
 == Changelog ==
+
+= 3.8.3 - 2026-4-15 =
+* Added new 3DS parameters to Monri Lightbox
 
 = 3.8.2 - 2026-3-5 =
 * Added new 3DS parameters to Monri WebPay Redirect and Monri WebPay Components
