@@ -8,35 +8,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 <script>
     (function($) {
-        /**
-         * Handle Monri lightbox redirect back to checkout with transaction_response
-         * Redirects to thank you page if payment was approved
-         */
-        function handleMonriTransactionRedirect() {
-            const queryParams = new URLSearchParams(window.location.search);
-            const transactionResponse = queryParams.get("transaction_response");
-
-            if (!transactionResponse) {
-                return;
-            }
-
-            try {
-                const decodedResponse = decodeURIComponent(transactionResponse);
-                const response = JSON.parse(decodedResponse);
-                const successUrl = sessionStorage.getItem('monri_success_url');
-
-                if (response.status === "approved" && successUrl) {
-                    sessionStorage.removeItem('monri_success_url');
-                    window.location.href = successUrl;
-                }
-            } catch (error) {
-                console.error("Something went wrong:", error);
-            }
-        }
-
-        // Check for transaction_response on page load
-        handleMonriTransactionRedirect();
-
         function collectBrowserInfo(ip_address) {
             var screen_width = window && window.screen ? window.screen.width : '';
             var screen_height = window && window.screen ? window.screen.height : '';
@@ -118,9 +89,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             }
 
             document.querySelector('#monri-lightbox-form').appendChild(script);
-
-            // Save success url so that once payment is completed and user is redirected back, we can redirect them to the correct page
-            sessionStorage.setItem('monri_success_url', result['data-success-url-override']);
 
             window.addEventListener('message', function(event) {
                 if (event.data && event.data.type === 'monri_lightbox_close') {
