@@ -111,7 +111,10 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 		$order->update_meta_data( 'monri_order_number', $order_id );
 		//used when checking if current user has permission to get status of this order
 		$order_hash = wp_generate_uuid4();
-		$order->update_meta_data( 'order_access_hash', $order_hash );
+		$existing_hash = $order->get_meta( 'order_access_hash' );
+		if ( empty( $existing_hash ) ) {
+			$order->update_meta_data( 'order_access_hash', wp_generate_uuid4() );
+		}
 
 
 		$order->save();
