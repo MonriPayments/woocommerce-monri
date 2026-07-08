@@ -57,6 +57,26 @@ function monri_wc_init() {
 			$methods[] = Monri_WC_Gateway_Webpay_Components_Pay_Cek::class;
 		}
 
+		if (Monri_WC_Settings::instance()->include_components_air_cash() && !$is_wc_settings_page) {
+			require_once __DIR__ . '/includes/gateway-webpay-components-air-cash.php';
+			$methods[] = Monri_WC_Gateway_Webpay_Components_Air_Cash::class;
+		}
+
+		if (Monri_WC_Settings::instance()->include_components_flik_pay() && !$is_wc_settings_page) {
+			require_once __DIR__ . '/includes/gateway-webpay-components-flik-pay.php';
+			$methods[] = Monri_WC_Gateway_Webpay_Components_Flik_Pay::class;
+		}
+
+		if (Monri_WC_Settings::instance()->include_components_ips_rs() && !$is_wc_settings_page) {
+			require_once __DIR__ . '/includes/gateway-webpay-components-ips-rs.php';
+			$methods[] = Monri_WC_Gateway_Webpay_Components_Ips_Rs::class;
+		}
+
+		if (Monri_WC_Settings::instance()->include_components_ips_otp() && !$is_wc_settings_page) {
+			require_once __DIR__ . '/includes/gateway-webpay-components-ips-otp.php';
+			$methods[] = Monri_WC_Gateway_Webpay_Components_Ips_Otp::class;
+		}
+
 		return $methods;
 	}
 
@@ -126,6 +146,30 @@ function monri_wc_block_support() {
 					require_once __DIR__ . '/includes/gateway-webpay-components-pay-cek.php';
 					require_once __DIR__ . '/includes/blocks-support-components-pay-cek.php';
 					$payment_method_registry->register( new Monri_WC_Components_Pay_Cek_Blocks_Support() );
+				}
+
+				if (Monri_WC_Settings::instance()->include_components_air_cash() && !$is_wc_settings_page) {
+					require_once __DIR__ . '/includes/gateway-webpay-components-air-cash.php';
+					require_once __DIR__ . '/includes/blocks-support-components-air-cash.php';
+					$payment_method_registry->register( new Monri_WC_Components_Air_Cash_Blocks_Support() );
+				}
+
+				if (Monri_WC_Settings::instance()->include_components_flik_pay() && !$is_wc_settings_page) {
+					require_once __DIR__ . '/includes/gateway-webpay-components-flik-pay.php';
+					require_once __DIR__ . '/includes/blocks-support-components-flik-pay.php';
+					$payment_method_registry->register( new Monri_WC_Components_Flik_Pay_Blocks_Support() );
+				}
+
+				if (Monri_WC_Settings::instance()->include_components_ips_rs() && !$is_wc_settings_page) {
+					require_once __DIR__ . '/includes/gateway-webpay-components-ips-rs.php';
+					require_once __DIR__ . '/includes/blocks-support-components-ips-rs.php';
+					$payment_method_registry->register( new Monri_WC_Components_Ips_Rs_Blocks_Support() );
+				}
+
+				if (Monri_WC_Settings::instance()->include_components_ips_otp() && !$is_wc_settings_page) {
+					require_once __DIR__ . '/includes/gateway-webpay-components-ips-otp.php';
+					require_once __DIR__ . '/includes/blocks-support-components-ips-otp.php';
+					$payment_method_registry->register( new Monri_WC_Components_Ips_Otp_Blocks_Support() );
 				}
 			}
 		);

@@ -6,6 +6,10 @@ import { getPaymentMethod as getKeksPayForm } from "./components-additional-meth
 import { getPaymentMethod as getGooglePayForm } from "./components-additional-methods/google-pay";
 import { getPaymentMethod as getApplePayForm } from "./components-additional-methods/apple-pay";
 import { getPaymentMethod as getPayCekForm } from "./components-additional-methods/pay-cek";
+import { getPaymentMethod as getAirCashForm } from "./components-additional-methods/air-cash";
+import { getPaymentMethod as getFlikPayForm } from "./components-additional-methods/flik-pay";
+import { getPaymentMethod as getIpsRsForm } from "./components-additional-methods/ips-rs";
+import { getPaymentMethod as getIpsOtpForm } from "./components-additional-methods/ips-otp";
 import { useMonriData } from "./use-monri-data";
 
 export const useIntegration = () => {
@@ -32,4 +36,12 @@ export const useGooglePayIntegration = () => getGooglePayForm();
 export const useApplePayIntegration = () => getApplePayForm();
 
 export const usePayCekIntegration = () => getPayCekForm();
+
+export const useAirCashIntegration = () => getAirCashForm();
+
+export const useFlikPayIntegration = () => getFlikPayForm();
+
+export const useIpsRsIntegration = () => getIpsRsForm();
+
+export const useIpsOtpIntegration = () => getIpsOtpForm();
 

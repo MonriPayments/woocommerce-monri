@@ -8,9 +8,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 ?>
 
 <p id="monri-status">
-    <?php esc_html_e('After payment, please wait a moment while we verify your transaction...', 'monri'); ?>
+	<?php esc_html_e('After payment, please wait a moment while we verify your transaction...', 'monri'); ?>
 </p>
-<div id="keks-pay-element"></div>
+<div id="ips-rs-element"></div>
 <p id="monri-error" style="color:red;" role="alert"></p>
 <input type="hidden" id="monri-transaction" name="monri-transaction" autocomplete="off" value=""/>
 
@@ -22,12 +22,13 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
         var style = {invalid: {color: 'red'}};
 
-        var keksPay = components.create('keks-pay', {
-            style: style,
+        var ipsRs = components.create('ips-rs', {
+            style,
             trx_token: config.client_secret,
-            environment: config.env
+            environment: config.env,
         })
-        keksPay.mount('keks-pay-element');
+
+        ipsRs.mount('ips-rs-element');
 
         function getOrderStatus() {
             $.ajax({
@@ -45,7 +46,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
         }
 
         setInterval(getOrderStatus, 3000);
-
     })(jQuery);
 
 </script>

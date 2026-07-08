@@ -7,8 +7,10 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 /** @var array $tokenization */
 ?>
 
-
-<div id="pay-cek-element"></div>
+<p id="monri-status">
+	<?php esc_html_e('After payment, please wait a moment while we verify your transaction...', 'monri'); ?>
+</p>
+<div id="air-cash-element"></div>
 <p id="monri-error" style="color:red;" role="alert"></p>
 <input type="hidden" id="monri-transaction" name="monri-transaction" autocomplete="off" value=""/>
 
@@ -25,29 +27,20 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             ch_email: config.ch_email,
             ch_language: config.locale,
         }
+        console.log(transaction);
 
         var monri = Monri(config.authenticity_token, {locale: config.locale});
         var components = monri.components({clientSecret: config.client_secret});
 
         var style = {invalid: {color: 'red'}};
 
-        var payCek = components.create('pay-cek', {
-            style: style,
+        var airCash = components.create('air-cash', {
+            style,
             trx_token: config.client_secret,
             environment: config.env,
-        }).onStartPayment(() => {
-            monri.confirmPayment(payCek, transaction)
-                .then(response => {
-                    if (response.error) {
-                        $('#monri-error').text( "<?php esc_html_e('Transaction declined, please reload the page.', 'monri'); ?>" );
-                        return;
-                    }
-                    window.location.href = config.return_url;
-                })
         })
 
-        payCek.mount('pay-cek-element');
-
+        airCash.mount('air-cash-element');
     })(jQuery);
 
 </script>

@@ -42,7 +42,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
         })
 
         applePay.mount('apple-pay-element');
-        console.log("applePay: ", applePay);
 
         function getOrderStatus() {
             $.ajax({
