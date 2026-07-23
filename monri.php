@@ -22,6 +22,36 @@ require_once __DIR__ . '/includes/settings.php';
 require_once __DIR__ . '/includes/utils.php';
 require_once __DIR__ . '/includes/logger.php';
 
+function monri_wc_add_monri_gateway( $methods ) {
+	$methods[] = Monri_WC_Gateway::class;
+
+	// Temporary solution. Hide alternative payment methods settings in admin until the method is fully independent of components.
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This is not an ajax call, just checking which page we are on.
+	$is_wc_settings_page = is_admin() && isset( $_GET['page'] ) && $_GET['page'] === 'wc-settings';
+
+	if (Monri_WC_Settings::instance()->include_components_keks() && !$is_wc_settings_page) {
+		require_once __DIR__ . '/includes/gateway-webpay-components-keks-pay.php';
+		$methods[] = Monri_WC_Gateway_Webpay_Components_Keks_Pay::class;
+	}
+
+	if (Monri_WC_Settings::instance()->include_components_google_pay() && !$is_wc_settings_page) {
+		require_once __DIR__ . '/includes/gateway-webpay-components-google-pay.php';
+		$methods[] = Monri_WC_Gateway_Webpay_Components_Google_Pay::class;
+	}
+
+	if (Monri_WC_Settings::instance()->include_components_apple_pay() && !$is_wc_settings_page) {
+		require_once __DIR__ . '/includes/gateway-webpay-components-apple-pay.php';
+		$methods[] = Monri_WC_Gateway_Webpay_Components_Apple_Pay::class;
+	}
+
+	if (Monri_WC_Settings::instance()->include_components_pay_cek() && !$is_wc_settings_page) {
+		require_once __DIR__ . '/includes/gateway-webpay-components-pay-cek.php';
+		$methods[] = Monri_WC_Gateway_Webpay_Components_Pay_Cek::class;
+	}
+
+	return $methods;
+}
+
 function monri_wc_init() {
 	if ( ! class_exists( 'WC_Payment_Gateway' ) ) {
 		return;
@@ -29,36 +59,6 @@ function monri_wc_init() {
 
 	require_once __DIR__ . '/includes/gateway.php';
 	require_once __DIR__ . '/includes/gateway-webpay-components-abstract.php';
-
-	function monri_wc_add_monri_gateway( $methods ) {
-		$methods[] = Monri_WC_Gateway::class;
-
-		// Temporary solution. Hide alternative payment methods settings in admin until the method is fully independent of components.
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This is not an ajax call, just checking which page we are on.
-		$is_wc_settings_page = is_admin() && isset( $_GET['page'] ) && $_GET['page'] === 'wc-settings';
-
-		if (Monri_WC_Settings::instance()->include_components_keks() && !$is_wc_settings_page) {
-			require_once __DIR__ . '/includes/gateway-webpay-components-keks-pay.php';
-			$methods[] = Monri_WC_Gateway_Webpay_Components_Keks_Pay::class;
-		}
-
-		if (Monri_WC_Settings::instance()->include_components_google_pay() && !$is_wc_settings_page) {
-			require_once __DIR__ . '/includes/gateway-webpay-components-google-pay.php';
-			$methods[] = Monri_WC_Gateway_Webpay_Components_Google_Pay::class;
-		}
-
-		if (Monri_WC_Settings::instance()->include_components_apple_pay() && !$is_wc_settings_page) {
-			require_once __DIR__ . '/includes/gateway-webpay-components-apple-pay.php';
-			$methods[] = Monri_WC_Gateway_Webpay_Components_Apple_Pay::class;
-		}
-
-		if (Monri_WC_Settings::instance()->include_components_pay_cek() && !$is_wc_settings_page) {
-			require_once __DIR__ . '/includes/gateway-webpay-components-pay-cek.php';
-			$methods[] = Monri_WC_Gateway_Webpay_Components_Pay_Cek::class;
-		}
-
-		return $methods;
-	}
 
 	add_filter( 'woocommerce_payment_gateways', 'monri_wc_add_monri_gateway' );
 }

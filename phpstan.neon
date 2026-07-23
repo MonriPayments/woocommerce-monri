@@ -3,7 +3,7 @@ includes:
 
 parameters:
     level: 0
-    phpVersion: 70300
+    phpVersion: 70400
 
     paths:
         - monri.php
@@ -21,6 +21,7 @@ parameters:
 
     bootstrapFiles:
         - vendor/autoload.php
+        - ../woocommerce/vendor/autoload.php
 
     scanDirectories:
         - ../woocommerce/includes
