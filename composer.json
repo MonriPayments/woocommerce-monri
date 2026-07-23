@@ -1,0 +1,7 @@
+{
+  "minimum-stability": "stable",
+  "require-dev": {
+    "phpstan/phpstan": "2.2.5",
+    "szepeviktor/phpstan-wordpress": "v2.0.3"
+  }
+}
