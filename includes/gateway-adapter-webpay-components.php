@@ -128,7 +128,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		return [
 			'components' => [
 				'authenticity_token' => $this->payment->get_option( 'monri_authenticity_token' ),
-				'client_secret'      => $client_secret ?? "",
+				'client_secret'      => $client_secret,
 				'locale'             => $this->payment->get_option( 'form_language' ),
 				'ip_address'         => WC_Geolocation::get_ip_address(),
 			]
@@ -210,7 +210,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	}
 
 	/**
-	 *
 	 * @return string
 	 */
 	private function request_authorize() {

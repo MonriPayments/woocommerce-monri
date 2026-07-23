@@ -2,9 +2,9 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-/** @var $order WC_Order */
-/** @var $action string */
-/** @var $options array */
+/** @var WC_Order $order */
+/** @var string $action */
+/** @var array $options */
 ?>
 <!-- Monri redirect -->
 <form action="<?php echo esc_url( $action ) ?>" method="post" data-ajax="false" id="monri_payment_form">
