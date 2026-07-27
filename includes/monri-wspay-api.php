@@ -4,7 +4,7 @@ class Monri_WSPay_WC_Api {
 	public const ENDPOINT_TEST = 'https://test.wspay.biz/api/services';
 	public const ENDPOINT = 'https://secure.wspay.biz/api/services';
 	/**
-	 * @var Monri_WSPay_WC_Api
+	 * @var ?Monri_WSPay_WC_Api
 	 */
 	private static $instance;
 
@@ -77,7 +77,9 @@ class Monri_WSPay_WC_Api {
 		$url = $this->test_mode ? self::ENDPOINT_TEST : self::ENDPOINT;
 		$url .= $path;
 
-		$result = wp_remote_post( $url, [
+		$result = wp_remote_post(
+			$url,
+			[
 				'body'      => wp_json_encode( $params ),
 				'headers'   => [
 					'Accept'       => 'application/json',
