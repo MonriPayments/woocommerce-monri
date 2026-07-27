@@ -562,10 +562,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 	public function save_user_token( $user_id, $data ) {
 
 		if ( ! isset( $data['pan_token'], $data['cc_type'], $data['masked_pan'] ) ) {
-			return null;
+			return;
 		}
 		if ($this->check_if_token_already_exists($user_id, $data['masked_pan'])) {
-			return null;
+			return;
 		}
 
 		$wc_token = new Monri_WC_Payment_Token_Webpay();

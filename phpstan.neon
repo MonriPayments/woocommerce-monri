@@ -2,7 +2,7 @@ includes:
     - vendor/szepeviktor/phpstan-wordpress/extension.neon
 
 parameters:
-    level: 2
+    level: 3
     phpVersion: 70400
 
     paths:

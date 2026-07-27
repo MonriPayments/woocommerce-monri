@@ -460,7 +460,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	 *
 	 * @param int $amount_in_minor_units
 	 *
-	 * @return string
+	 * @return ?string
 	 */
 	public function get_session_client_secret( $amount_in_minor_units ) {
 		// @todo: find out exact time
@@ -545,10 +545,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 	public function save_user_token( $user_id, $data ) {
 
 		if ( ! isset( $data['token'], $data['brand'], $data['masked'], $data['expiration_date'] ) ) {
-			return null;
+			return;
 		}
 		if ($this->check_if_token_already_exists($user_id, $data['masked'])) {
-			return null;
+			return;
 		}
 
 		$wc_token = new Monri_WC_Payment_Token_Webpay();

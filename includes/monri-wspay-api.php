@@ -4,7 +4,7 @@ class Monri_WSPay_WC_Api {
 	public const ENDPOINT_TEST = 'https://test.wspay.biz/api/services';
 	public const ENDPOINT = 'https://secure.wspay.biz/api/services';
 	/**
-	 * @var Monri_WC_Api
+	 * @var Monri_WSPay_WC_Api
 	 */
 	private static $instance;
 
