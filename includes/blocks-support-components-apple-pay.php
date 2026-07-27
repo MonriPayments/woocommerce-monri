@@ -26,7 +26,7 @@ final class Monri_WC_Components_Apple_Pay_Blocks_Support extends AbstractPayment
 	 * Initializes the payment method type.
 	 */
 	public function initialize() {
-		$gateways       = WC()->payment_gateways->payment_gateways();
+		$gateways       = WC()->payment_gateways()->payment_gateways();
 		$this->gateway  = $gateways[ $this->name ];
 		$this->settings = get_option( 'woocommerce_monri_settings', array() );
 

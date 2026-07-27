@@ -26,7 +26,7 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 	 */
 	public function initialize() {
 		$this->settings = get_option( 'woocommerce_monri_settings', [] );
-		$gateways       = WC()->payment_gateways->payment_gateways();
+		$gateways       = WC()->payment_gateways()->payment_gateways();
 		$this->gateway  = $gateways[ $this->name ];
 
 		// load components.js on admin edit page to make components visible in checkout page builder
