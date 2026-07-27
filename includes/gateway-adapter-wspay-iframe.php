@@ -125,7 +125,6 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 					return;
 				}
 
-				/** @var Monri_WC_Payment_Token_Wspay $use_token */
 				$token = $tokens[ $token_id ];
 
 				$req['Token']       = $token->get_token();

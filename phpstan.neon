@@ -2,7 +2,7 @@ includes:
     - vendor/szepeviktor/phpstan-wordpress/extension.neon
 
 parameters:
-    level: 1
+    level: 2
     phpVersion: 70400
 
     paths:
@@ -22,7 +22,7 @@ parameters:
     bootstrapFiles:
         - phpstan-bootstrap.php
         - vendor/autoload.php
-        - ../woocommerce/vendor/autoload.php
+        - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
 
     scanDirectories:
         - ../woocommerce/includes

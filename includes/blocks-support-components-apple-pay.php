@@ -97,11 +97,9 @@ final class Monri_WC_Components_Apple_Pay_Blocks_Support extends AbstractPayment
 	 *
 	 * @return array
 	 */
-	public function get_payment_method_data() {
-		$data = array(
-			'supports'    => array_filter( $this->gateway->supports, [ $this->gateway, 'supports' ] )
+	public function get_payment_method_data(): array {
+		return array(
+			'supports' => array_filter( $this->gateway->supports, [ $this->gateway, 'supports' ] )
 		);
-
-		return $data;
 	}
 }

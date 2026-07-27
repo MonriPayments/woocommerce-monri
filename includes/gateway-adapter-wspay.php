@@ -519,7 +519,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 			return false;
 		}
-		if ( $order->get_total() - $order->get_total_refunded() < 0.01 ) {
+		if ( $order->get_total() - (float)$order->get_total_refunded() < 0.01 ) {
 			$order->update_meta_data( '_monri_should_close_parent_transaction', '1' );
 		}
 		$order->add_order_note( sprintf(
@@ -559,7 +559,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$wspay_order_id = isset( $transaction_info['WsPayOrderId'] ) ? sanitize_text_field( $transaction_info['WsPayOrderId'] ) : null;
 		$STAN           = isset( $transaction_info['STAN'] ) ? sanitize_text_field( $transaction_info['STAN'] ) : null;
 		$approval_code  = isset( $transaction_info['ApprovalCode'] ) ? sanitize_text_field( $transaction_info['ApprovalCode'] ) : null;
-		$amount         = $order->get_total() - $order->get_total_refunded();
+		$amount         = $order->get_total() - (float)$order->get_total_refunded();
 
 		if ( $amount < 0.01 ) {
 			return;
@@ -611,7 +611,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$wspay_order_id = isset( $transaction_info['WsPayOrderId'] ) ? sanitize_text_field( $transaction_info['WsPayOrderId'] ) : null;
 		$STAN           = isset( $transaction_info['STAN'] ) ? sanitize_text_field( $transaction_info['STAN'] ) : null;
 		$approval_code  = isset( $transaction_info['ApprovalCode'] ) ? sanitize_text_field( $transaction_info['ApprovalCode'] ) : null;
-		$amount         = $order->get_total() - $order->get_total_refunded();
+		$amount         = $order->get_total() - (float)$order->get_total_refunded();
 		if ( $amount < 0.01 ) {
 			return;
 		}

@@ -266,7 +266,7 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 			return false;
 		}
 		$currency = $order->get_currency();
-		$amount   = $order->get_total() - $order->get_total_refunded();
+		$amount   = $order->get_total() - (float)$order->get_total_refunded();
 
 		if ( $amount < 0.01 ) {
 			return false;
@@ -277,7 +277,7 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 		if ( is_wp_error( $response ) || ! ( isset( $formatted_response['response-code'] ) && $formatted_response['response-code'] === '0000' ) ) {
 			Monri_WC_Logger::log( $formatted_response, __METHOD__ );
 			$order->add_order_note(
-				sprintf( __( 'There was an error submitting the capture to Monri.', 'monri' ) )
+				__( 'There was an error submitting the capture to Monri.', 'monri' )
 			);
 
 			return false;
@@ -319,7 +319,7 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 		if ( empty( $monri_order_id ) ) {
 			return false;
 		}
-		$amount   = $order->get_total() - $order->get_total_refunded();
+		$amount   = $order->get_total() - (float)$order->get_total_refunded();
 		$currency = $order->get_currency();
 		if ( $amount < 0.01 ) {
 			return false;

@@ -481,7 +481,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			return;
 		}
 		$currency = $order->get_currency();
-		$amount   = $order->get_total() - $order->get_total_refunded();
+		$amount   = $order->get_total() - (float)$order->get_total_refunded();
 
 		if ( $amount < 0.01 ) {
 			return;
@@ -529,7 +529,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		if ( empty( $monri_order_id ) ) {
 			return;
 		}
-		$amount   = $order->get_total() - $order->get_total_refunded();
+		$amount   = $order->get_total() - (float)$order->get_total_refunded();
 		$currency = $order->get_currency();
 		if ( $amount < 0.01 ) {
 			return;
@@ -595,7 +595,11 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 		$user_tokens = WC_Payment_Tokens::get_customer_tokens( $user_id );
 		foreach ($user_tokens as $user_token) {
-			if ($user_token->get_last4() === $last4) {
+			if (
+				// Not every child of WC_Payment_Token is guaranteed to have get_last4() method.
+				method_exists( $user_token, 'get_last4' )
+				&& $user_token->get_last4() === $last4
+			) {
 				return true;
 			}
 		}

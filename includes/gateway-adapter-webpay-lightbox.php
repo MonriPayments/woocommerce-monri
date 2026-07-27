@@ -355,7 +355,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			return;
 		}
 		$currency = $order->get_currency();
-		$amount   = $order->get_total() - $order->get_total_refunded();
+		$amount   = $order->get_total() - (float)$order->get_total_refunded();
 
 		if ( $amount < 0.01 ) {
 			return;
@@ -405,7 +405,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		if ( empty( $monri_order_id ) ) {
 			return;
 		}
-		$amount   = $order->get_total() - $order->get_total_refunded();
+		$amount   = $order->get_total() - (float)$order->get_total_refunded();
 		$currency = $order->get_currency();
 		if ( $amount < 0.01 ) {
 			return;

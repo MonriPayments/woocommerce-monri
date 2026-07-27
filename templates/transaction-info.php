@@ -2,8 +2,8 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-/** @var $order WC_Order */
-/** @var $transaction_info array */
+/** @var WC_Order $order */
+/** @var array $transaction_info */
 ?>
 <?php if ( ! empty( $transaction_info ) ): ?>
 <section class="woocommerce-order-monri-transaction-info">
