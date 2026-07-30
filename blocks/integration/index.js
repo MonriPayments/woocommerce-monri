@@ -1,6 +1,5 @@
 import { getPaymentMethod as getWebPayForm } from './web-pay/form';
 import { getPaymentMethod as getWebPayComponents } from './web-pay/components';
-import { getPaymentMethod as getWebPayComponentsNew } from './web-pay/components-new';
 import { getPaymentMethod as getWebPayLightbox } from './web-pay/lightbox';
 import { getPaymentMethod as getWsPayForm } from "./ws-pay/form";
 import { getPaymentMethod as getKeksPayForm } from "./components-additional-methods/keks-pay";
@@ -19,7 +18,6 @@ export const useIntegration = () => {
         case 'monri-web-pay':
             if (settings.integration_type === 'components') {
                 if (settings.order_creation === 'before_payment') {
-                    console.log('test');
                     return getCardForm();
                 }
                 return getWebPayComponents();
