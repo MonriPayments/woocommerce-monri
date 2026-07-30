@@ -123,6 +123,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components_New extends Monri_WC_Gateway_We
                     'ch_country'         => wc_trim_string( $order->get_billing_country(), 100, '' ),
                     'ch_phone'           => wc_trim_string( $order->get_billing_phone(), 100, '' ),
                     'ch_email'           => wc_trim_string( $order->get_billing_email(), 100, '' ),
+                    'ip_address'         => $order->get_customer_ip_address(),
                     'orderInfo'          => $order_id . '_' . gmdate( 'dmy' ),
                     'order_number'       => $order_id,
                     'order_hash'         => $order->get_meta( 'order_access_hash' )
@@ -163,7 +164,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components_New extends Monri_WC_Gateway_We
             'order_number'     => $order_id,
             'currency'         => $currency,
             'transaction_type' => $this->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
-            'order_info'       => 'woocommerce order'
+            'order_info'       => 'woocommerce order',
+            'ip'               => $order->get_customer_ip_address(),
         ];
 
 
@@ -213,7 +215,13 @@ class Monri_WC_Gateway_Adapter_Webpay_Components_New extends Monri_WC_Gateway_We
             $response = [ 'status' => 'error', 'error' => $response->get_error_message() ];
         }
 
-        $body          = wp_remote_retrieve_body( $response );
+        $body = wp_remote_retrieve_body( $response );
+
+        $order->update_meta_data( 'monri_order_number', $order_id );
+        //used when checking if current user has permission to get status of this order
+        $order->update_meta_data( 'order_access_hash', wp_generate_uuid4() );
+        $order->save();
+
         return json_decode( $body, true )['client_secret'] ?? '';
     }
 

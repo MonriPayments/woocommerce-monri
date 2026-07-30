@@ -522,7 +522,8 @@ class Monri_WC_Settings {
 		$settings = get_option( 'woocommerce_monri_settings', [] );
 		$payment_gateway_service = $settings['monri_payment_gateway_service'] ?? '';
 		$integration_type = $settings['monri_web_pay_integration_type'] ?? '';
-		$order_creation = $settings['monri_web_pay_components_order_creation'] ?? 'before_payment';
+		// get_option() falls back to the form field default, unlike the raw reads above.
+		$order_creation = $this->get_option( 'monri_web_pay_components_order_creation' );
 
 		if ( $payment_gateway_service !== 'monri-web-pay' ) {
 			return false;

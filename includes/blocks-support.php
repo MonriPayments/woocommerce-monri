@@ -104,7 +104,8 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 		if ( $data['service'] === 'monri-web-pay' ) {
 			$data['integration_type'] = $this->get_setting( 'monri_web_pay_integration_type' );
 			if ( $data['integration_type'] === 'components' ) {
-				$data['order_creation'] = $this->get_setting( 'monri_web_pay_components_order_creation' ) ?: 'before_payment';
+				// Not get_setting(), that one does not know about the form field defaults.
+				$data['order_creation'] = Monri_WC_Settings::instance()->get_option( 'monri_web_pay_components_order_creation' );
 			}
 		}
 
