@@ -223,6 +223,24 @@ class Monri_WC_Settings {
 				'options'     => $transaction_type,
 				'desc_tip'    => true
 			),
+            'monri_web_pay_components_order_creation' => array(
+                'title'       => __( 'Order creation', 'monri' ),
+                'type'        => 'select',
+                'class'       => 'wc-enhanced-select',
+                'default'     => 'after_payment',
+                'options'     => array(
+                    'before_payment' => __( 'Before payment (create order in checkout)', 'monri' ),
+                    'after_payment'  => __( 'After payment (create order after checkout)', 'monri' ),
+                ),
+                'description' => __( 'Components require an order ID to initialize. Choose whether to create the order before or after payment.', 'monri' ),
+                'desc_tip'    => true,
+                'custom_attributes' => [
+                    'data-depends' => '{
+						"monri_payment_gateway_service":"monri-web-pay",
+						"monri_web_pay_integration_type":[ "components" ]
+					}'
+                ]
+            ),
 			'test_mode' => array(
 				'title'       => __( 'Test mode', 'monri' ),
 				'description' => __( 'Just test the gateway, no real orders will be placed on the gateway side.', 'monri' ),
@@ -321,7 +339,6 @@ class Monri_WC_Settings {
 				],
 
 			),
-
 			'monri_web_pay_supported_payment_methods' => array(
 				'title'       => __( 'Additional Payment Methods', 'monri' ),
 				'type'        => 'multiselect',
@@ -494,6 +511,24 @@ class Monri_WC_Settings {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Check if the new components card flow (order created before payment) is enabled
+	 *
+	 * @return bool
+	 */
+	public function include_components_card() {
+		$settings = get_option( 'woocommerce_monri_settings', [] );
+		$payment_gateway_service = $settings['monri_payment_gateway_service'] ?? '';
+		$integration_type = $settings['monri_web_pay_integration_type'] ?? '';
+		$order_creation = $settings['monri_web_pay_components_order_creation'] ?? 'before_payment';
+
+		if ( $payment_gateway_service !== 'monri-web-pay' ) {
+			return false;
+		}
+
+		return $integration_type === 'components' && $order_creation === 'before_payment';
 	}
 
 }
