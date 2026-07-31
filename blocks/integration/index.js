@@ -37,5 +37,3 @@ export const useApplePayIntegration = () => getApplePayForm();
 
 export const usePayCekIntegration = () => getPayCekForm();
 
-export const useCardIntegration = () => getCardForm();
-

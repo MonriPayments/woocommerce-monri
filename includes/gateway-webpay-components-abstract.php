@@ -177,19 +177,7 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 		switch ( $formatted_response['response-code'] ) {
 			case '0000':
 				if ( $order->get_status() === 'pending' ) {
-                    $transaction_type = ! empty( $formatted_response['transaction-type'] ) ?
-                        sanitize_text_field( $formatted_response['transaction-type'] ) : '';
-                    $approval_code    = ! empty( $formatted_response['approval-code'] ) ? sanitize_text_field( $formatted_response['approval-code'] ) : '';
-
-                    if ( $transaction_type === 'authorize' ) {
-                        $order->payment_complete( $approval_code );
-                    } else {
-                        $order->update_status( 'on-hold', __( 'Order awaiting payment', 'monri' ) );
-                    }
-
-                    /* translators: %s: generated id which represents order number */
-                    $order->add_order_note( sprintf( __( 'Order number in Monri administration: %s', 'monri' ), $monri_order_number ) );
-                    $order->save();
+					$order->payment_complete( $monri_order_number );
 				}
 				break;
 

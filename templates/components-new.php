@@ -3,6 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /** @var array $config */
+/** @var bool $tokenization */
 ?>
 
 <div id="card-element"></div>
@@ -23,7 +24,10 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
         var style = {invalid: {color: 'red'}};
 
-        var card = components.create('card', {style: style});
+        var card = components.create('card', {
+            style: style
+            <?php if ( $tokenization ) : ?>, tokenizePanOffered: true<?php endif ?>
+        });
 
         card.mount('card-element');
 
@@ -70,6 +74,30 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             };
         }
 
+        // Monri only returns payment_method data when the shopper ticked "save card".
+        // Everyone else keeps a plain GET, so the thankyou page is not a form
+        // submission they get asked to confirm on reload.
+        function returnToShop(result) {
+            if (!config.tokenization || !result.payment_method) {
+                window.location.href = config.return_url;
+                return;
+            }
+
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = config.return_url;
+            form.style.display = 'none';
+
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'monri-transaction';
+            input.value = JSON.stringify(result);
+
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
         function paymentFailed(message) {
             $error.text(message);
             $status.hide();
@@ -103,7 +131,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
                 // handle declined on 3DS cancel
                 if (response.result && response.result.status === 'approved') {
-                    window.location.href = config.return_url;
+                    returnToShop(response.result);
                 } else {
                     paymentFailed(<?php echo wp_json_encode( __( 'Transaction declined, please try again.', 'monri' ) ); ?>);
                 }
