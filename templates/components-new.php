@@ -3,6 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /** @var array $config */
+/** @var bool $installments */
 /** @var bool $tokenization */
 ?>
 
@@ -26,6 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
         var card = components.create('card', {
             style: style
+            <?php if ( $installments ) : ?>, showInstallmentsSelection: true<?php endif ?>
             <?php if ( $tokenization ) : ?>, tokenizePanOffered: true<?php endif ?>
         });
 

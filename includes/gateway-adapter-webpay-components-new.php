@@ -136,6 +136,14 @@ class Monri_WC_Gateway_Adapter_Webpay_Components_New {
         // Cards can only be saved for a customer account, never for a guest order.
         $tokenization = $this->tokenization_enabled() && $order->get_user_id();
 
+        // Installments are offered by the Monri card component itself. The order already
+        // exists here, so the limit is checked against its total rather than the cart.
+        $installments = false;
+        if ( $this->payment->get_option_bool( 'paying_in_installments' ) ) {
+            $bottom_limit = (float) $this->payment->get_option( 'bottom_limit', 0 );
+            $installments = ( $bottom_limit < 0.01 ) || ( (float) $order->get_total() >= $bottom_limit );
+        }
+
         // Authorize first, it stores the order number (suffixed in test mode) the rest of the config refers to.
         $client_secret      = $this->request_authorize( $order );
         $monri_order_number = $order->get_meta( 'monri_order_number' );
@@ -143,6 +151,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components_New {
         wc_get_template(
             'components-new.php',
             array(
+                'installments' => $installments,
                 'tokenization' => $tokenization,
                 'config' => array(
                     'env'                => $this->payment->get_option_bool( 'test_mode' ) ? 'test' : 'prod',
