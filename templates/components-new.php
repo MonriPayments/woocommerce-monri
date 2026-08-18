@@ -3,8 +3,6 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /** @var array $config */
-/** @var bool $installments */
-/** @var bool $tokenization */
 ?>
 
 <div id="card-element"></div>
@@ -26,9 +24,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
         var style = {invalid: {color: 'red'}};
 
         var card = components.create('card', {
-            style: style
-            <?php if ( $installments ) : ?>, showInstallmentsSelection: true<?php endif ?>
-            <?php if ( $tokenization ) : ?>, tokenizePanOffered: true<?php endif ?>
+            style: style,
+            showInstallmentsSelection: config.installments,
+            tokenizePanOffered: config.tokenization
         });
 
         card.mount('card-element');

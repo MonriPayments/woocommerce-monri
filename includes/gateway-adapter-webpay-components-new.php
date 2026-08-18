@@ -151,8 +151,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components_New {
         wc_get_template(
             'components-new.php',
             array(
-                'installments' => $installments,
-                'tokenization' => $tokenization,
                 'config' => array(
                     'env'                => $this->payment->get_option_bool( 'test_mode' ) ? 'test' : 'prod',
                     'client_secret'      => $client_secret,
@@ -169,6 +167,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components_New {
                     'ip_address'         => $order->get_customer_ip_address(),
                     'orderInfo'          => $monri_order_number . '_' . gmdate( 'dmy' ),
                     'order_number'       => $monri_order_number,
+                    'installments'       => $installments,
                     'tokenization'       => $tokenization,
                 ),
             ),
