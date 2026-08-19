@@ -1,11 +1,13 @@
 import { decodeEntities } from '@wordpress/html-entities';
 import { Fragment } from "react";
-import { __ } from '@wordpress/i18n';
+import { useMonriData } from "../use-monri-data";
 import { getDefaultPaymentMethod } from "../default-payment-method";
 
 export const Card = () => {
+    const settings = useMonriData();
+
     return <Fragment>
-        {decodeEntities(__('Pay with Monri Components', 'monri'))}
+        {decodeEntities(settings.description || '')}
     </Fragment>;
 };
 
