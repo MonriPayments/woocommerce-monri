@@ -230,9 +230,9 @@ class Monri_WC_Settings {
                 'default'     => 'after_payment',
                 'options'     => array(
                     'before_payment' => __( 'Before payment (create order in checkout)', 'monri' ),
-                    'after_payment'  => __( 'After payment (create order after checkout)', 'monri' ),
+                    'after_payment'  => __( 'After payment (create order after checkout) - deprecated', 'monri' ),
                 ),
-                'description' => __( 'Components require an order ID to initialize. Choose whether to create the order before or after payment.', 'monri' ),
+                'description' => __( 'Components require an order ID to initialize. Choose whether to create the order before or after payment. Creating the order after payment is deprecated, use before payment for new setups.', 'monri' ),
                 'desc_tip'    => true,
                 'custom_attributes' => [
                     'data-depends' => '{
