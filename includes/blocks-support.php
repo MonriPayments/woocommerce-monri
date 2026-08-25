@@ -32,7 +32,7 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 		$this->gateway  = $gateways[ $this->name ];
 
 		// load components.js on admin edit page to make components visible in checkout page builder
-		if (is_admin() && $this->gateway->get_adapter_id() === 'webpay_components') {
+		if (is_admin() && in_array($this->gateway->get_adapter_id(), ['webpay_components', 'webpay_components_new'])) {
 			add_action('enqueue_block_editor_assets', function () {
 				$script_url = $this->get_setting( 'test_mode' ) ?
 					Monri_WC_Gateway_Adapter_Webpay_Components::SCRIPT_ENDPOINT_TEST :
@@ -103,6 +103,10 @@ final class Monri_WC_Blocks_Support extends AbstractPaymentMethodType {
 
 		if ( $data['service'] === 'monri-web-pay' ) {
 			$data['integration_type'] = $this->get_setting( 'monri_web_pay_integration_type' );
+			if ( $data['integration_type'] === 'components' ) {
+				// Not get_setting(), that one does not know about the form field defaults.
+				$data['order_creation'] = Monri_WC_Settings::instance()->get_option( 'monri_web_pay_components_order_creation' );
+			}
 		}
 
 		// mostly for components config for now
