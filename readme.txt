@@ -51,6 +51,9 @@ You can find additional information regarding Monri payments on WooCommerce at
 You can find additional information regarding Privacy policy of Monri payments on WooCommerce at
 [Monri's privacy policy page](https://ipg.monri.com/en/privacy-policy).
 
+Setup guide for Monri Payments can be found at
+[Monri plugin website](https://raw.githubusercontent.com/MonriPayments/woocommerce-monri/refs/heads/master/Monri_woocommerce_postavke.pdf)
+
 == FAQ ==
 
 = What is Monri Payments? =
