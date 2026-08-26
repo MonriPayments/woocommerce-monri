@@ -106,7 +106,7 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 
 		$order->save();
 
-		return json_decode( $body, true )['client_secret'];
+		return json_decode( $body, true )['client_secret'] ?? '';
 	}
 
 	/**
