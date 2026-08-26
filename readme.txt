@@ -103,9 +103,12 @@ https://github.com/MonriPayments/woocommerce-monri
 
 == Changelog ==
 
-= 3.8.5 - 2026-x-x =
+= 3.9.1 - 2026-x-x =
 * Code quality improvements using static code analysis.
 * Bumped minimum required PHP to 7.4, in line with Woocommerce.
+
+= 3.9.0 - 2026-8-19 =
+* Added new Monri Components implementation where the order is created before payment
 
 = 3.8.4 - 2026-7-03 =
 * Fixed coding standards according to stricter new wp.org rules.
