@@ -497,9 +497,9 @@ class Monri_WC_Gateway_Adapter_Webpay_Components_New {
      * Capture order on Monri side
      *
      * @param int $order_id
-     * * @param string $from
-     * * @param string $to
-     * * @param WC_Order $wc_order
+     * @param string $from
+     * @param string $to
+     * @param WC_Order $wc_order
      *
      * @return void
      */
