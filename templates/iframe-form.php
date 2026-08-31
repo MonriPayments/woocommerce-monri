@@ -2,9 +2,9 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-/** @var $order WC_Order */
-/** @var $action string */
-/** @var $options array */
+/** @var WC_Order $order */
+/** @var string $action */
+/** @var array $options */
 ?>
 <!-- Monri iframe -->
 <iframe id="monri_payment_iframe" name="monri_payment_iframe" style="width:100%; height:100vh;"></iframe>

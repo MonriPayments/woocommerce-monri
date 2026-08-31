@@ -7,7 +7,7 @@ class Monri_WC_Settings {
 	const SETTINGS_KEY = 'woocommerce_monri_settings';
 
 	/**
-	 * @var Monri_WC_Settings
+	 * @var ?Monri_WC_Settings
 	 */
 	private static $instance;
 
@@ -18,7 +18,10 @@ class Monri_WC_Settings {
 		if ( is_null( self::$instance ) ) {
 			self::$instance = new self();
 		}
-		add_filter( 'woocommerce_settings_api_sanitized_fields_monri', [ self::$instance, 'modify_monri_sanitized_fields' ] );
+		add_filter(
+			'woocommerce_settings_api_sanitized_fields_monri',
+			[ self::$instance, 'modify_monri_sanitized_fields' ]
+		);
 
 		return self::$instance;
 	}

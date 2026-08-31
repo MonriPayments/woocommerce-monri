@@ -6,7 +6,7 @@ class Monri_WC_Api {
 	public const TEST_ENDPOINT = 'https://ipgtest.monri.com';
 
 	/**
-	 * @var Monri_WC_Api
+	 * @var ?Monri_WC_Api
 	 */
 	private static $instance;
 

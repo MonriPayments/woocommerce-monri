@@ -68,17 +68,16 @@ class Monri_WC_Installments_Fee {
 	 * @return void
 	 */
 	public function update_order_review( $posted_data ) {
-		parse_str( $posted_data, $posted_data );
+		parse_str( $posted_data, $posted_data_array );
 
-		if ( isset ( $posted_data['payment_method'] ) && $posted_data['payment_method'] !== 'monri' ) {
+		if ( isset ( $posted_data_array['payment_method'] ) && $posted_data_array['payment_method'] !== 'monri' ) {
 			unset ( WC()->session->monri_installments );
 
 			return;
 		}
 
-		/** @var array $posted_data */
-		if ( isset( $posted_data['monri-card-installments'] ) ) {
-			WC()->session->set( 'monri_installments', (int) $posted_data['monri-card-installments'] );
+		if ( isset( $posted_data_array['monri-card-installments'] ) ) {
+			WC()->session->set( 'monri_installments', (int) $posted_data_array['monri-card-installments'] );
 		}
 	}
 

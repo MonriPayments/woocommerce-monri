@@ -2,7 +2,7 @@
 
 class Monri_WC_Logger {
 	/**
-	 * @var WC_Logger
+	 * @var ?WC_Logger
 	 */
 	private static $log;
 

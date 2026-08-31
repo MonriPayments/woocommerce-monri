@@ -75,7 +75,7 @@ class Monri_WC_Callback {
 		$digest = hash( 'sha512', $merchant_key . $json );
 
 		// ... and comparing it with one from the headers.
-		if ( $digest !== $authorization ) {
+		if ( hash_equals($digest, $authorization) === false ) {
 			$this->error( 'Invalid Authorization header', $bad_request_header );
 		}
 
@@ -193,7 +193,7 @@ class Monri_WC_Callback {
 						'Token' => sanitize_text_field($payload['Token']),
 						'TokenNumber' => sanitize_text_field($payload['TokenNumber']),
 						'TokenExp' => sanitize_text_field($payload['ExpirationDate']),
-						'CreditCardName' => sanitize_text_field($payload['CreditCardName']) ?? null,
+						'CreditCardName' => sanitize_text_field($payload['CreditCardName'] ?? null),
 					];
 
 					$wspay = new Monri_WC_Gateway_Adapter_Wspay();
@@ -236,7 +236,8 @@ class Monri_WC_Callback {
 			$wspay_order_id;
 
 		$payload_signature = $payload['Signature'] ?? '';
-		return $payload_signature === hash( 'sha512', $signature );
+        $hashed_signature = hash( 'sha512', $signature );
+        return hash_equals( $payload_signature, $hashed_signature );
 	}
 
 	/**

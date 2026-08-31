@@ -1,0 +1,32 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: 3
+    phpVersion: 70400
+
+    paths:
+        - monri.php
+        - includes
+        - templates
+        - index.php
+
+    excludePaths:
+        analyse:
+            - assets/*
+            - blocks/*
+            - node_modules/*
+            - tasks/*
+            - vendor/*
+
+    bootstrapFiles:
+        - phpstan-bootstrap.php
+        - vendor/autoload.php
+        - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
+
+    scanDirectories:
+        - ../woocommerce/includes
+        - ../woocommerce/src
+
+    scanFiles:
+        - ../woocommerce/woocommerce.php

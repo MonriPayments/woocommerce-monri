@@ -70,11 +70,18 @@ class Monri_WC_Gateway extends WC_Payment_Gateway {
 		//
 
 		if ( is_admin() ) {
-			add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, [
-				$this,
-				'process_admin_options'
-			] );
+			add_action(
+				'woocommerce_update_options_payment_gateways_' . $this->id,
+				array( $this, 'process_admin_options_action' )
+			);
 		}
+	}
+
+	/**
+	 * Just calls $this->process_admin_options, but doesn't return anything, so it can be cleanly used in add_action().
+	 */
+	public function process_admin_options_action(): void {
+		$this->process_admin_options();
 	}
 
 	/**

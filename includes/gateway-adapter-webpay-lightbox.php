@@ -27,7 +27,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 
 		add_action( 'woocommerce_order_status_changed', array( $this, 'process_capture' ), null, 4 );
 		add_action( 'woocommerce_order_status_changed', array( $this, 'process_void' ), null, 4 );
-		add_action( 'woocommerce_receipt_' . $this->payment->id, array( $this, 'process_payment' ) );
+		add_action( 'woocommerce_receipt_' . $this->payment->id, array( $this, 'process_payment_action' ) );
 	}
 
 
@@ -132,6 +132,15 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		$order->save();
 
 		return $config;
+	}
+
+	/**
+	 * Does the same as $this->process_payment, but doesn't return anything, so it can be cleanly used in add_action().
+	 *
+	 * @throws Exception
+	 */
+	public function process_payment_action( $order_id ): void {
+		$this->process_payment( $order_id );
 	}
 
 	/**
@@ -329,39 +338,38 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 	 * @param $order_id
 	 * @param string   $from
 	 * @param string   $to
-	 *
-	 * @return bool
+	 * @param WC_Order $wc_order
 	 */
-	public function process_capture( $order_id, $from, $to ) {
+	public function process_capture( $order_id, $from, $to, $wc_order ): void {
 
 		if ( ! ( in_array( $from, array( 'pending', 'on-hold' ) ) && in_array( $to, wc_get_is_paid_statuses() ) ) ) {
-			return false;
+			return;
 		}
 		$order          = wc_get_order( $order_id );
 		if ($order->get_payment_method() !== $this->payment->id ) {
-			return false;
+			return;
 		}
 
 		$monri_order_id = $order->get_meta( 'monri_order_number' );
 		if ( empty( $monri_order_id ) ) {
-			return false;
+			return;
 		}
 		$currency = $order->get_currency();
-		$amount   = $order->get_total() - $order->get_total_refunded();
+		$amount   = $order->get_total() - (float)$order->get_total_refunded();
 
 		if ( $amount < 0.01 ) {
-			return false;
+			return;
 		}
 
 		$response           = Monri_WC_Api::instance()->capture( $monri_order_id, $amount * 100, $currency );
-		$formatted_response = json_decode( json_encode( $response ), true );
+		$formatted_response = json_decode( wp_json_encode( $response ), true );
 		if ( is_wp_error( $response ) || ! ( isset( $formatted_response['response-code'] ) && $formatted_response['response-code'] === '0000' ) ) {
 			Monri_WC_Logger::log( $formatted_response, __METHOD__ );
 			$order->add_order_note(
-				sprintf( __( 'There was an error submitting the capture to Monri.', 'monri' ) )
+				__( 'There was an error submitting the capture to Monri.', 'monri' )
 			);
 
-			return false;
+			return;
 		}
 
 		$order->payment_complete( $monri_order_id );
@@ -372,8 +380,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 				wc_price( $amount, array( 'currency' => $order->get_currency() ) )
 			)
 		);
-
-		return true;
 	}
 
 	/**
@@ -382,39 +388,38 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 	 * @param $order_id
 	 * @param string   $from
 	 * @param string   $to
-	 *
-	 * @return bool
+	 * @param WC_Order $wc_order
 	 */
-	public function process_void( $order_id, $from, $to ) {
+	public function process_void( $order_id, $from, $to, $wc_order ): void {
 
 		if ( ! ( in_array( $from, array( 'pending', 'on-hold' ) ) && in_array( $to, array( 'cancelled', 'failed' ) ) ) ) {
-			return false;
+			return;
 		}
 
 		$order          = wc_get_order( $order_id );
 		if ($order->get_payment_method() !== $this->payment->id ) {
-			return false;
+			return;
 		}
 
 		$monri_order_id = $order->get_meta( 'monri_order_number' );
 		if ( empty( $monri_order_id ) ) {
-			return false;
+			return;
 		}
-		$amount   = $order->get_total() - $order->get_total_refunded();
+		$amount   = $order->get_total() - (float)$order->get_total_refunded();
 		$currency = $order->get_currency();
 		if ( $amount < 0.01 ) {
-			return false;
+			return;
 		}
 
 		$response           = Monri_WC_Api::instance()->void( $monri_order_id, $amount * 100, $currency );
-		$formatted_response = json_decode( json_encode( $response ), true );
+		$formatted_response = json_decode( wp_json_encode( $response ), true );
 		if ( is_wp_error( $response ) || ! ( isset( $formatted_response['response-code'] ) && $formatted_response['response-code'] === '0000' ) ) {
 			Monri_WC_Logger::log( $formatted_response, __METHOD__ );
 			$order->add_order_note(
-				sprintf( __( 'There was an error submitting the void to Monri.', 'monri' ) )
+				__( 'There was an error submitting the void to Monri.', 'monri' )
 			);
 
-			return false;
+			return;
 		}
 
 		$order->add_order_note(
@@ -424,7 +429,5 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 				wc_price( $amount, array( 'currency' => $order->get_currency() ) )
 			)
 		);
-
-		return true;
 	}
 }

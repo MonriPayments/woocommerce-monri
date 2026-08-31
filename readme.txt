@@ -2,9 +2,9 @@
 Contributors: monripayments
 Tags: monri, woocommerce, payment gateway, credit card payments, online payments, croatia, wspay, keks pay, apple pay, google pay, installments
 Requires at least: 5.3
-Tested up to: 7.0.4
-Requires PHP: 7.3
-Stable tag: 3.9.0
+Tested up to: 7.1
+Requires PHP: 7.4
+Stable tag: 3.9.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Description: Monri Payments Gateway for WooCommerce
@@ -102,6 +102,11 @@ You can find more details about the development of this plugin at:
 https://github.com/MonriPayments/woocommerce-monri
 
 == Changelog ==
+
+= 3.9.1 - 2026-8-31 =
+* Code quality improvements using static code analysis.
+* Bumped minimum required PHP to 7.4, in line with Woocommerce.
+* Security improvements.
 
 = 3.9.0 - 2026-8-19 =
 * Added new Monri Components implementation where the order is created before payment
