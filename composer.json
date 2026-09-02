@@ -22,7 +22,7 @@
     "yoast/phpunit-polyfills": "^2.0 || ^3.0 || ^4.0",
     "brain/monkey": "^2.6",
     "mockery/mockery": "^1.6",
-    "wp-phpunit/wp-phpunit": "^6.0"
+    "wp-phpunit/wp-phpunit": "7.1.0"
   },
   "require": {
     "ext-json": "*"
