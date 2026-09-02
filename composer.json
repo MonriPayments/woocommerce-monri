@@ -17,7 +17,7 @@
   "require-dev": {
     "phpstan/phpstan": "2.2.5",
     "szepeviktor/phpstan-wordpress": "v2.0.3",
-    "php-stubs/woocommerce-stubs": "v10.9.4",
+    "php-stubs/woocommerce-stubs": "v11.0.0",
     "phpunit/phpunit": "^9.6",
     "yoast/phpunit-polyfills": "^2.0 || ^3.0 || ^4.0",
     "brain/monkey": "^2.6",
