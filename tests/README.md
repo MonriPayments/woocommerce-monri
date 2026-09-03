@@ -8,6 +8,7 @@ This directory contains the automated test suite for the Monri Payments WooComme
 
 | Suite | Runner / Framework | Database Required | Execution Speed | Primary Purpose |
 |---|---|---|---|---|
+| **Blocks (JS)** | Jest (`wp-scripts test-unit-js`) | ❌ No | Fast (~0.9s) | WooCommerce checkout blocks, payment method registration, components, tokenization, and cart store listeners. |
 | **Unit** | PHPUnit + Brain Monkey + Mockery | ❌ No | Fast (~0.2s) | Pure business logic, algorithms, cryptographic digests, fee calculation, webhook validation, and isolated class behaviors without external dependencies. |
 | **Integration** | PHPUnit + `wp-phpunit` (`WP_UnitTestCase`) |  Yes (MySQL) | Moderate (~1s) | WordPress and WooCommerce lifecycle, database persistence, options management, custom payment tokens, and order state transitions. |
 
@@ -59,6 +60,16 @@ composer test:integration
 ### 5. Run a Specific Test Method
 ```bash
 ./vendor/bin/phpunit --filter test_resolve_real_order_id
+```
+
+### 6. Run JavaScript Blocks Unit Tests
+Executes Jest unit tests covering JavaScript modules in `/blocks`:
+```bash
+npm test
+# or with coverage
+npm test -- --coverage
+# or in watch mode
+npm run test:watch
 ```
 
 ---
