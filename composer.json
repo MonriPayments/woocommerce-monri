@@ -1,11 +1,38 @@
 {
+  "name": "monri/monri-woocommerce",
+  "description": "Monri Payments WooCommerce plugin",
+  "license": "GPL-3.0-or-later",
+  "type": "wordpress-plugin",
+  "autoload": {
+    "classmap": [
+      "includes/"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Monri\\Tests\\": "tests/"
+    }
+  },
   "minimum-stability": "stable",
   "require-dev": {
     "phpstan/phpstan": "2.2.5",
     "szepeviktor/phpstan-wordpress": "v2.0.3",
-    "php-stubs/woocommerce-stubs": "v10.9.4"
+    "php-stubs/woocommerce-stubs": "v11.0.0",
+    "phpunit/phpunit": "^9.6",
+    "yoast/phpunit-polyfills": "^2.0 || ^3.0 || ^4.0",
+    "brain/monkey": "^2.6",
+    "mockery/mockery": "^1.6",
+    "wp-phpunit/wp-phpunit": "7.1.0"
   },
   "require": {
     "ext-json": "*"
+  },
+  "scripts": {
+    "test": [
+      "@test:unit",
+      "@test:integration"
+    ],
+    "test:unit": "phpunit --testsuite unit",
+    "test:integration": "phpunit --testsuite integration"
   }
 }

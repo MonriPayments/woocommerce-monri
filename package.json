@@ -11,7 +11,9 @@
     "pack": "npm run build && npm run make:release",
     "bump-version": "bash tasks/bump-version.sh",
     "publish": "bash tasks/publish.sh",
-    "release": "npm run pack && npm run publish"
+    "release": "npm run pack && npm run publish",
+    "test": "wp-scripts test-unit-js",
+    "test:watch": "wp-scripts test-unit-js --watch"
   },
   "author": "",
   "license": "ISC",
@@ -20,12 +22,15 @@
   },
   "homepage": "https://github.com/favicode/woocommerce-monri#readme",
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@woocommerce/dependency-extraction-webpack-plugin": "^2.3.0",
+    "@wordpress/html-entities": "^4.54.0",
+    "@wordpress/i18n": "^6.27.0",
     "@wordpress/scripts": "^30.19.0",
     "archiver": "^6.0.1",
     "colors": "^1.4.0",
-    "shelljs": "^0.8.5",
     "rimraf": "^5.0.5",
+    "shelljs": "^0.8.5",
     "webpack": "^5.100.0"
   }
 }

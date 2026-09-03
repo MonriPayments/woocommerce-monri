@@ -6,3 +6,6 @@ vendor/
 
 /assets/js/blocks/*
 /release
+coverage/
+.phpunit.cache/
+.phpunit.result.cache
