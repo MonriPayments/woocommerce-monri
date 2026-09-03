@@ -1,6 +1,5 @@
 import { getDefaultPaymentMethod } from '../../../blocks/integration/default-payment-method';
 import { __setSettings, __resetSettings } from '@woocommerce/settings';
-import { decodeEntities } from '@wordpress/html-entities';
 
 describe('blocks/integration/default-payment-method.js', () => {
     beforeEach(() => {
@@ -42,14 +41,13 @@ describe('blocks/integration/default-payment-method.js', () => {
     it('decodes HTML entities in the title', () => {
         __setSettings({
             monri_data: {
-                title: 'Pay &amp; Go',
+                title: 'Pay &amp; Go &#039;Fast&#039;',
                 supports: ['products'],
             },
         });
 
         const method = getDefaultPaymentMethod();
 
-        expect(decodeEntities).toHaveBeenCalledWith('Pay &amp; Go');
-        expect(method.label).toBe('Pay & Go');
+        expect(method.label).toBe("Pay & Go 'Fast'");
     });
 });

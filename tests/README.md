@@ -107,6 +107,13 @@ tests/
 ├── README.md                      # This documentation
 ├── bootstrap.php                  # Main test suite router & unit test bootstrap
 ├── stubs.php                      # WordPress/WooCommerce stubs for isolated unit testing
+├── blocks/                        # JavaScript Checkout Blocks Jest Test Suite
+│   ├── setup-globals.js           # Browser globals & React Act environment setup
+│   ├── mocks/                     # WooCommerce & WordPress dependency mocks
+│   ├── data.test.js               # Settings & data layer tests
+│   ├── monri.test.js              # Base checkout block integration tests
+│   ├── registration.test.js       # Payment method block registration tests
+│   └── integration/               # WebPay, WSPay, & Additional payment component tests
 ├── Unit/                          # Isolated Unit Test Suite
 │   ├── TestCase.php               # Base unit test case (Brain Monkey & Mockery setup/teardown)
 │   ├── UtilsTest.php              # Monri_WC_Utils tests
