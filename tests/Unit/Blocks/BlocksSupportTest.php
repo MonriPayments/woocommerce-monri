@@ -87,10 +87,10 @@ class BlocksSupportTest extends TestCase {
 	}
 
 	/**
-	 * @covers Monri_WC_Components_Apple_Pay_Blocks_Support
-	 * @covers Monri_WC_Components_Google_Pay_Blocks_Support
-	 * @covers Monri_WC_Components_Keks_Pay_Blocks_Support
-	 * @covers Monri_WC_Components_Pay_Cek_Blocks_Support
+	 * @covers Monri_WC_Components_Apple_Pay_Blocks_Support::initialize
+	 * @covers Monri_WC_Components_Google_Pay_Blocks_Support::initialize
+	 * @covers Monri_WC_Components_Keks_Pay_Blocks_Support::initialize
+	 * @covers Monri_WC_Components_Pay_Cek_Blocks_Support::initialize
 	 */
 	public function test_component_blocks_support_classes(): void {
 		$this->set_plugin_settings( [

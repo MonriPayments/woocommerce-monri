@@ -22,8 +22,14 @@ class WebpayLightboxAdapterTest extends TestCase {
 		$adapter->init( $gateway );
 
 		$this->assertSame( 'webpay_lightbox', Monri_WC_Gateway_Adapter_Webpay_Lightbox::ADAPTER_ID );
-		$this->assertSame( 'https://ipgtest.monri.com/dist/lightbox.js', Monri_WC_Gateway_Adapter_Webpay_Lightbox::ENDPOINT_TEST );
-		$this->assertSame( 'https://ipg.monri.com/dist/lightbox.js', Monri_WC_Gateway_Adapter_Webpay_Lightbox::ENDPOINT );
+		$this->assertSame(
+			'https://ipgtest.monri.com/dist/lightbox.js',
+			Monri_WC_Gateway_Adapter_Webpay_Lightbox::ENDPOINT_TEST
+		);
+		$this->assertSame(
+			'https://ipg.monri.com/dist/lightbox.js',
+			Monri_WC_Gateway_Adapter_Webpay_Lightbox::ENDPOINT
+		);
 		$this->assertSame( [ 'products', 'refunds' ], $adapter->supports );
 	}
 

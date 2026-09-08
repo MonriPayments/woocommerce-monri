@@ -3,6 +3,8 @@
 namespace Monri\Tests\Unit;
 
 use Monri_WC_Settings;
+use ReflectionProperty;
+use Throwable;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase as PolyfillTestCase;
 use Brain\Monkey;
 use Mockery;
@@ -22,6 +24,7 @@ abstract class TestCase extends PolyfillTestCase {
 
 	/**
 	 * Tear down the mock environment after each test and reset singletons.
+	 * @throws Throwable
 	 */
 	protected function tear_down(): void {
 		Monkey\tearDown();
@@ -35,7 +38,7 @@ abstract class TestCase extends PolyfillTestCase {
 	 */
 	protected function reset_singletons(): void {
 		if ( class_exists( '\Monri_WC_Settings' ) ) {
-			$ref = new \ReflectionProperty( Monri_WC_Settings::class, 'instance' );
+			$ref = new ReflectionProperty( Monri_WC_Settings::class, 'instance' );
 			if ( PHP_VERSION_ID < 80100 ) {
 				$ref->setAccessible( true );
 			}
@@ -43,7 +46,7 @@ abstract class TestCase extends PolyfillTestCase {
 		}
 
 		if ( class_exists( '\Monri_WC_Api' ) ) {
-			$ref = new \ReflectionProperty( \Monri_WC_Api::class, 'instance' );
+			$ref = new ReflectionProperty( \Monri_WC_Api::class, 'instance' );
 			if ( PHP_VERSION_ID < 80100 ) {
 				$ref->setAccessible( true );
 			}
@@ -51,7 +54,7 @@ abstract class TestCase extends PolyfillTestCase {
 		}
 
 		if ( class_exists( '\Monri_WSPay_WC_Api' ) ) {
-			$ref = new \ReflectionProperty( \Monri_WSPay_WC_Api::class, 'instance' );
+			$ref = new ReflectionProperty( \Monri_WSPay_WC_Api::class, 'instance' );
 			if ( PHP_VERSION_ID < 80100 ) {
 				$ref->setAccessible( true );
 			}
@@ -59,7 +62,7 @@ abstract class TestCase extends PolyfillTestCase {
 		}
 
 		if ( class_exists( '\Monri_WC_Logger' ) ) {
-			$ref = new \ReflectionProperty( \Monri_WC_Logger::class, 'log' );
+			$ref = new ReflectionProperty( \Monri_WC_Logger::class, 'log' );
 			if ( PHP_VERSION_ID < 80100 ) {
 				$ref->setAccessible( true );
 			}
