@@ -49,11 +49,13 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 			$currency = 'BAM';
 		}
 
+		$transaction_type = $this->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase';
+
 		$data = array(
 			'amount'           => $amount_in_minor_units,
 			'order_number'     => $order_id,
 			'currency'         => $currency,
-			'transaction_type' => $this->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
+			'transaction_type' => $transaction_type,
 			'order_info'       => 'woocommerce order',
 			'ip'               => $order->get_customer_ip_address(),
 		);
@@ -99,6 +101,7 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 		$body = wp_remote_retrieve_body( $response );
 
 		$order->update_meta_data( 'monri_order_number', $order_id );
+		$order->update_meta_data( 'monri_transaction_type', $transaction_type );
 		//used when checking if current user has permission to get status of this order
 		$order_hash = wp_generate_uuid4();
 		$order->update_meta_data('order_access_hash', $order_hash);
