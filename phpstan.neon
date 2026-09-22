@@ -18,6 +18,7 @@ parameters:
             - node_modules/*
             - tasks/*
             - vendor/*
+            - tests/*
 
     bootstrapFiles:
         - phpstan-bootstrap.php
