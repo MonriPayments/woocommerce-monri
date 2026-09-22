@@ -203,11 +203,13 @@ class Monri_WC_Gateway_Adapter_Webpay_Components_New {
             $currency = 'BAM';
         }
 
+        $transaction_type = $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase';
+
         $data = [
             'amount'           => $amount_in_minor_units,
             'order_number'     => $order_id,
             'currency'         => $currency,
-            'transaction_type' => $this->payment->get_option_bool( 'transaction_type' ) ? 'authorize' : 'purchase',
+            'transaction_type' => $transaction_type,
             'order_info'       => 'woocommerce order',
             'ip'               => $order->get_customer_ip_address(),
         ];
@@ -261,6 +263,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components_New {
         $body = wp_remote_retrieve_body( $response );
 
         $order->update_meta_data( 'monri_order_number', $order_id );
+        $order->update_meta_data( 'monri_transaction_type', $transaction_type );
         $order->save();
 
         return json_decode( $body, true )['client_secret'] ?? '';

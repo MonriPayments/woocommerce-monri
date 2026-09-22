@@ -91,13 +91,14 @@ class Monri_WC_Callback {
 		}
 
 		$order_number = $payload['order_number'];
-		if ( Monri_WC_Settings::instance()->get_option( 'test_mode' ) ) {
-			$order_number = Monri_WC_Utils::resolve_real_order_id( $order_number );
+		$order        = $this->resolve_webpay_order( $order_number );
+
+		if ( ! $order ) {
+			$message = sprintf( 'Order ID: %s not found or does not exist.', $order_number );
+			$this->error( $message, array( 404, 'Not Found' ) );
 		}
 
 		try {
-			$order = wc_get_order( $order_number );
-
 			if ( $order->get_status() !== 'pending' ) {
 				return;
 			}
@@ -120,6 +121,52 @@ class Monri_WC_Callback {
 			$message = sprintf( 'Order ID: %s not found or does not exist.', $order_number );
 			$this->error( $message, array( 404, 'Not Found' ) );
 		}
+	}
+
+	/**
+	 * @param string $order_number
+	 *
+	 * @return WC_Order|false
+	 */
+	private function resolve_webpay_order( $order_number ) {
+		$settings = Monri_WC_Settings::instance();
+
+		// Mirrors the adapter dispatch in Monri_WC_Gateway::__construct().
+		$is_legacy_components =
+			$settings->get_option( 'monri_web_pay_integration_type' ) === 'components' &&
+			$settings->get_option( 'monri_web_pay_components_order_creation' ) !== 'before_payment';
+
+        // Look up all orders and find the one which has the correct monri_order_number
+		if ( $is_legacy_components ) {
+			$orders = wc_get_orders( array(
+				'limit'      => 1,
+				'status'     => 'any',
+				'meta_query' => array(
+					array(
+						'key'     => 'monri_order_number',
+						'value'   => sanitize_key( $order_number ),
+						'compare' => '=',
+					),
+				),
+			) );
+
+			if ( ! empty( $orders ) ) {
+				return reset( $orders );
+			}
+
+			Monri_WC_Logger::log(
+				sprintf( 'No order carries monri_order_number %s yet.', $order_number ),
+				__METHOD__
+			);
+
+			return false;
+		}
+
+		if ( $settings->get_option( 'test_mode' ) ) {
+			$order_number = Monri_WC_Utils::resolve_real_order_id( $order_number );
+		}
+
+		return wc_get_order( $order_number );
 	}
 
 	/**
