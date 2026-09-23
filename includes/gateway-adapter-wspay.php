@@ -190,6 +190,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$cancel_url            = str_replace( '&amp;', '&', $order->get_cancel_order_url() );
 		$req['returnErrorURL'] = $cancel_url;
 		$req['cancelURL']      = $cancel_url;
+        $req['returnMethod']   = 'POST';
 
 		$req['version']           = '2.0';
 		$req['customerFirstName'] = $order->get_billing_first_name();
@@ -252,11 +253,11 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return;
 		}
 
-		if ( empty( $_GET['ShoppingCartID'] ) || empty( $_GET['Signature'] ) ) {
+		if ( empty( $_POST['ShoppingCartID'] ) || empty( $_POST['Signature'] ) ) {
 			return;
 		}
 
-		$order_id = sanitize_text_field( $_GET['ShoppingCartID'] );
+		$order_id = sanitize_text_field( $_POST['ShoppingCartID'] );
 
 		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
 			$order_id = Monri_WC_Utils::resolve_real_order_id( $order_id );
@@ -272,7 +273,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	 */
 	public function process_return( $order_id ) {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
-		if ( ! isset( $_GET['ShoppingCartID'] ) ) {
+		if ( ! isset( $_POST['ShoppingCartID'] ) ) {
 			return;
 		}
 
@@ -281,9 +282,9 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return;
 		}
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r -- Logging stuff, this is needed.
-		Monri_WC_Logger::log( "Response data: " . sanitize_textarea_field( print_r( $_GET, true ) ), __METHOD__ );
+		Monri_WC_Logger::log( "Response data: " . sanitize_textarea_field( print_r( $_POST, true ) ), __METHOD__ );
 
-		$requested_order_id = sanitize_text_field( $_GET['ShoppingCartID'] );
+		$requested_order_id = sanitize_text_field( $_POST['ShoppingCartID'] );
 		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
 			$requested_order_id = Monri_WC_Utils::resolve_real_order_id( $order_id );
 		}
@@ -305,8 +306,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return;
 		}
 
-		$success       = ( isset( $_GET['Success'] ) && $_GET['Success'] === '1' ) ? '1' : '0';
-		$approval_code = ! empty( $_GET['ApprovalCode'] ) ? sanitize_text_field( $_GET['ApprovalCode'] ) : '';
+		$success       = ( isset( $_POST['Success'] ) && $_POST['Success'] === '1' ) ? '1' : '0';
+		$approval_code = ! empty( $_POST['ApprovalCode'] ) ? sanitize_text_field( $_POST['ApprovalCode'] ) : '';
 
 		$trx_authorized = ( $success === '1' ) && ! empty( $approval_code );
 
@@ -316,8 +317,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			// save transaction info
 			$transaction_data = [];
 			foreach ( array_keys( $this->transaction_info_map ) as $key ) {
-				if ( isset( $_GET[ $key ] ) ) {
-					$transaction_data[ $key ] = sanitize_text_field( $_GET[ $key ] );
+				if ( isset( $_POST[ $key ] ) ) {
+					$transaction_data[ $key ] = sanitize_text_field( $_POST[ $key ] );
 				}
 			}
 			$order->update_meta_data( '_monri_transaction_info', $transaction_data );
@@ -337,8 +338,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			if ( $this->tokenization_enabled() && $order->get_user_id() ) {
 				$token_data = [];
 				foreach ( [ 'Token', 'TokenNumber', 'TokenExp', 'PaymentType', 'CreditCardName' ] as $key ) {
-					if ( isset( $_GET[ $key ] ) ) {
-						$token_data[ $key ] = sanitize_text_field( $_GET[ $key ] );
+					if ( isset( $_POST[ $key ] ) ) {
+						$token_data[ $key ] = sanitize_text_field( $_POST[ $key ] );
 					}
 				}
 				$this->save_user_token( $order->get_user_id(), $token_data );
@@ -370,14 +371,14 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	 */
 	private function validate_return() {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
-		if ( ! isset( $_GET['ShoppingCartID'], $_GET['Signature'] ) ) {
+		if ( ! isset( $_POST['ShoppingCartID'], $_POST['Signature'] ) ) {
 			return false;
 		}
 
-		$order_id      = sanitize_text_field( $_GET['ShoppingCartID'] );
-		$digest        = Monri_WC_Utils::sanitize_hash( $_GET['Signature'] );
-		$success       = ( isset( $_GET['Success'] ) && $_GET['Success'] === '1' ) ? '1' : '0';
-		$approval_code = isset( $_GET['ApprovalCode'] ) ? sanitize_text_field( $_GET['ApprovalCode'] ) : '';
+		$order_id      = sanitize_text_field( $_POST['ShoppingCartID'] );
+		$digest        = Monri_WC_Utils::sanitize_hash( $_POST['Signature'] );
+		$success       = ( isset( $_POST['Success'] ) && $_POST['Success'] === '1' ) ? '1' : '0';
+		$approval_code = isset( $_POST['ApprovalCode'] ) ? sanitize_text_field( $_POST['ApprovalCode'] ) : '';
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 		$shop_id    = $this->shop_id;
 		$secret_key = $this->secret;
