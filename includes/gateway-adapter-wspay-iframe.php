@@ -146,7 +146,7 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 
 		$req['signature'] = $this->sign_transaction( $order_id, $amount );
 
-		$req['returnURL']      = $order->get_checkout_order_received_url();
+		$req['returnURL']      = WC()->api_request_url( self::RETURN_ENDPOINT );
 		$cancel_url            = str_replace( '&amp;', '&', $order->get_cancel_order_url() );
 		$req['returnErrorURL'] = $cancel_url;
 		$req['cancelURL']      = $cancel_url;
