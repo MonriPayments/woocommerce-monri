@@ -11,11 +11,6 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	public const ENDPOINT = 'https://form.wspay.biz';
 
 	/**
-	 * WC API endpoint (wc-api) handling the return leg from WSPay.
-	 */
-	public const RETURN_ENDPOINT = 'monri_wspay_return';
-
-	/**
 	 * @var Monri_WC_Gateway
 	 */
 	protected $payment;
@@ -76,7 +71,6 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			}, 0, 2 );
 		}
 
-		add_action( 'woocommerce_api_' . self::RETURN_ENDPOINT, [ $this, 'handle_return' ] );
 		add_action( 'template_redirect', [ $this, 'process_return_on_summary' ] );
 		add_action( 'woocommerce_thankyou_monri', [ $this, 'thankyou_page' ] );
 		add_action( 'woocommerce_order_status_changed', [ $this, 'process_capture' ], null, 3 );
@@ -191,7 +185,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$req['totalAmount'] = $amount;
 
 		$req['signature'] = $this->sign_transaction( $order_id, $amount );
-		$req['returnURL']      = WC()->api_request_url( self::RETURN_ENDPOINT );
+
+		$req['returnURL']      = $order->get_checkout_order_received_url();
 		$cancel_url            = str_replace( '&amp;', '&', $order->get_cancel_order_url() );
 		$req['returnErrorURL'] = $cancel_url;
 		$req['cancelURL']      = $cancel_url;
@@ -249,44 +244,15 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	}
 
 	/**
-	 * Handle the return leg on our own wc-api endpoint.
-	 *
-	 * WSPay posts here cross-site, so browsers enforcing SameSite=Lax withhold this site's
-	 * cookies. Nothing is processed here - the parameters are re-posted to the thank you page
-	 * from a form on our own domain, which makes that request same-site so the session and login
-	 * cookies are sent and Monri_WC_Gateway_Adapter_Wspay::process_return_on_summary() can run
-	 * with the customer's session intact.
-	 *
-	 * @return void
-	 */
-	public function handle_return() {
-		$order_id = sanitize_text_field( $_POST['ShoppingCartID'] );
-
-		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
-			$order_id = Monri_WC_Utils::resolve_real_order_id( $order_id );
-		}
-
-		$order = wc_get_order( $order_id );
-
-		if ( ! $order || $order->get_payment_method() !== $this->payment->id ) {
-			wp_safe_redirect( wc_get_cart_url() );
-			exit;
-		}
-
-		wc_get_template( 'wspay-return-form.php', [
-			'action' => $order->get_checkout_order_received_url(),
-			'params' => wp_unslash( $_POST ),
-		], basename( MONRI_WC_PLUGIN_PATH ), MONRI_WC_PLUGIN_PATH . 'templates/' );
-
-		// wc-api buffers output and discards it; exiting here flushes the template instead.
-		exit;
-	}
-
-	/**
 	 * Process return when landing on the order-received page.
 	 *
 	 * Reached by the form in templates/wspay-return-form.php, which re-posts the WSPay parameters
 	 * from our own domain so this request carries the customer's cookies.
+	 *
+	 * WSPay returns via POST. The POST request processes the transaction but does not touch
+	 * the cart - the session cookie is not guaranteed to be sent on a cross-site POST - and
+	 * then redirects back to the same order-received url as a plain GET, where the cart is
+	 * emptied.
 	 *
 	 * @return void
 	 */
@@ -295,6 +261,13 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return;
 		}
 
+		if ( ! $this->is_post_return() ) {
+            WC()->cart->empty_cart();
+
+			return;
+		}
+
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		if ( empty( $_POST['ShoppingCartID'] ) || empty( $_POST['Signature'] ) ) {
 			return;
 		}
@@ -306,7 +279,28 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		}
 
 		$this->process_return( $order_id );
+
+		$order = wc_get_order( $order_id );
+
+		if ( ! $order ) {
+			return;
+		}
+
+		// redirect to the same page as GET, where the cart gets emptied
+		wp_safe_redirect( $order->get_checkout_order_received_url() );
+		exit;
 	}
+
+	/**
+	 * Is this request the WSPay POST return?
+	 *
+	 * @return bool
+	 */
+	private function is_post_return() {
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Compared against a literal, as in WP core.
+		return isset( $_SERVER['REQUEST_METHOD'] ) && strtoupper( $_SERVER['REQUEST_METHOD'] ) === 'POST';
+	}
+
 
 	/**
 	 * @param int $order_id
@@ -373,8 +367,6 @@ class Monri_WC_Gateway_Adapter_Wspay {
 
 
 			$order->add_order_note( __( 'Monri payment successful<br/>Approval code: ', 'monri' ) . $approval_code );
-
-			WC()->cart->empty_cart();
 
 			// save token if needed
 			if ( $this->tokenization_enabled() && $order->get_user_id() ) {
