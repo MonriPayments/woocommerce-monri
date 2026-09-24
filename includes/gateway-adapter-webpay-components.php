@@ -68,7 +68,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 
 				// Else we hide Monri saved payment options on checkout
 				return array_filter( $tokens, function( $token ) {
-					return $token->get_type() !== 'Monri_Webpay';
+					return $token->get_gateway_id() !== $this->payment->id;
 				});
 			}, 10, 3);
 
@@ -562,7 +562,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		$ccType = $data['brand'] ?? null;
 		$wc_token->set_card_type( $ccType );
 
-		$expiration_year = substr( $data['expiration_date'], 0, 2 );
+		// expiration_date is YYMM; WC_Payment_Token_CC::validate() requires a YYYY year.
+		$expiration_year = '20' . substr( $data['expiration_date'], 0, 2 );
 		$expiration_month = substr( $data['expiration_date'], 2, 2 );
 
 		$wc_token->set_expiry_month( $expiration_month );

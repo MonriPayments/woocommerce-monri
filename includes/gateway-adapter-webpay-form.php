@@ -52,6 +52,22 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 				return $value;
 			}, 0, 2 );
+
+			// These tokens have no expiry date, and WooCommerce's credit card
+			// handler renders that as a bare '/'. Keep its "N/A" placeholder.
+			// Runs after wc_get_account_saved_payment_methods_list_item_cc().
+			add_filter( 'woocommerce_payment_methods_list_item', function ( $item, $token ) {
+				if ( ! $token instanceof WC_Payment_Token_CC || $token->get_gateway_id() !== $this->payment->id ) {
+					return $item;
+				}
+
+				// A missing month reads back as '00': set_expiry_month() pads it.
+				if ( ! (int) $token->get_expiry_month() || ! (int) $token->get_expiry_year() ) {
+					$item['expires'] = __( 'N/A', 'monri' );
+				}
+
+				return $item;
+			}, 20, 2 );
 		}
 	}
 

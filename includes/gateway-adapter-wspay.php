@@ -454,7 +454,8 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		$wc_token->set_last4( $data['TokenNumber'] );
 		$ccType = $data['PaymentType'] ?? ( $data['CreditCardName'] ?? '' );
 		$wc_token->set_card_type( $ccType );
-		$wc_token->set_expiry_year( substr( $data['TokenExp'], 0, 2 ) );
+		// TokenExp is YYMM; WC_Payment_Token_CC::validate() requires a YYYY year.
+		$wc_token->set_expiry_year( '20' . substr( $data['TokenExp'], 0, 2 ) );
 		$wc_token->set_expiry_month( substr( $data['TokenExp'], 2, 2 ) );
 
 		$wc_token->save();

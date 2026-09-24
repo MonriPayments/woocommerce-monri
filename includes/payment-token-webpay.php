@@ -1,11 +1,11 @@
 <?php
 
-class Monri_WC_Payment_Token_Webpay extends WC_Payment_Token {
+class Monri_WC_Payment_Token_Webpay extends WC_Payment_Token_CC {
 
 	/**
 	 * @var string Token Type String
 	 */
-	protected $type = 'Monri_Webpay';
+	protected $type = 'CC';
 
 	/**
 	 * Stores payment token data.
@@ -120,5 +120,34 @@ class Monri_WC_Payment_Token_Webpay extends WC_Payment_Token {
 	 */
 	public function set_expiry_month( $month ) {
 		$this->set_prop( 'expiry_month', str_pad( $month, 2, '0', STR_PAD_LEFT ) );
+	}
+
+	/**
+	 * Validate the token without requiring an expiry date.
+	 *
+	 * The WebPay form/lightbox return carries only cc_type, masked_pan and
+	 * pan_token — Monri sends no expiry date at all — so WC_Payment_Token_CC's
+	 * MM/YYYY requirement can never be satisfied there, and the data store
+	 * throws on an invalid token. Everything else is still checked.
+	 *
+	 * Note this deliberately skips WC_Payment_Token_CC::validate() rather than
+	 * calling parent::validate(), which is the check being relaxed.
+	 *
+	 * @return bool
+	 */
+	public function validate() {
+		if ( false === WC_Payment_Token::validate() ) {
+			return false;
+		}
+
+		if ( ! $this->get_last4( 'edit' ) ) {
+			return false;
+		}
+
+		if ( ! $this->get_card_type( 'edit' ) ) {
+			return false;
+		}
+
+		return true;
 	}
 }

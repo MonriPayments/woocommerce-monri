@@ -1,11 +1,11 @@
 <?php
 
-class Monri_WC_Payment_Token_Wspay extends WC_Payment_Token {
+class Monri_WC_Payment_Token_Wspay extends WC_Payment_Token_CC {
 
 	/**
 	 * @var string Toke Type String
 	 */
-	protected $type = 'Monri_Wspay';
+	protected $type = 'CC';
 
 	/**
 	 * Stores payment token data.
