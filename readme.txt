@@ -4,7 +4,7 @@ Tags: monri, woocommerce, payment gateway, credit card payments, online payments
 Requires at least: 5.3
 Tested up to: 7.1.1
 Requires PHP: 7.4
-Stable tag: 3.9.2
+Stable tag: 3.9.3
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Description: Monri Payments Gateway for WooCommerce
@@ -105,6 +105,10 @@ You can find more details about the development of this plugin at:
 https://github.com/MonriPayments/woocommerce-monri
 
 == Changelog ==
+
+= 3.9.3 - 2026-10-2 =
+* Modified WSPay success request type to POST request
+* Updated translations on old WooCommerce checkout
 
 = 3.9.2 - 2026-9-21 =
 * Improved callback logic for new Monri Components
