@@ -152,6 +152,7 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 		$req['cancelURL']      = $cancel_url;
 
 		$req['version']           = '2.0';
+        $req['returnMethod']      = 'POST';
 		$req['customerFirstName'] = $order->get_billing_first_name();
 		$req['customerLastName']  = $order->get_billing_last_name();
 		$req['customerAddress']   = $order->get_billing_address_1();

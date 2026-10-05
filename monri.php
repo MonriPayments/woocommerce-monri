@@ -2,7 +2,7 @@
 /*
 Plugin Name: Monri Payments
 Description: Official Monri Payments gateway for WooCommerce
-Version: 3.9.2
+Version: 3.9.3
 Author: Monri Payments d.o.o.
 Author URI: https://monri.com
 License: GPLv3
@@ -10,10 +10,11 @@ License URI: https://www.gnu.org/licenses/gpl-3.0.html
 WC requires at least: 4.3.0
 WC tested up to: 11.1.1
 Text Domain: monri
+Domain Path: /languages
 */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'MONRI_WC_VERSION', '3.9.2' );
+define( 'MONRI_WC_VERSION', '3.9.3' );
 define( 'MONRI_WC_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'MONRI_WC_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'MONRI_WC_PLUGIN_INDEX', __FILE__ );
@@ -21,6 +22,19 @@ define( 'MONRI_WC_PLUGIN_INDEX', __FILE__ );
 require_once __DIR__ . '/includes/settings.php';
 require_once __DIR__ . '/includes/utils.php';
 require_once __DIR__ . '/includes/logger.php';
+
+/**
+ * Loads the bundled translations.
+ *
+ * Just-in-time loading only scans WP_LANG_DIR, so the plugin's own languages/
+ * directory has to be registered explicitly for __() and friends to find it.
+ *
+ * @return void
+ */
+function monri_wc_load_textdomain() {
+	load_plugin_textdomain( 'monri', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+}
+add_action( 'plugins_loaded', 'monri_wc_load_textdomain' );
 
 function monri_wc_add_monri_gateway( $methods ) {
 	$methods[] = Monri_WC_Gateway::class;
