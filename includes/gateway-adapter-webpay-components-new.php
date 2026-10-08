@@ -517,6 +517,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Components_New {
             return;
         }
 
+        if ( $order->get_meta( 'monri_transaction_type' ) === 'purchase' ) {
+            return;
+        }
+
         $monri_order_id = $order->get_meta( 'monri_order_number' );
         if ( empty( $monri_order_id ) ) {
             return;
