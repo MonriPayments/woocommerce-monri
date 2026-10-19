@@ -2,19 +2,19 @@
 /*
 Plugin Name: Monri Payments
 Description: Official Monri Payments gateway for WooCommerce
-Version: 3.9.3
+Version: 3.9.4
 Author: Monri Payments d.o.o.
 Author URI: https://monri.com
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 WC requires at least: 4.3.0
-WC tested up to: 11.1.1
+WC tested up to: 11.2.1
 Text Domain: monri
 Domain Path: /languages
 */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'MONRI_WC_VERSION', '3.9.3' );
+define( 'MONRI_WC_VERSION', '3.9.4' );
 define( 'MONRI_WC_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'MONRI_WC_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'MONRI_WC_PLUGIN_INDEX', __FILE__ );
