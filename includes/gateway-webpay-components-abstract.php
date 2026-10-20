@@ -264,6 +264,10 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 			return false;
 		}
 
+		if ( $order->get_meta( 'monri_transaction_type' ) === 'purchase' ) {
+			return false;
+		}
+
 		$monri_order_id = $order->get_meta( 'monri_order_number' );
 		if ( empty( $monri_order_id ) ) {
 			return false;
