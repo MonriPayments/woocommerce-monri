@@ -26,7 +26,7 @@
     "@woocommerce/dependency-extraction-webpack-plugin": "^2.3.0",
     "@wordpress/html-entities": "^4.54.0",
     "@wordpress/i18n": "^6.27.0",
-    "@wordpress/scripts": "^30.19.0",
+    "@wordpress/scripts": "^36.1.0",
     "archiver": "^6.0.1",
     "colors": "^1.4.0",
     "rimraf": "^5.0.5",
