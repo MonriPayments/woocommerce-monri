@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 <p id="monri-status" style="display:none;">
     <?php esc_html_e( 'Please wait a moment while we verify your transaction...', 'monri' ); ?>
 </p>
-<button type="button" id="monri-pay-button" class="button alt">
+<button type="button" id="monri-pay-button" class="button alt wp-element-button">
     <?php esc_html_e( 'Pay for order', 'monri' ); ?>
 </button>
 

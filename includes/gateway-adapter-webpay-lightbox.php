@@ -129,6 +129,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		}
 
 		$order->add_meta_data( 'monri_transaction_type', $config['data-transaction-type'] );
+		$order->add_meta_data( 'monri_order_number', $order_id );
 		$order->save();
 
 		return $config;
@@ -254,11 +255,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		}
 
 		if ( $lock_count ) {
-			// reload order, we assume it was changed by process that set lock
+			// reload order if it was locked, we assume it was changed by different process that set lock
 			$order->get_data_store()->read( $order );
 		}
 
-		// @todo: how to sanitize GET here, recursively, knowing what is _key ??
 		Monri_WC_Order_Processing::process_order_from_request( $order );
 
 		if ($lock_count === 0) {

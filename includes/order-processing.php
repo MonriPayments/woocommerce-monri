@@ -4,7 +4,7 @@ class Monri_WC_Order_Processing {
 
 	/**
 	 * @param WC_Order $order
-	 * @param array $payload Payload should be sanitized at this point?
+	 * @param array $payload Sanitized Payload should enter here, if sanitization is needed
 	 *
 	 * @return void
 	 */
@@ -14,7 +14,7 @@ class Monri_WC_Order_Processing {
 			return;
 		}
 
-		// @todo: remove sanitize here if we sanitize before
+		// @todo: remove sanitize here if we sanitized before
 
 		$response_code    = ! empty( $payload['response_code'] ) ? sanitize_text_field( $payload['response_code'] ) : '';
 		$transaction_type = $order->get_meta( 'monri_transaction_type' );
@@ -32,7 +32,7 @@ class Monri_WC_Order_Processing {
 			// @todo: notes text changed, need translations
 
 			$note = [
-				__( 'Monri payment successful', 'monri' )
+				__( 'Monri payment successful.', 'monri' )
 			];
 
 			$approval_code = ! empty( $payload['approval_code'] ) ? sanitize_text_field( $payload['approval_code'] ) : '';
@@ -52,11 +52,11 @@ class Monri_WC_Order_Processing {
 
 			$order->add_order_note( implode( '<br/>', $note ) );
 
-			// @todo: needed only for old components? save not needed without it?
-			if ( $payload['order_number'] != $order->get_id() ) {
-				$order->update_meta_data( 'monri_order_number', sanitize_key( $payload['order_number'] ) );
-				$order->save();
-			}
+			// @todo: used only for old components and "test-" orders, not needed hre
+			//if ( ! empty( $payload['order_number'] ) && $payload['order_number'] != $order->get_id() ) {
+			//	$order->update_meta_data( 'monri_order_number', sanitize_key( $payload['order_number'] ) );
+			//	$order->save();
+			//}
 			//
 
 			// save token if needed
@@ -75,9 +75,9 @@ class Monri_WC_Order_Processing {
 
 		} else if ( $response_code === '1050' ) { // only in new components, is this always when Canceled ??
 
-				if ( $order->get_status() === 'pending' ) { // not needed?
+				//if ( $order->get_status() === 'pending' ) { // not needed?
 					$order->update_status( 'cancelled' );
-				}
+				//}
 
 		} else {
 			$order->update_status( 'failed', "Response not authorized - response code is $response_code." );
@@ -107,14 +107,29 @@ class Monri_WC_Order_Processing {
 		self::process_order( $order, $payload );
 	}
 
+	/**
+	 * @param WC_Order $order
+	 * @param array $payload
+	 *
+	 * @return void
+	 */
 	public static function process_order_from_callback( $order, $payload ) {
 		// $payload['status'] === 'approved' - callback is currently checking this while others are not !!
 		self::process_order( $order, $payload );
 	}
 
+	/**
+	 * @param WC_Order $order
+	 * @param array $payload
+	 *
+	 * @return void
+	 */
 	public static function process_order_from_show_api( $order, $payload ) {
-
-		// replace "-" to "_" here?
+		// replace "-" to "_"
+		$payload = array_combine(
+			str_replace( '-', '_', array_keys( $payload ) ),
+			array_values( $payload )
+		);
 
 		self::process_order( $order, $payload );
 	}

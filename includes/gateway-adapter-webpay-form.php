@@ -238,6 +238,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		}
 
 		$order->add_meta_data( 'monri_transaction_type', $args['transaction_type'] );
+		$order->add_meta_data( 'monri_order_number', $order_id );
 		$order->save();
 
 		$number_of_installments = $order->get_meta( 'monri_installments' ) ? (int) $order->get_meta( 'monri_installments' ) : 1;
@@ -363,19 +364,17 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		}
 
 		if ( $lock_count ) {
-			// reload order, we assume it was changed by process that set lock
+			// reload order if it was locked, we assume it was changed by different process that set lock
 			$order->get_data_store()->read( $order );
 		}
 
-		// @todo: how to sanitize GET here, recursively, knowing what is _key ??
 		Monri_WC_Order_Processing::process_order_from_request( $order );
 
 		if ($lock_count === 0) {
 			Monri_WC_Utils::order_unlock( $order_id );
 		}
 
-		// we can also check response_code here for this
-		if ( ! in_array( $order->get_status(), [ 'cancelled', 'failed' ] ) ) { // check success statuses + on-hold?
+		if ( ! in_array( $order->get_status(), [ 'cancelled', 'failed' ] ) ) { // check success statuses (wc_get_is_paid_statuses()) + on-hold?
 			WC()->cart->empty_cart();
 		}
 

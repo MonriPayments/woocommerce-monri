@@ -108,6 +108,8 @@ class Monri_WC_Callback {
 
 		Monri_WC_Order_Processing::process_order_from_callback( $order, $payload );
 
+		Monri_WC_Utils::order_unlock( $order->get_id() );
+
 		/*
 		try {
 			$valid_response_code = isset( $payload['response_code'] ) && $payload['response_code'] === '0000';
