@@ -167,13 +167,13 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		$response_code = ! empty( $formatted_response['response-code'] ) ?
 			sanitize_text_field( $formatted_response['response-code'] ) :
 			'';
-
 		$transaction_type = ! empty( $formatted_response['transaction-type'] ) ?
 			sanitize_text_field( $formatted_response['transaction-type'] ) :
 			'';
 		$transaction_response_id = isset( $transaction['transaction_response']['id'] ) ?
 			sanitize_key( (string) $transaction['transaction_response']['id'] ) :
 			'';
+
 		if ( $response_code === '0000' ) {
 			if ( $transaction_type === 'purchase' ) {
 				$order->payment_complete( $transaction_response_id );

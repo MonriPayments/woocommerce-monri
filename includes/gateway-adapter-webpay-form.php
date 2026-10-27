@@ -237,9 +237,9 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 		}
 
-
 		$order->add_meta_data( 'monri_transaction_type', $args['transaction_type'] );
 		$order->save();
+
 		$number_of_installments = $order->get_meta( 'monri_installments' ) ? (int) $order->get_meta( 'monri_installments' ) : 1;
 		$number_of_installments = min( max( $number_of_installments, 1 ), 36 );
 		if ( $number_of_installments > 1 ) {
@@ -354,6 +354,32 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			return;
 		}
 
+		// we need to wait because we don't know to empty cart or not
+		// we need to reload $order after wait
+		$lock_count = 0;
+		while ( Monri_WC_Utils::order_lock( $order_id ) === false && $lock_count < 5 ) {
+			sleep(1);
+			$lock_count++;
+		}
+
+		if ( $lock_count ) {
+			// reload order, we assume it was changed by process that set lock
+			$order->get_data_store()->read( $order );
+		}
+
+		// @todo: how to sanitize GET here, recursively, knowing what is _key ??
+		Monri_WC_Order_Processing::process_order_from_request( $order );
+
+		if ($lock_count === 0) {
+			Monri_WC_Utils::order_unlock( $order_id );
+		}
+
+		// we can also check response_code here for this
+		if ( ! in_array( $order->get_status(), [ 'cancelled', 'failed' ] ) ) { // check success statuses + on-hold?
+			WC()->cart->empty_cart();
+		}
+
+		/*
 		$response_code    = ! empty( $_GET['response_code'] ) ? sanitize_text_field( $_GET['response_code'] ) : '';
 		$transaction_type = $order->get_meta( 'monri_transaction_type' );
 		if ( $response_code === '0000' ) {
@@ -398,6 +424,9 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			//$order->add_order_note( __( 'Transaction Declined: ', 'monri' ) . sanitize_text_field( $_GET['Error'] ) );
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+		*/
+
+		Monri_WC_Utils::order_unlock( $order_id );
 	}
 
 	/**

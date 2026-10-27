@@ -4,6 +4,8 @@ class Monri_WC_Utils {
 
 	private const TEST_SUFFIX = '-test';
 
+	private const ORDER_LOCK_PREFIX = 'monri_order_';
+
 	/**
 	 * @param string $order_id
 	 *
@@ -31,5 +33,54 @@ class Monri_WC_Utils {
 	 */
 	public static function sanitize_hash( $hash ) {
 		return (string) preg_replace( '/[^a-f0-9]/', '', $hash );
+	}
+
+	/**
+	 * MySQL 5.7.5+ limits lock names to 64 characters.
+	 * false = already locked, true = lock acquired, null = mysql error
+	 *
+	 * @param string $name
+	 * @param int $timeout
+	 *
+	 * @return bool|null
+	 */
+	public static function order_lock( $order_id ) {
+		global $wpdb;
+
+		$result = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT GET_LOCK(%s, %d)',
+				self::ORDER_LOCK_PREFIX . $order_id,
+				0
+			)
+		);
+
+		if ( null === $result ) {
+			return null;
+		}
+
+		return (string) $result === '1';
+	}
+
+	/**
+	 * @param $name
+	 *
+	 * @return bool|null
+	 */
+	public static function order_unlock( $order_id ) {
+		global $wpdb;
+
+		$result = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT RELEASE_LOCK(%s)',
+				self::ORDER_LOCK_PREFIX . $order_id
+			)
+		);
+
+		if ( null === $result ) {
+			return null;
+		}
+
+		return (string) $result === '1';
 	}
 }

@@ -22,6 +22,7 @@ define( 'MONRI_WC_PLUGIN_INDEX', __FILE__ );
 require_once __DIR__ . '/includes/settings.php';
 require_once __DIR__ . '/includes/utils.php';
 require_once __DIR__ . '/includes/logger.php';
+require_once __DIR__ . '/includes/order-processing.php';
 
 /**
  * Loads the bundled translations.

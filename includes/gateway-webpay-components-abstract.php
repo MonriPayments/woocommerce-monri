@@ -155,28 +155,39 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 	 */
 	public function sync_order_status( $order ) {
 
+		// @todo: not needed?
 		$monri_order_number = $order->get_meta( 'monri_order_number' );
 
 		if ( ! $monri_order_number ) {
 			return false;
 		}
 
-		$response           = Monri_WC_Api::instance()->orders_show( $monri_order_number );
+		$response = Monri_WC_Api::instance()->orders_show( $monri_order_number );
 		$formatted_response = json_decode( wp_json_encode( $response ), true );
 		Monri_WC_Logger::log( $formatted_response, __METHOD__ );
+
 		if ( is_wp_error( $response ) ) {
 			$order->add_order_note(
-				sprintf( __( 'There was an error getting the order status', 'monri' ) )
+				__( 'There was an error getting the order status', 'monri' )
 			);
 
 			return false;
 		}
 
-		if (!isset( $formatted_response['response-code'] )) {
+		if ( !isset( $formatted_response['response-code'] ) ) {
 			return false;
 		}
 
+		if ( Monri_WC_Utils::order_lock( $monri_order_number ) === false ) {
+			return true;
+		}
+
+		Monri_WC_Order_Processing::process_order_from_show_api( $order, $formatted_response );
+
+		Monri_WC_Utils::order_unlock( $monri_order_number );
+
 		// Check response code of order.
+		/*
 		switch ( $formatted_response['response-code'] ) {
 			case '0000':
 				if ( $order->get_status() === 'pending' ) {
@@ -193,6 +204,7 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 			default:
 				break;
 		}
+		*/
 
 		return true;
 	}
@@ -224,7 +236,9 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 
 		$response           = Monri_WC_Api::instance()->refund( $monri_order_id, $amount * 100, $currency );
 		$formatted_response = json_decode( wp_json_encode( $response ), true );
-		if ( is_wp_error( $response ) || ! ( isset( $formatted_response['response-code'] ) && $formatted_response['response-code'] === '0000' ) ) {
+		if ( is_wp_error( $response ) ||
+		     ! ( isset( $formatted_response['response-code'] ) && $formatted_response['response-code'] === '0000' )
+		) {
 			Monri_WC_Logger::log( $formatted_response, __METHOD__ );
 			$order->add_order_note(
 				sprintf( __( 'There was an error submitting the refund to Monri.', 'monri' ) )

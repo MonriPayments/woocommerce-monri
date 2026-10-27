@@ -98,11 +98,18 @@ class Monri_WC_Callback {
 			$this->error( $message, array( 404, 'Not Found' ) );
 		}
 
-		try {
-			if ( $order->get_status() !== 'pending' ) {
-				return;
-			}
+		if ( $order->get_status() !== 'pending' ) {
+			return;
+		}
 
+		if ( Monri_WC_Utils::order_lock( $order->get_id() ) === false ) {
+			return;
+		}
+
+		Monri_WC_Order_Processing::process_order_from_callback( $order, $payload );
+
+		/*
+		try {
 			$valid_response_code = isset( $payload['response_code'] ) && $payload['response_code'] === '0000';
 			$transaction_type    = $order->get_meta( 'monri_transaction_type' );
 			if ( $payload['status'] === 'approved' && $valid_response_code ) {
@@ -112,15 +119,21 @@ class Monri_WC_Callback {
 					$order->update_status( 'on-hold', __( 'Order awaiting payment', 'monri' ) );
 				}
 
+				//@todo: Notes and tokenization are missing here?
+
 				$order->update_meta_data( 'monri_order_number', $payload['order_number'] ?? '' );
 				$order->save();
 			} else {
 				$order->update_status( 'cancelled' );
 			}
+
+			Monri_WC_Utils::order_unlock( $order->get_id() );
 		} catch ( \Exception $e ) {
-			$message = sprintf( 'Order ID: %s not found or does not exist.', $order_number );
-			$this->error( $message, array( 404, 'Not Found' ) );
+			Monri_WC_Utils::order_unlock( $order->get_id() );
+			$message = sprintf( 'Order ID: %s can not be processed.', $order_number );
+			$this->error( $message, array( 500, 'Internal Server Error' ) );
 		}
+		*/
 	}
 
 	/**

@@ -283,8 +283,15 @@ class Monri_WC_Gateway_Adapter_Webpay_Components_New {
             return;
         }
 
-        $this->sync_order_status( $order );
-        $this->maybe_save_payment_token( $order );
+	    $monri_order_number = $order->get_meta( 'monri_order_number' );
+
+	    $response = Monri_WC_Api::instance()->orders_show( $monri_order_number );
+	    $formatted_response = json_decode( wp_json_encode( $response ), true );
+
+	    Monri_WC_Order_Processing::process_order( $order, $_GET );
+
+        //$this->sync_order_status( $order );
+        //$this->maybe_save_payment_token( $order );
     }
 
     /**

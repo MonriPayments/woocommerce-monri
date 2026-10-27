@@ -247,6 +247,30 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			return;
 		}
 
+		$lock_count = 0;
+		while ( Monri_WC_Utils::order_lock( $order_id ) === false && $lock_count < 5 ) {
+			sleep(1);
+			$lock_count++;
+		}
+
+		if ( $lock_count ) {
+			// reload order, we assume it was changed by process that set lock
+			$order->get_data_store()->read( $order );
+		}
+
+		// @todo: how to sanitize GET here, recursively, knowing what is _key ??
+		Monri_WC_Order_Processing::process_order_from_request( $order );
+
+		if ($lock_count === 0) {
+			Monri_WC_Utils::order_unlock( $order_id );
+		}
+
+		// we can also check response_code here for this
+		if ( ! in_array( $order->get_status(), [ 'cancelled', 'failed' ] ) ) { // check success statuses + on-hold?
+			WC()->cart->empty_cart();
+		}
+
+		/*
 		$response_code    = ! empty( $_GET['response_code'] ) ? sanitize_text_field( $_GET['response_code'] ) : '';
 		$transaction_type = $order->get_meta( 'monri_transaction_type' );
 		Monri_WC_Logger::log( 'Transaction type: ' . $order->get_meta( 'monri_transaction_type' ), __METHOD__ );
@@ -291,6 +315,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			$order->update_status( 'failed', "Response not authorized - response code is $response_code." );
 			// $order->add_order_note( __( 'Transaction Declined: ', 'monri' ) . sanitize_text_field( $_GET['Error'] ) );
 		}
+		*/
 	}
 
 	/**
