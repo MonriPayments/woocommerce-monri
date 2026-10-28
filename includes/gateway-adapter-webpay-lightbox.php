@@ -224,7 +224,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r -- Logging stuff, this is needed.
 		Monri_WC_Logger::log( 'Response data: ' . sanitize_textarea_field( print_r( $_GET, true ) ), __METHOD__ );
 
-		$requested_order_id = sanitize_text_field( $_GET['order_number'] );
+		$requested_order_id = array_key_exists('order_number', $_GET )
+			? sanitize_text_field( wp_unslash( $_GET['order_number'] ) )
+			: '';
+
 		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
 			$requested_order_id = Monri_WC_Utils::resolve_real_order_id( $order_id );
 		}

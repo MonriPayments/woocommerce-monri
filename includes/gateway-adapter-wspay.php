@@ -356,7 +356,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			$transaction_data = [];
 			foreach ( array_keys( $this->transaction_info_map ) as $key ) {
 				if ( isset( $_POST[ $key ] ) ) {
-					$transaction_data[ $key ] = sanitize_text_field( $_POST[ $key ] );
+					$transaction_data[ $key ] = sanitize_text_field( wp_unslash( $_POST[ $key ] ) );
 				}
 			}
 			$order->update_meta_data( '_monri_transaction_info', $transaction_data );
@@ -375,7 +375,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 				$token_data = [];
 				foreach ( [ 'Token', 'TokenNumber', 'TokenExp', 'PaymentType', 'CreditCardName' ] as $key ) {
 					if ( isset( $_POST[ $key ] ) ) {
-						$token_data[ $key ] = sanitize_text_field( $_POST[ $key ] );
+						$token_data[ $key ] = sanitize_text_field( wp_unslash( $_POST[ $key ] ) );
 					}
 				}
 				$this->save_user_token( $order->get_user_id(), $token_data );
@@ -411,10 +411,13 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return false;
 		}
 
-		$order_id      = sanitize_text_field( $_POST['ShoppingCartID'] );
-		$digest        = Monri_WC_Utils::sanitize_hash( $_POST['Signature'] );
+		$order_id      = sanitize_text_field( wp_unslash( $_POST['ShoppingCartID'] ) );
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitized using custom method
+		$digest        = Monri_WC_Utils::sanitize_hash( wp_unslash( $_POST['Signature'] ) );
 		$success       = ( isset( $_POST['Success'] ) && $_POST['Success'] === '1' ) ? '1' : '0';
-		$approval_code = isset( $_POST['ApprovalCode'] ) ? sanitize_text_field( $_POST['ApprovalCode'] ) : '';
+		$approval_code = isset( $_POST['ApprovalCode'] )
+			? sanitize_text_field( wp_unslash( $_POST['ApprovalCode'] ) )
+			: '';
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 		$shop_id    = $this->shop_id;
 		$secret_key = $this->secret;

@@ -95,8 +95,8 @@ class Monri_WC_Order_Processing {
 	 * @return void
 	 */
 	public static function process_order_from_request( $order ) {
-		// todo: sanitize here? possible?
-		$payload = $_GET;
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- This is not a WP form, no nonce.
+		$payload = wp_unslash( $_GET );
 		$key_fields = [ 'order_number' ]; // specify your keys here
 
 		array_walk_recursive( $payload, function ( &$value, $key ) use ( $key_fields ) {
