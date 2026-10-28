@@ -17,7 +17,7 @@ class Monri_WC_Order_Processing {
 		// @todo: remove sanitize here if we sanitized before
 
 		$response_code    = ! empty( $payload['response_code'] ) ? sanitize_text_field( $payload['response_code'] ) : '';
-		$transaction_type = $order->get_meta( 'monri_transaction_type' );
+		$transaction_type = $payload['transaction_type'] ?? $order->get_meta( 'monri_transaction_type' );
 		//Monri_WC_Logger::log( 'Transaction type: ' . $order->get_meta( 'monri_transaction_type' ), __METHOD__ );
 
 		// $payload['status'] === 'approved' - callback is currently checking this while others are not !!

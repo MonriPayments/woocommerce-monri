@@ -96,7 +96,7 @@ class Monri_WC_Api {
 		$payload->addChild( 'authenticity-token', $authenticity_token );
 		$payload->addChild( 'digest', $this->digest( $order_number ) );
 
-		return $this->request( '/orders/show', $payload->asXML(), false );
+		return $this->request( '/orders/show', $payload->asXML() );
 	}
 
 	/**

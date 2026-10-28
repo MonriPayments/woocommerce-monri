@@ -286,7 +286,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components_New {
 	    $monri_order_number = $order->get_meta( 'monri_order_number' );
 	    $response = Monri_WC_Api::instance()->orders_show( $monri_order_number );
 	    $formatted_response = json_decode( wp_json_encode( $response ), true );
-	    Monri_WC_Logger::log( $formatted_response, __METHOD__ );
+	    //Monri_WC_Logger::log( $formatted_response, __METHOD__ );
 
 	    if ( Monri_WC_Utils::order_lock( $order_id ) === false ) {
 		    return;
