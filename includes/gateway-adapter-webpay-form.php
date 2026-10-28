@@ -125,11 +125,17 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		// Since we are redirecting in Monri Webpay, the post data of the current request won't persist.
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- This is not Ajax, but a redirect.
 		if ( isset( $_POST['wc-monri-new-payment-method'] ) ) {
-			WC()->session->set( 'wc-monri-new-payment-method', $_POST['wc-monri-new-payment-method'] );
+			WC()->session->set(
+				'wc-monri-new-payment-method',
+				sanitize_text_field( wp_unslash( $_POST['wc-monri-new-payment-method'] ) )
+			);
 		}
 
 		if ( isset( $_POST['wc-monri-payment-token'] ) ) {
-			WC()->session->set( 'wc-monri-payment-token', $_POST['wc-monri-payment-token'] );
+			WC()->session->set(
+				'wc-monri-payment-token',
+				sanitize_text_field( wp_unslash( $_POST['wc-monri-payment-token'] ) )
+			);
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
@@ -268,7 +274,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 
 		// validate digest hash format
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Not an ajax request.
-		if ( empty( $_GET['digest'] ) || ! preg_match( '/^[a-f0-9]{128}$/', $_GET['digest'] ) ) {
+		if ( empty( $_GET['digest'] ) || ! preg_match( '/^[a-f0-9]{128}$/', wp_unslash( $_GET['digest'] ) ) ) {
 			return false;
 		}
 
@@ -278,7 +284,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		$calculated_url = $this->payment->get_return_url( $order ); // use current url?
 		$calculated_url = strtok( $calculated_url, '?' );
 
-		$arr = explode( '?', $_SERVER['REQUEST_URI'] );
+		$arr = explode( '?', wp_unslash( $_SERVER['REQUEST_URI'] ) );
 
 		// If there's more than one '?' shift and join with ?, it's special case of having '?' in success url
 		// eg https://test.com/?page_id=6order-recieved?
@@ -312,7 +318,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 			return;
 		}
 
-		$order_id = sanitize_text_field( $_GET['order_number'] );
+		$order_id = sanitize_text_field( wp_unslash( $_GET['order_number'] ) );
 
 		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
 			$order_id = Monri_WC_Utils::resolve_real_order_id( $order_id );
@@ -338,7 +344,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Form {
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r -- Logging stuff, this is needed.
 		Monri_WC_Logger::log( "Response data: " . sanitize_textarea_field( print_r( $_GET, true ) ), __METHOD__ );
 
-		$requested_order_id = sanitize_text_field( $_GET['order_number'] );
+		$requested_order_id = sanitize_text_field( wp_unslash( $_GET['order_number'] ) );
 		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
 			$requested_order_id = Monri_WC_Utils::resolve_real_order_id( $order_id );
 		}

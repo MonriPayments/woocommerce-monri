@@ -43,6 +43,7 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 	 * @param $order_id
 	 *
 	 * @return array
+	 * @throws Exception
 	 */
 	public function process_payment( $order_id ) {
 		$order = wc_get_order( $order_id );
@@ -59,7 +60,7 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 			if ( isset( $_POST['wc-monri-payment-token'] ) &&
 			     ! in_array( $_POST['wc-monri-payment-token'], [ 'not-selected', 'new', '' ], true )
 			) {
-				$use_token = sanitize_text_field( $_POST['wc-monri-payment-token'] );
+				$use_token = sanitize_text_field( wp_unslash( $_POST['wc-monri-payment-token'] ) );
 				$tokens    = $this->payment->get_tokens();
 				if ( ! isset( $tokens[ $use_token ] ) ) {
 					throw new Exception( esc_html( __( 'Token does not exist.', 'monri' ) ) );
@@ -116,7 +117,7 @@ class Monri_WC_Gateway_Adapter_Wspay_Iframe extends Monri_WC_Gateway_Adapter_Wsp
 			if ( isset( $_GET['use_token'] ) && $_GET['use_token'] === '-1' ) {
 				$req['IsTokenRequest'] = '1';
 			} elseif ( isset( $_GET['use_token'] ) && is_numeric( $_GET['use_token'] ) ) {
-				$token_id = sanitize_text_field( $_GET['use_token'] );
+				$token_id = sanitize_text_field( wp_unslash( $_GET['use_token'] ) );
 				$tokens   = $this->payment->get_tokens();
 				// phpcs:enable WordPress.Security.NonceVerification.Recommended
 				// redirect to cart with error?? should never happen

@@ -156,6 +156,7 @@ class Monri_WC_Callback {
 			$orders = wc_get_orders( array(
 				'limit'      => 1,
 				'status'     => 'any',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- we need to do the meta query here
 				'meta_query' => array(
 					array(
 						'key'     => 'monri_order_number',

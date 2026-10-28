@@ -37,16 +37,19 @@ class Monri_WC_Order_Processing {
 
 			$approval_code = ! empty( $payload['approval_code'] ) ? sanitize_text_field( $payload['approval_code'] ) : '';
 			if ( $approval_code ) {
+				// translators: %s is the actual approval code
 				$note[] = sprintf( __( 'Approval code: %s', 'monri' ), $approval_code );
 			}
 
 			$issuer = ! empty( $payload['issuer'] ) ? sanitize_text_field( $payload['issuer'] ) : '';
 			if ( $issuer ) {
+				// translators: %s is the issuer name
 				$note[] = sprintf( __( 'Issuer: %s', 'monri' ), $issuer );
 			}
 
 			$number_of_installments = ! empty( $payload['number_of_installments'] ) ? (int) $payload['number_of_installments'] : 0;
 			if ( $number_of_installments > 1 ) {
+				// translators: %s is the actual number of installments
 				$note[] = sprintf( __( 'Number of installments: %s', 'monri' ), $number_of_installments );
 			}
 
@@ -92,7 +95,7 @@ class Monri_WC_Order_Processing {
 	 * @return void
 	 */
 	public static function process_order_from_request( $order ) {
-		// sanitize here? possible?
+		// todo: sanitize here? possible?
 		$payload = $_GET;
 		$key_fields = [ 'order_number' ]; // specify your keys here
 

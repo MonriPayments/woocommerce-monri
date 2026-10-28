@@ -137,7 +137,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			if ( isset( $_POST['wc-monri-payment-token'] ) &&
 			     ! in_array( $_POST['wc-monri-payment-token'], [ 'not-selected', 'new', '' ], true )
 			) {
-				$token_id = sanitize_text_field( $_POST['wc-monri-payment-token'] );
+				$token_id = sanitize_text_field( wp_unslash( $_POST['wc-monri-payment-token'] ) );
 				$tokens   = $this->payment->get_tokens();
 
 				if ( ! isset( $tokens[ $token_id ] ) ) {
@@ -272,7 +272,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 			return;
 		}
 
-		$order_id = sanitize_text_field( $_POST['ShoppingCartID'] );
+		$order_id = sanitize_text_field( wp_unslash( $_POST['ShoppingCartID'] ) );
 
 		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
 			$order_id = Monri_WC_Utils::resolve_real_order_id( $order_id );
@@ -298,7 +298,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 	 */
 	private function is_post_return() {
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Compared against a literal, as in WP core.
-		return isset( $_SERVER['REQUEST_METHOD'] ) && strtoupper( $_SERVER['REQUEST_METHOD'] ) === 'POST';
+		return isset( $_SERVER['REQUEST_METHOD'] ) && strtoupper( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) === 'POST';
 	}
 
 
@@ -320,7 +320,7 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r -- Logging stuff, this is needed.
 		Monri_WC_Logger::log( "Response data: " . sanitize_textarea_field( print_r( $_POST, true ) ), __METHOD__ );
 
-		$requested_order_id = sanitize_text_field( $_POST['ShoppingCartID'] );
+		$requested_order_id = sanitize_text_field( wp_unslash( $_POST['ShoppingCartID'] ) );
 		if ( $this->payment->get_option_bool( 'test_mode' ) ) {
 			$requested_order_id = Monri_WC_Utils::resolve_real_order_id( $requested_order_id );
 		}
@@ -343,7 +343,9 @@ class Monri_WC_Gateway_Adapter_Wspay {
 		}
 
 		$success       = ( isset( $_POST['Success'] ) && $_POST['Success'] === '1' ) ? '1' : '0';
-		$approval_code = ! empty( $_POST['ApprovalCode'] ) ? sanitize_text_field( $_POST['ApprovalCode'] ) : '';
+		$approval_code = ! empty( $_POST['ApprovalCode'] )
+			? sanitize_text_field( wp_unslash( $_POST['ApprovalCode'] ) )
+			: '';
 
 		$trx_authorized = ( $success === '1' ) && ! empty( $approval_code );
 

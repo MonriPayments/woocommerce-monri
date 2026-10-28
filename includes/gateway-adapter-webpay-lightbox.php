@@ -91,7 +91,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 			if ( isset( $_POST['wc-monri-payment-token'] ) &&
 			     ! in_array( $_POST['wc-monri-payment-token'], [ 'not-selected', 'new', '' ], true )
 			) {
-				$token_id = sanitize_text_field( $_POST['wc-monri-payment-token'] );
+				$token_id = sanitize_text_field( wp_unslash( $_POST['wc-monri-payment-token'] ) );
 				// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 				$tokens   = $this->payment->get_tokens();
@@ -143,15 +143,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Lightbox extends Monri_WC_Gateway_Adapter_
 	public function process_payment_action( $order_id ): void {
 		$this->process_payment( $order_id );
 	}
-
-	// same as in inherited class ?!?
-
-//	/**
-//	 * @return bool
-//	 */
-//	public function tokenization_enabled() {
-//		return $this->payment->get_option_bool( 'monri_web_pay_tokenization_enabled' );
-//	}
 
 	/**
 	 * Old checkout

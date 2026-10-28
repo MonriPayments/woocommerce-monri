@@ -39,8 +39,7 @@ class Monri_WC_Utils {
 	 * MySQL 5.7.5+ limits lock names to 64 characters.
 	 * false = already locked, true = lock acquired, null = mysql error
 	 *
-	 * @param string $name
-	 * @param int $timeout
+	 * @param string $order_id
 	 *
 	 * @return bool|null
 	 */
@@ -59,11 +58,11 @@ class Monri_WC_Utils {
 			return null;
 		}
 
-		return (string) $result === '1';
+		return $result === '1';
 	}
 
 	/**
-	 * @param $name
+	 * @param $order_id
 	 *
 	 * @return bool|null
 	 */
@@ -81,6 +80,6 @@ class Monri_WC_Utils {
 			return null;
 		}
 
-		return (string) $result === '1';
+		return $result === '1';
 	}
 }
