@@ -109,33 +109,6 @@ class Monri_WC_Callback {
 		Monri_WC_Order_Processing::process_order_from_callback( $order, $payload );
 
 		Monri_WC_Utils::order_unlock( $order->get_id() );
-
-		/*
-		try {
-			$valid_response_code = isset( $payload['response_code'] ) && $payload['response_code'] === '0000';
-			$transaction_type    = $order->get_meta( 'monri_transaction_type' );
-			if ( $payload['status'] === 'approved' && $valid_response_code ) {
-				if ( $transaction_type === 'purchase' ) {
-					$order->payment_complete();
-				} else {
-					$order->update_status( 'on-hold', __( 'Order awaiting payment', 'monri' ) );
-				}
-
-				//@todo: Notes and tokenization are missing here?
-
-				$order->update_meta_data( 'monri_order_number', $payload['order_number'] ?? '' );
-				$order->save();
-			} else {
-				$order->update_status( 'cancelled' );
-			}
-
-			Monri_WC_Utils::order_unlock( $order->get_id() );
-		} catch ( \Exception $e ) {
-			Monri_WC_Utils::order_unlock( $order->get_id() );
-			$message = sprintf( 'Order ID: %s can not be processed.', $order_number );
-			$this->error( $message, array( 500, 'Internal Server Error' ) );
-		}
-		*/
 	}
 
 	/**

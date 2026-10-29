@@ -8,15 +8,13 @@ class Monri_WC_Order_Processing {
 	 *
 	 * @return void
 	 */
-	public static function process_order( WC_Order $order, $payload ) {
+	public static function process_order( WC_Order $order, array $payload ) {
 
 		if ( ! in_array( $order->get_status(), array( 'pending', 'failed' ), true ) ) {
 			return;
 		}
 
-		// @todo: remove sanitize here if we sanitized before
-
-		$response_code    = ! empty( $payload['response_code'] ) ? sanitize_text_field( $payload['response_code'] ) : '';
+		$response_code    = ! empty( $payload['response_code'] ) ? $payload['response_code'] : '';
 		$transaction_type = $payload['transaction_type'] ?? $order->get_meta( 'monri_transaction_type' );
 
 		if ( $response_code === '0000' ) {
@@ -30,19 +28,21 @@ class Monri_WC_Order_Processing {
 				__( 'Monri payment successful.', 'monri' )
 			];
 
-			$approval_code = ! empty( $payload['approval_code'] ) ? sanitize_text_field( $payload['approval_code'] ) : '';
+			$approval_code = ! empty( $payload['approval_code'] ) ? $payload['approval_code'] : '';
 			if ( $approval_code ) {
 				// translators: %s is the actual approval code
 				$note[] = sprintf( __( 'Approval code: %s', 'monri' ), $approval_code );
 			}
 
-			$issuer = ! empty( $payload['issuer'] ) ? sanitize_text_field( $payload['issuer'] ) : '';
+			$issuer = ! empty( $payload['issuer'] ) ? $payload['issuer'] : '';
 			if ( $issuer ) {
 				// translators: %s is the issuer name
 				$note[] = sprintf( __( 'Issuer: %s', 'monri' ), $issuer );
 			}
 
-			$number_of_installments = ! empty( $payload['number_of_installments'] ) ? (int) $payload['number_of_installments'] : 0;
+			$number_of_installments = ! empty( $payload['number_of_installments'] )
+				? (int) $payload['number_of_installments']
+				: 0;
 			if ( $number_of_installments > 1 ) {
 				// translators: %s is the actual number of installments
 				$note[] = sprintf( __( 'Number of installments: %s', 'monri' ), $number_of_installments );
@@ -57,7 +57,7 @@ class Monri_WC_Order_Processing {
 				$token_data = [];
 				foreach ( [ 'cc_type', 'masked_pan', 'pan_token' ] as $key ) {
 					if ( isset( $payload[ $key ] ) ) {
-						$token_data[ $key ] = sanitize_text_field( $payload[ $key ] );
+						$token_data[ $key ] = $payload[ $key ];
 					}
 				}
 				self::save_user_token( $order->get_user_id(), $token_data );
@@ -182,8 +182,6 @@ class Monri_WC_Order_Processing {
 	 * Capture order on Monri side
 	 *
 	 * @param int $order_id
-	 * @param string $from
-	 * @param string $to
 	 *
 	 * @return bool
 	 */
@@ -273,10 +271,6 @@ class Monri_WC_Order_Processing {
 		return true;
 	}
 
-	// just an idea, call show api here and process_order_from_show_api() afterwards
-	public static function process_order_sync() {
-	}
-
 	/**
 	 * @param int $user_id
 	 * @param array $data
@@ -300,7 +294,7 @@ class Monri_WC_Order_Processing {
 
 		$masked_pan_array = explode("-", $data['masked_pan']);
 		$wc_token->set_last4( end( $masked_pan_array ) );
-		$ccType = $data['cc_type'] ?? null;
+		$ccType = $data['cc_type'];
 		$wc_token->set_card_type( $ccType );
 
 		$wc_token->save();
