@@ -18,9 +18,6 @@ class Monri_WC_Order_Processing {
 
 		$response_code    = ! empty( $payload['response_code'] ) ? sanitize_text_field( $payload['response_code'] ) : '';
 		$transaction_type = $payload['transaction_type'] ?? $order->get_meta( 'monri_transaction_type' );
-		//Monri_WC_Logger::log( 'Transaction type: ' . $order->get_meta( 'monri_transaction_type' ), __METHOD__ );
-
-		// $payload['status'] === 'approved' - callback is currently checking this while others are not !!
 
 		if ( $response_code === '0000' ) {
 			if ( $transaction_type === 'purchase' ) {
@@ -28,8 +25,6 @@ class Monri_WC_Order_Processing {
 			} else {
 				$order->update_status( 'on-hold', __( 'Order awaiting payment', 'monri' ) );
 			}
-
-			// @todo: notes text changed, need translations
 
 			$note = [
 				__( 'Monri payment successful.', 'monri' )
@@ -54,13 +49,6 @@ class Monri_WC_Order_Processing {
 			}
 
 			$order->add_order_note( implode( '<br/>', $note ) );
-
-			// @todo: used only for old components and "test-" orders, not needed hre
-			//if ( ! empty( $payload['order_number'] ) && $payload['order_number'] != $order->get_id() ) {
-			//	$order->update_meta_data( 'monri_order_number', sanitize_key( $payload['order_number'] ) );
-			//	$order->save();
-			//}
-			//
 
 			// save token if needed
 			if ( $order->get_user_id() &&
