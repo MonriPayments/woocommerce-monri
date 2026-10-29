@@ -44,7 +44,7 @@ class GatewayLifecycleTest extends TestCase {
 
 		$this->assertNotEmpty( $links );
 		$this->assertStringContainsString(
-			'admin.php?page=wc-settings&amp;tab=checkout&amp;section=monri',
+			'admin.php?page=wc-settings&amp;#038;tab=checkout&amp;#038;section=monri',
 			htmlspecialchars( $links[0] )
 		);
 	}

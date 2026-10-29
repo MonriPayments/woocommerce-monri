@@ -6,6 +6,7 @@
   "scripts": {
     "build:webpack": "wp-scripts build blocks/index.js",
     "start:webpack": "wp-scripts start blocks/index.js",
+    "make:json": "node tasks/make-json.js",
     "make:release": "node tasks/pack.js",
     "build": "rimraf assets/js/blocks/* && npm run build:webpack",
     "pack": "npm run build && npm run make:release",

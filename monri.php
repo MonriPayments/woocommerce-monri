@@ -97,11 +97,11 @@ add_action( 'before_woocommerce_init', 'monri_declare_woo_feature_compatibility'
 
 
 function monri_wc_action_links( $links ) {
-	$links[] = sprintf(
-		'<a href="%s">%s</a>',
-		admin_url( 'admin.php?page=wc-settings&tab=checkout&section=monri' ),
-		__( 'Settings', 'monri' )
-	);
+	$links[] = '<a href="'
+	           . esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=monri' ) )
+	           . '">'
+	           . esc_html( __( 'Settings', 'monri' ) )
+	           . '</a>';
 
 	return $links;
 }

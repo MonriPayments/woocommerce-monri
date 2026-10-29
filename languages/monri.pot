@@ -2,14 +2,14 @@
 # This file is distributed under the GPLv3.
 msgid ""
 msgstr ""
-"Project-Id-Version: Monri Payments 3.8.2\n"
+"Project-Id-Version: Monri Payments 3.9.4\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/monri\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-06-03T08:25:23+00:00\n"
+"POT-Creation-Date: 2026-10-29T08:37:09+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: monri\n"
@@ -34,12 +34,9 @@ msgstr ""
 msgid "https://monri.com"
 msgstr ""
 
-#: includes/callback.php:108
-#: includes/callback.php:175
-#: includes/gateway-adapter-webpay-components.php:174
-#: includes/gateway-adapter-webpay-form.php:333
-#: includes/gateway-adapter-webpay-lightbox.php:241
-#: includes/gateway-adapter-wspay.php:306
+#: includes/callback.php:245
+#: includes/gateway-adapter-wspay.php:367
+#: includes/order-processing.php:26
 msgid "Order awaiting payment"
 msgstr ""
 
@@ -47,110 +44,83 @@ msgstr ""
 msgid "Initialization error occurred."
 msgstr ""
 
-#: includes/gateway-adapter-webpay-components.php:152
+#: includes/gateway-adapter-webpay-components.php:157
+#: includes/gateway-adapter-webpay-components.php:179
 msgid "Missing Monri transaction."
 msgstr ""
 
-#. translators: %s: generated id which represents order number
-#: includes/gateway-adapter-webpay-components.php:183
+#. translators: %s here is the actual order number
+#: includes/gateway-adapter-webpay-components.php:173
 #, php-format
 msgid "Order number in Monri administration: %s"
 msgstr ""
 
-#: includes/gateway-adapter-webpay-components.php:324
-#: includes/gateway-adapter-webpay-components.php:334
-#: includes/gateway-adapter-webpay-form.php:393
-#: includes/gateway-adapter-webpay-form.php:404
-#: includes/gateway-adapter-wspay.php:487
-#: includes/gateway-adapter-wspay.php:494
-#: includes/gateway-webpay-components-abstract.php:217
-#: includes/gateway-webpay-components-abstract.php:227
-msgid "There was an error submitting the refund to Monri."
-msgstr ""
-
-#. translators: %s: amount which was successfully refunded
-#: includes/gateway-adapter-webpay-components.php:343
-#: includes/gateway-adapter-webpay-form.php:413
-#: includes/gateway-adapter-wspay.php:505
-#: includes/gateway-webpay-components-abstract.php:237
-#, php-format
-msgid "Refund of %s successfully sent to Monri."
-msgstr ""
-
-#: includes/gateway-adapter-webpay-components.php:398
-#: includes/gateway-adapter-webpay-form.php:467
-#: includes/gateway-adapter-webpay-lightbox.php:352
-#: includes/gateway-adapter-wspay.php:553
-#: includes/gateway-webpay-components-abstract.php:280
-msgid "There was an error submitting the capture to Monri."
-msgstr ""
-
-#. translators: %s: amount which was successfully captured
-#: includes/gateway-adapter-webpay-components.php:407
-#: includes/gateway-adapter-webpay-form.php:476
-#: includes/gateway-adapter-webpay-lightbox.php:362
-#: includes/gateway-adapter-wspay.php:563
-#: includes/gateway-webpay-components-abstract.php:290
-#, php-format
-msgid "Capture of %s successfully sent to Monri."
-msgstr ""
-
-#: includes/gateway-adapter-webpay-components.php:449
-#: includes/gateway-adapter-webpay-form.php:518
-#: includes/gateway-adapter-webpay-lightbox.php:405
-#: includes/gateway-adapter-wspay.php:607
-#: includes/gateway-webpay-components-abstract.php:333
-msgid "There was an error submitting the void to Monri."
-msgstr ""
-
-#. translators: %s: amount which was successfully voided
-#: includes/gateway-adapter-webpay-components.php:457
-#: includes/gateway-adapter-webpay-form.php:526
-#: includes/gateway-adapter-webpay-lightbox.php:414
-#: includes/gateway-adapter-wspay.php:615
-#: includes/gateway-webpay-components-abstract.php:342
-#, php-format
-msgid "Void of %s successfully sent to Monri."
-msgstr ""
-
-#: includes/gateway-adapter-webpay-components.php:512
+#: includes/gateway-adapter-webpay-components.php:461
 msgid "Please read and accept the terms and conditions to proceed with your order."
 msgstr ""
 
 #: includes/gateway-adapter-webpay-form.php:86
-#: includes/gateway-adapter-webpay-lightbox.php:163
+#: includes/gateway-adapter-webpay-lightbox.php:169
 #: assets/js/blocks/index.js:1
 #: blocks/integration/installments.js:43
 msgid "No installments"
 msgstr ""
 
-#: includes/gateway-adapter-webpay-form.php:212
-#: includes/gateway-adapter-webpay-lightbox.php:99
-#: includes/gateway-adapter-wspay-iframe.php:64
-#: includes/gateway-adapter-wspay-iframe.php:122
-#: includes/gateway-adapter-wspay.php:143
+#: includes/gateway-adapter-webpay-form.php:220
+#: includes/gateway-adapter-webpay-lightbox.php:100
+#: includes/gateway-adapter-wspay-iframe.php:66
+#: includes/gateway-adapter-wspay-iframe.php:125
+#: includes/gateway-adapter-wspay.php:144
 msgid "Token does not exist."
 msgstr ""
 
-#: includes/gateway-adapter-webpay-form.php:338
-#: includes/gateway-adapter-webpay-lightbox.php:246
-#: includes/gateway-adapter-wspay.php:310
-msgid "Monri payment successful<br/>Approval code: "
-msgstr ""
-
-#: includes/gateway-adapter-webpay-form.php:348
-#: includes/gateway-adapter-webpay-lightbox.php:256
-#: templates/installments.php:13
-#: assets/js/blocks/index.js:1
-#: blocks/integration/installments.js:90
-msgid "Number of installments: "
-msgstr ""
-
-#: includes/gateway-adapter-wspay.php:219
+#: includes/gateway-adapter-wspay.php:221
 msgid "Gateway currently not available."
 msgstr ""
 
-#: includes/gateway-webpay-components-abstract.php:166
+#: includes/gateway-adapter-wspay.php:371
+msgid "Monri payment successful<br/>Approval code: "
+msgstr ""
+
+#: includes/gateway-adapter-wspay.php:549
+#: includes/gateway-adapter-wspay.php:556
+#: includes/order-processing.php:143
+#: includes/order-processing.php:162
+msgid "There was an error submitting the refund to Monri."
+msgstr ""
+
+#. translators: %s: amount which was successfully refunded
+#: includes/gateway-adapter-wspay.php:567
+#: includes/order-processing.php:174
+#, php-format
+msgid "Refund of %s successfully sent to Monri."
+msgstr ""
+
+#: includes/gateway-adapter-wspay.php:613
+#: includes/order-processing.php:215
+msgid "There was an error submitting the capture to Monri."
+msgstr ""
+
+#. translators: %s: amount which was successfully captured
+#: includes/gateway-adapter-wspay.php:623
+#: includes/order-processing.php:224
+#, php-format
+msgid "Capture of %s successfully sent to Monri."
+msgstr ""
+
+#: includes/gateway-adapter-wspay.php:663
+#: includes/order-processing.php:261
+msgid "There was an error submitting the void to Monri."
+msgstr ""
+
+#. translators: %s: amount which was successfully voided
+#: includes/gateway-adapter-wspay.php:671
+#: includes/order-processing.php:269
+#, php-format
+msgid "Void of %s successfully sent to Monri."
+msgstr ""
+
+#: includes/gateway-webpay-components-abstract.php:171
 msgid "There was an error getting the order status"
 msgstr ""
 
@@ -204,7 +174,7 @@ msgstr ""
 
 #: includes/gateway.php:10
 #: includes/gateway.php:16
-#: includes/settings.php:67
+#: includes/settings.php:70
 #: assets/js/blocks/index.js:1
 #: blocks/integration/default-payment-method.js:7
 msgid "Monri"
@@ -214,8 +184,30 @@ msgstr ""
 msgid "Monri Payment Gateway Plug-in for WooCommerce"
 msgstr ""
 
-#: includes/installments-fee.php:114
+#: includes/installments-fee.php:113
 msgid "Installments fee"
+msgstr ""
+
+#: includes/order-processing.php:30
+msgid "Monri payment successful."
+msgstr ""
+
+#. translators: %s is the actual approval code
+#: includes/order-processing.php:36
+#, php-format
+msgid "Approval code: %s"
+msgstr ""
+
+#. translators: %s is the issuer name
+#: includes/order-processing.php:42
+#, php-format
+msgid "Issuer: %s"
+msgstr ""
+
+#. translators: %s is the actual number of installments
+#: includes/order-processing.php:48
+#, php-format
+msgid "Number of installments: %s"
 msgstr ""
 
 #. translators: 1: credit card type 2: last 4 digits
@@ -230,210 +222,226 @@ msgstr ""
 msgid "%1$s ending in %2$s (expires %3$s/%4$s)"
 msgstr ""
 
-#: includes/settings.php:36
+#: includes/settings.php:39
 msgid "Purchase"
 msgstr ""
 
-#: includes/settings.php:37
+#: includes/settings.php:40
 msgid "Authorize"
 msgstr ""
 
-#: includes/settings.php:57
+#: includes/settings.php:60
 msgid "Enable/Disable"
 msgstr ""
 
-#: includes/settings.php:59
+#: includes/settings.php:62
 msgid "Enable Monri"
 msgstr ""
 
-#: includes/settings.php:63
+#: includes/settings.php:66
 msgid "Title"
 msgstr ""
 
-#: includes/settings.php:65
+#: includes/settings.php:68
 msgid "Title which the customer sees during checkout."
 msgstr ""
 
-#: includes/settings.php:70
+#: includes/settings.php:73
 msgid "Description"
 msgstr ""
 
-#: includes/settings.php:72
+#: includes/settings.php:75
 msgid "Description which the customer sees during checkout."
 msgstr ""
 
-#: includes/settings.php:73
+#: includes/settings.php:76
 msgid "Pay quick and easy via Monri"
 msgstr ""
 
-#: includes/settings.php:77
+#: includes/settings.php:80
 msgid "Instructions"
 msgstr ""
 
-#: includes/settings.php:79
+#: includes/settings.php:82
 msgid "Instructions that will be added to the thank you page."
 msgstr ""
 
-#: includes/settings.php:80
+#: includes/settings.php:83
 msgid "Instructions for Monri."
 msgstr ""
 
-#: includes/settings.php:84
+#: includes/settings.php:87
 msgid "Payment gateway service:"
 msgstr ""
 
-#: includes/settings.php:92
-#: includes/settings.php:109
+#: includes/settings.php:95
+#: includes/settings.php:112
 msgid "Integration type"
 msgstr ""
 
-#: includes/settings.php:97
-#: includes/settings.php:114
+#: includes/settings.php:100
+#: includes/settings.php:117
 msgid "Form"
 msgstr ""
 
-#: includes/settings.php:98
+#: includes/settings.php:101
 msgid "Components (beta)"
 msgstr ""
 
-#: includes/settings.php:99
+#: includes/settings.php:102
 msgid "LightBox"
 msgstr ""
 
-#: includes/settings.php:115
+#: includes/settings.php:118
 msgid "Iframe"
 msgstr ""
 
-#: includes/settings.php:125
+#: includes/settings.php:128
 msgid "Key"
 msgstr ""
 
-#: includes/settings.php:136
+#: includes/settings.php:139
 msgid "Authenticity token"
 msgstr ""
 
-#: includes/settings.php:147
+#: includes/settings.php:150
 msgid "Shop ID"
 msgstr ""
 
-#: includes/settings.php:158
+#: includes/settings.php:161
 msgid "Secret key"
 msgstr ""
 
-#: includes/settings.php:169
-#: includes/settings.php:182
+#: includes/settings.php:172
+#: includes/settings.php:185
 msgid "Tokenization Enable/Disable"
 msgstr ""
 
-#: includes/settings.php:171
-#: includes/settings.php:184
+#: includes/settings.php:174
+#: includes/settings.php:187
 msgid "Enable Tokenization"
 msgstr ""
 
-#: includes/settings.php:195
+#: includes/settings.php:198
 msgid "Tokenization Shop ID"
 msgstr ""
 
-#: includes/settings.php:206
+#: includes/settings.php:209
 msgid "Tokenization Secret key"
 msgstr ""
 
-#: includes/settings.php:218
+#: includes/settings.php:221
 msgid "Transaction type"
 msgstr ""
 
-#: includes/settings.php:227
-msgid "Test mode"
+#: includes/settings.php:230
+msgid "Order creation"
 msgstr ""
 
-#: includes/settings.php:228
-msgid "Just test the gateway, no real orders will be placed on the gateway side."
+#: includes/settings.php:235
+msgid "Before payment (create order in checkout)"
 msgstr ""
 
 #: includes/settings.php:236
+msgid "After payment (create order after checkout) - deprecated"
+msgstr ""
+
+#: includes/settings.php:238
+msgid "Components require an order ID to initialize. Choose whether to create the order before or after payment. Creating the order after payment is deprecated, use before payment for new setups."
+msgstr ""
+
+#: includes/settings.php:248
+msgid "Test mode"
+msgstr ""
+
+#: includes/settings.php:249
+msgid "Just test the gateway, no real orders will be placed on the gateway side."
+msgstr ""
+
+#: includes/settings.php:257
 msgid "Debug mode"
 msgstr ""
 
-#: includes/settings.php:237
+#: includes/settings.php:258
 msgid "Save detailed messages, error messages and API requests to the WooCommerce Status log."
 msgstr ""
 
-#: includes/settings.php:245
+#: includes/settings.php:266
 msgid "Form language"
 msgstr ""
 
-#: includes/settings.php:254
+#: includes/settings.php:275
 msgid "Allow paying in installments"
 msgstr ""
 
-#: includes/settings.php:268
+#: includes/settings.php:289
 msgid "Number of allowed installments"
 msgstr ""
 
-#: includes/settings.php:283
+#: includes/settings.php:304
 msgid "Price limit for paying in installments"
 msgstr ""
 
-#: includes/settings.php:285
+#: includes/settings.php:306
 msgid "This controls the bottom price limit on which the installments can be used."
 msgstr ""
 
-#: includes/settings.php:295
+#: includes/settings.php:316
 msgid "Transaction info in order"
 msgstr ""
 
-#: includes/settings.php:296
+#: includes/settings.php:317
 msgid "Show Monri transaction info on Thank You page. Required by some banks."
 msgstr ""
 
-#: includes/settings.php:310
-#: includes/settings.php:312
+#: includes/settings.php:331
+#: includes/settings.php:333
 msgid "Callback url"
 msgstr ""
 
-#: includes/settings.php:313
+#: includes/settings.php:334
 msgid "To enable callback send this url to Monri WSPay support."
 msgstr ""
 
-#: includes/settings.php:326
+#: includes/settings.php:346
 msgid "Additional Payment Methods"
 msgstr ""
 
-#: includes/settings.php:331
+#: includes/settings.php:351
 msgid "KEKS pay"
 msgstr ""
 
-#: includes/settings.php:332
+#: includes/settings.php:352
 msgid "PayCek"
 msgstr ""
 
-#: includes/settings.php:333
+#: includes/settings.php:353
 msgid "Google Pay"
 msgstr ""
 
-#: includes/settings.php:334
+#: includes/settings.php:354
 msgid "Apple Pay"
 msgstr ""
 
-#: includes/settings.php:337
+#: includes/settings.php:357
 msgid "Select additional payment methods, if they are set on Monri Webpay."
 msgstr ""
 
 #. translators: %d: number of installments
-#: includes/settings.php:351
+#: includes/settings.php:371
 #, php-format
 msgid "Price increase when paying in %d installments"
 msgstr ""
 
-#: includes/settings.php:353
+#: includes/settings.php:373
 msgid "This controls the price increase when paying with installments."
 msgstr ""
 
-#: includes/settings.php:355
+#: includes/settings.php:375
 msgid "0"
 msgstr ""
 
-#: monri.php:87
+#: monri.php:103
 msgid "Settings"
 msgstr ""
 
@@ -443,10 +451,32 @@ msgstr ""
 msgid "After payment, please wait a moment while we verify your transaction..."
 msgstr ""
 
+#: templates/components-new.php:11
+msgid "Please wait a moment while we verify your transaction..."
+msgstr ""
+
+#: templates/components-new.php:14
+msgid "Pay for order"
+msgstr ""
+
+#: templates/components-new.php:136
+msgid "Transaction declined, please try again."
+msgstr ""
+
+#: templates/components-new.php:142
+msgid "Payment could not be processed, please try again."
+msgstr ""
+
 #: templates/components.php:119
 #: assets/js/blocks/index.js:1
 #: blocks/integration/web-pay/components.js:104
 msgid "Transaction declined, please reload the page."
+msgstr ""
+
+#: templates/installments.php:13
+#: assets/js/blocks/index.js:1
+#: blocks/integration/installments.js:90
+msgid "Number of installments: "
 msgstr ""
 
 #: templates/installments.php:25

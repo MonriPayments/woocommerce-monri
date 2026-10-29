@@ -186,26 +186,6 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 
 		Monri_WC_Utils::order_unlock( $monri_order_number );
 
-		// Check response code of order.
-		/*
-		switch ( $formatted_response['response-code'] ) {
-			case '0000':
-				if ( $order->get_status() === 'pending' ) {
-					$order->payment_complete( $monri_order_number );
-				}
-				break;
-
-			case '1050':
-				if ( $order->get_status() === 'pending' ) {
-					$order->update_status( 'cancelled' );
-				}
-				break;
-
-			default:
-				break;
-		}
-		*/
-
 		return true;
 	}
 

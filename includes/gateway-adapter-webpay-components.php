@@ -147,8 +147,8 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.NonceVerification.Missing
 		$transaction = json_decode( wp_unslash( $_POST['monri-transaction'] ?? '{}' ), true );
 
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r -- Logging stuff, this is needed.
 		Monri_WC_Logger::log(
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r -- Logging stuff, this is needed.
 			"Response data: " . sanitize_textarea_field( print_r( $transaction, true ) ),
 			__METHOD__
 		);
@@ -169,6 +169,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		$order->update_meta_data( 'monri_transaction_type', $transaction_type );
 		$order->save();
 		$order->add_order_note(
+			// translators: %s here is the actual order number
 			sprintf( __( 'Order number in Monri administration: %s', 'monri' ), $monri_order_number )
 		);
 
