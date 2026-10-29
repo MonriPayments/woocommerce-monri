@@ -380,11 +380,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 			return;
 		}
 
-		// we assume it's already captured
-		if ( $order->get_meta( 'monri_transaction_type' ) === 'purchase' ) {
-			return;
-		}
-
 		Monri_WC_Order_Processing::process_order_capture( $order_id );
 	}
 

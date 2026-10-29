@@ -192,6 +192,11 @@ class Monri_WC_Order_Processing {
 		//	return;
 		//}
 
+        // we assume it's already captured
+        if ( $order->get_meta( 'monri_transaction_type' ) === 'purchase' ) {
+            return false;
+        }
+
 		$monri_order_id = $order->get_meta( 'monri_order_number' );
 		if ( empty( $monri_order_id ) ) {
 			return false;

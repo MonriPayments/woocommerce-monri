@@ -46,6 +46,16 @@ export const loadMonriData = (paymentResult) => {
 
         document.querySelector('.wc-block-components-form').appendChild(script);
         script.onload = () => {
+            // Monri's lightbox prefixes event names with 'lightBox.', so 'close' is the public
+            // name. It fires when the customer dismisses the lightbox with the X button.
+            if (window.monriLightBox && monriData['data-cancel-url-override']) {
+                window.monriLightBox.on('close', () => {
+                    if (window.monriCancelling) return;
+                    window.monriCancelling = true;
+                    window.location = monriData['data-cancel-url-override'];
+                });
+            }
+
             document.querySelector('button.monri-lightbox-button-el').click();
         };
 

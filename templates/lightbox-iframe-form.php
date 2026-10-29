@@ -8,7 +8,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 <script>
     (function($) {
-        $('form.checkout').on('checkout_place_order_success', function (t, result) {
+        // Namespaced so re-renders of the payment fields replace this handler instead of stacking
+        // another one on form.checkout, which would inject a second lightbox on place order.
+        $('form.checkout').off('checkout_place_order_success.monri').on('checkout_place_order_success.monri', function (t, result) {
             var selectedGateway = $('input[name="payment_method"]:checked').val();
             if (selectedGateway !== 'monri') return;
 
@@ -48,6 +50,16 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             }
 
             script.onload = function() {
+                // Monri's lightbox prefixes event names with 'lightBox.', so 'close' is the public
+                // name. It fires when the customer dismisses the lightbox with the X button.
+                if (window.monriLightBox && result['data-cancel-url-override']) {
+                    window.monriLightBox.on('close', function () {
+                        if (window.monriCancelling) return;
+                        window.monriCancelling = true;
+                        window.location = result['data-cancel-url-override'];
+                    });
+                }
+
                 $('button.monri-lightbox-button-el').click();
             }
 
