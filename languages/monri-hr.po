@@ -314,7 +314,7 @@ msgstr "Enable/Disable"
 #: includes/settings.php:187
 #, fuzzy
 msgid "Enable Tokenization"
-msgstr "Enable Monri"
+msgstr "Omogući tokenizaciju"
 
 #: includes/settings.php:198
 #, fuzzy
