@@ -10,6 +10,7 @@ class Monri_WC_Order_Processing {
 	 */
 	public static function process_order( WC_Order $order, array $payload ) {
 
+		$order->get_data_store()->read( $order );
 		if ( ! in_array( $order->get_status(), array( 'pending', 'failed' ), true ) ) {
 			return;
 		}
