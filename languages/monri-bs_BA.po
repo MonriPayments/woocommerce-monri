@@ -339,7 +339,7 @@ msgstr "Služi samo za testiranje platnog pristupnika; na strani platnog pristup
 #: includes/settings.php:257
 #, fuzzy
 msgid "Debug mode"
-msgstr "Test mode"
+msgstr "Debug mode"
 
 #: includes/settings.php:258
 msgid "Save detailed messages, error messages and API requests to the WooCommerce Status log."
