@@ -180,17 +180,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		}
 
 		$formatted_response = json_decode( wp_json_encode( $order_status_response ), true );
-		//Monri_WC_Logger::log( $formatted_response, __METHOD__ );
-
-//		$response_code = ! empty( $formatted_response['response-code'] ) ?
-//			sanitize_text_field( $formatted_response['response-code'] ) :
-//			'';
-//		$transaction_type = ! empty( $formatted_response['transaction-type'] ) ?
-//			sanitize_text_field( $formatted_response['transaction-type'] ) :
-//			'';
-//		$transaction_response_id = isset( $transaction['transaction_response']['id'] ) ?
-//			sanitize_key( (string) $transaction['transaction_response']['id'] ) :
-//			'';
 
 		// order is created, clear client secret cache
 		$amount_in_minor_units = (int) round( $order->get_total() * 100 );
@@ -201,37 +190,6 @@ class Monri_WC_Gateway_Adapter_Webpay_Components {
 		if ( ! in_array( $order->get_status(), [ 'cancelled', 'failed' ] ) ) {
 			WC()->cart->empty_cart();
 		}
-
-//		if ( $response_code === '0000' ) {
-//			if ( $transaction_type === 'purchase' ) {
-//				$order->payment_complete( $transaction_response_id );
-//			} else {
-//				$order->update_status( 'on-hold', __( 'Order awaiting payment', 'monri' ) );
-//			}
-//			$amount_in_minor_units = (int) round( $order->get_total() * 100 );
-//			WC()->session->set( (string) $amount_in_minor_units . '_client_secret_timestamp', '' );
-//
-//			/* translators: %s: generated id which represents order number */
-//			$order->add_order_note( sprintf( __( 'Order number in Monri administration: %s', 'monri' ), $monri_order_number ) );
-//
-//			WC()->cart->empty_cart();
-//			$order->update_meta_data( 'monri_order_number', $monri_order_number );
-//			$order->save();
-//
-//			// save token if needed
-//			if ( $this->tokenization_enabled() && $order->get_user_id() ) {
-//				$token_data = [];
-//				foreach ( [ 'expiration_date', 'masked', 'brand', 'token' ] as $key ) {
-//					if ( isset( $transaction['payment_method']['data'][ $key ] ) ) {
-//						$token_data[ $key ] = sanitize_text_field( $transaction['payment_method']['data'][ $key ] );
-//					}
-//				}
-//				$this->save_user_token( $order->get_user_id(), $token_data );
-//			}
-//
-//		} else {
-//			$order->update_status( 'failed', "Response not authorized - response code is $response_code." );
-//		}
 
 		return array(
 			'result'   => 'success',

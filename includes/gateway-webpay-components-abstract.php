@@ -154,8 +154,6 @@ abstract class Monri_WC_Gateway_Webpay_Components_Abstract extends WC_Payment_Ga
 	 * @return bool
 	 */
 	public function sync_order_status( $order ) {
-
-		// @todo: not needed?
 		$monri_order_number = $order->get_meta( 'monri_order_number' );
 
 		if ( ! $monri_order_number ) {
