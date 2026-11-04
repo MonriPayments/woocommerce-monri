@@ -49,29 +49,6 @@ class WebpayFormAdapterTest extends TestCase {
 	}
 
 	/**
-	 * @covers Monri_WC_Gateway_Adapter_Webpay_Form::save_user_token
-	 */
-	public function test_save_user_token_creates_payment_token(): void {
-		$this->set_plugin_settings( [
-			'title' => 'WebPay',
-			'description' => 'Desc',
-		] );
-
-		$gateway = new Monri_WC_Gateway();
-		$adapter = new Monri_WC_Gateway_Adapter_Webpay_Form();
-		$adapter->init( $gateway );
-
-		$token_data = [
-			'pan_token' => 'tok_webpay_12345',
-			'cc_type' => 'visa',
-			'masked_pan' => '411111-1111',
-		];
-
-		$adapter->save_user_token( 1, $token_data );
-		$this->assertTrue( true );
-	}
-
-	/**
 	 * @covers Monri_WC_Gateway_Adapter_Webpay_Form::can_refund_order
 	 */
 	public function test_can_refund_order(): void {

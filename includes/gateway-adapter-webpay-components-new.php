@@ -283,170 +283,18 @@ class Monri_WC_Gateway_Adapter_Webpay_Components_New {
             return;
         }
 
-        $this->sync_order_status( $order );
-        $this->maybe_save_payment_token( $order );
-    }
+	    $monri_order_number = $order->get_meta( 'monri_order_number' );
+	    $response = Monri_WC_Api::instance()->orders_show( $monri_order_number );
+	    $formatted_response = json_decode( wp_json_encode( $response ), true );
+	    //Monri_WC_Logger::log( $formatted_response, __METHOD__ );
 
-    /**
-     * Checks order status on Monri and updates order accordingly
-     *
-     * @param WC_Order $order
-     *
-     * @return bool
-     */
-    public function sync_order_status( $order ) {
+	    if ( Monri_WC_Utils::order_lock( $order_id ) === false ) {
+		    return;
+	    }
 
-        $monri_order_number = $order->get_meta( 'monri_order_number' );
+	    Monri_WC_Order_Processing::process_order_from_show_api( $order, $formatted_response );
 
-        if ( ! $monri_order_number ) {
-            return false;
-        }
-
-        $response           = Monri_WC_Api::instance()->orders_show( $monri_order_number );
-        $formatted_response = json_decode( wp_json_encode( $response ), true );
-        Monri_WC_Logger::log( $formatted_response, __METHOD__ );
-        if ( is_wp_error( $response ) ) {
-            $order->add_order_note(
-                sprintf( __( 'There was an error getting the order status', 'monri' ) )
-            );
-
-            return false;
-        }
-
-        if ( ! isset( $formatted_response['response-code'] ) ) {
-            return false;
-        }
-
-        // Check response code of order.
-        switch ( $formatted_response['response-code'] ) {
-            case '0000':
-                if ( $order->get_status() === 'pending' ) {
-                    $transaction_type = ! empty( $formatted_response['transaction-type'] ) ?
-                        sanitize_text_field( $formatted_response['transaction-type'] ) : '';
-                    $approval_code    = ! empty( $formatted_response['approval-code'] ) ?
-                        sanitize_text_field( $formatted_response['approval-code'] ) : '';
-
-                    if ( $transaction_type === 'purchase' ) {
-                        $order->payment_complete( $approval_code );
-                    } else {
-                        $order->update_status( 'on-hold', __( 'Order awaiting payment', 'monri' ) );
-                    }
-
-                    /* translators: %s: generated id which represents order number */
-                    $order->add_order_note( sprintf( __( 'Order number in Monri administration: %s', 'monri' ), $monri_order_number ) );
-                    $order->save();
-                }
-                break;
-
-            case '1050':
-                if ( $order->get_status() === 'pending' ) {
-                    $order->update_status( 'cancelled' );
-                }
-                break;
-
-            default:
-                break;
-        }
-
-        return true;
-    }
-
-    /**
-     * Saves the card the shopper opted to save on the components form.
-     *
-     * The order is created before payment here, so there is no process_payment
-     * response to read the token from - the components template posts the
-     * confirmPayment result along to the thankyou page instead. The transaction
-     * itself is verified against Monri by sync_order_status() before this runs.
-     *
-     * @param WC_Order $order
-     *
-     * @return void
-     */
-    private function maybe_save_payment_token( $order ) {
-
-        if ( ! $this->tokenization_enabled() || ! $order->get_user_id() ) {
-            return;
-        }
-
-        // Not paid (or not paid yet) as far as Monri is concerned.
-        if ( in_array( $order->get_status(), array( 'pending', 'failed', 'cancelled' ), true ) ) {
-            return;
-        }
-
-        // monri-transaction is a JSON value, it is individually sanitized after decode
-        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.NonceVerification.Missing
-        $transaction = json_decode( wp_unslash( $_POST['monri-transaction'] ?? '{}' ), true );
-
-        if ( ! is_array( $transaction ) || ! isset( $transaction['payment_method']['data'] ) ) {
-            return;
-        }
-
-        $token_data = array();
-        foreach ( array( 'expiration_date', 'masked', 'brand', 'token' ) as $key ) {
-            if ( isset( $transaction['payment_method']['data'][ $key ] ) ) {
-                $token_data[ $key ] = sanitize_text_field( $transaction['payment_method']['data'][ $key ] );
-            }
-        }
-
-        $this->save_user_token( $order->get_user_id(), $token_data );
-    }
-
-    /**
-     * Stores a Monri card token as a WooCommerce payment token
-     *
-     * @param int   $user_id
-     * @param array $data Token data as returned by Monri in payment_method.data.
-     *
-     * @return bool
-     */
-    public function save_user_token( $user_id, $data ) {
-
-        // Monri only returns token data when the shopper ticked "save card".
-        if ( ! isset( $data['token'], $data['brand'], $data['masked'], $data['expiration_date'] ) ) {
-            return false;
-        }
-
-        if ( $this->token_already_exists( $user_id, $data['masked'] ) ) {
-            return false;
-        }
-
-        $wc_token = new Monri_WC_Payment_Token_Webpay();
-
-        $wc_token->set_gateway_id( $this->payment->id );
-        $wc_token->set_token( $data['token'] );
-        $wc_token->set_user_id( $user_id );
-
-        $masked_pan_array = explode( '-', $data['masked'] );
-        $wc_token->set_last4( end( $masked_pan_array ) );
-        $wc_token->set_card_type( $data['brand'] );
-
-        $wc_token->set_expiry_year( substr( $data['expiration_date'], 0, 2 ) );
-        $wc_token->set_expiry_month( substr( $data['expiration_date'], 2, 2 ) );
-
-        return (bool) $wc_token->save();
-    }
-
-    /**
-     * Check if payment token already exists to avoid making duplicates
-     *
-     * @param int    $user_id
-     * @param string $masked_pan
-     *
-     * @return bool
-     */
-    private function token_already_exists( $user_id, $masked_pan ) {
-
-        $masked_pan_array = explode( '-', $masked_pan );
-        $last4            = end( $masked_pan_array );
-
-        foreach ( WC_Payment_Tokens::get_customer_tokens( $user_id, $this->payment->id ) as $user_token ) {
-            if (method_exists( $user_token, 'get_last4' ) && $user_token->get_last4() === $last4 ) {
-                return true;
-            }
-        }
-
-        return false;
+	    Monri_WC_Utils::order_unlock( $order_id );
     }
 
     /**
@@ -456,44 +304,16 @@ class Monri_WC_Gateway_Adapter_Webpay_Components_New {
      * @param float|null $amount Refund amount.
      * @param string     $reason
      *
-     * @return void
+     * @return bool
      */
-    public function process_refund( $order_id, $amount = null, $reason = '' ): void {
+    public function process_refund( $order_id, $amount = null, $reason = '' ) {
 
         $order = wc_get_order( $order_id );
         if ( $order->get_payment_method() !== $this->payment->id ) {
-            return;
+            return false;
         }
 
-        $monri_order_id = $order->get_meta( 'monri_order_number' );
-        $currency       = $order->get_currency();
-
-        if ( empty( $monri_order_id ) ) {
-            $order->add_order_note( sprintf( __( 'There was an error submitting the refund to Monri.', 'monri' ) ) );
-
-            return;
-        }
-
-        $response           = Monri_WC_Api::instance()->refund( $monri_order_id, $amount * 100, $currency );
-        $formatted_response = json_decode( wp_json_encode( $response ), true );
-        if ( is_wp_error( $response ) || ! ( isset( $formatted_response['response-code'] ) && $formatted_response['response-code'] === '0000' ) ) {
-            Monri_WC_Logger::log( $formatted_response, __METHOD__ );
-            $order->add_order_note(
-                sprintf( __( 'There was an error submitting the refund to Monri.', 'monri' ) )
-            );
-
-            return;
-        }
-
-        $order->add_order_note(
-            sprintf(
-            /* translators: %s: amount which was successfully refunded */
-                __( 'Refund of %s successfully sent to Monri.', 'monri' ),
-                wc_price( $amount, array( 'currency' => $order->get_currency() ) )
-            )
-        );
-
-        return;
+	    return Monri_WC_Order_Processing::process_order_refund( $order_id, $amount );
     }
 
     /**
@@ -521,37 +341,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components_New {
             return;
         }
 
-        $monri_order_id = $order->get_meta( 'monri_order_number' );
-        if ( empty( $monri_order_id ) ) {
-            return;
-        }
-
-        $currency = $order->get_currency();
-        $amount   = $order->get_total() - (float)$order->get_total_refunded();
-
-        if ( $amount < 0.01 ) {
-            return;
-        }
-
-        $response           = Monri_WC_Api::instance()->capture( $monri_order_id, $amount * 100, $currency );
-        $formatted_response = json_decode( wp_json_encode( $response ), true );
-        if ( is_wp_error( $response ) || ! ( isset( $formatted_response['response-code'] ) && $formatted_response['response-code'] === '0000' ) ) {
-            Monri_WC_Logger::log( $formatted_response, __METHOD__ );
-            $order->add_order_note(
-                sprintf( __( 'There was an error submitting the capture to Monri.', 'monri' ) )
-            );
-
-            return;
-        }
-
-        $order->payment_complete( $monri_order_id );
-        $order->add_order_note(
-            sprintf(
-            /* translators: %s: amount which was successfully captured */
-                __( 'Capture of %s successfully sent to Monri.', 'monri' ),
-                wc_price( $amount, array( 'currency' => $order->get_currency() ) )
-            )
-        );
+	    Monri_WC_Order_Processing::process_order_capture( $order_id );
     }
 
     /**
@@ -566,7 +356,10 @@ class Monri_WC_Gateway_Adapter_Webpay_Components_New {
      */
     public function process_void( $order_id, $from, $to, $wc_order ): void {
 
-        if ( ! ( in_array( $from, array( 'pending', 'on-hold' ), true ) && in_array( $to, array( 'cancelled', 'failed' ), true ) ) ) {
+        if ( ! (
+			in_array( $from, array( 'pending', 'on-hold' ), true ) &&
+			in_array( $to, array( 'cancelled', 'failed' ), true )
+        ) ) {
             return;
         }
 
@@ -575,35 +368,7 @@ class Monri_WC_Gateway_Adapter_Webpay_Components_New {
             return;
         }
 
-        $monri_order_id = $order->get_meta( 'monri_order_number' );
-        if ( empty( $monri_order_id ) ) {
-            return;
-        }
-
-        $amount   = $order->get_total() - (float)$order->get_total_refunded();
-        $currency = $order->get_currency();
-        if ( $amount < 0.01 ) {
-            return;
-        }
-
-        $response           = Monri_WC_Api::instance()->void( $monri_order_id, $amount * 100, $currency );
-        $formatted_response = json_decode( wp_json_encode( $response ), true );
-        if ( is_wp_error( $response ) || ! ( isset( $formatted_response['response-code'] ) && $formatted_response['response-code'] === '0000' ) ) {
-            Monri_WC_Logger::log( $formatted_response, __METHOD__ );
-            $order->add_order_note(
-                sprintf( __( 'There was an error submitting the void to Monri.', 'monri' ) )
-            );
-
-            return;
-        }
-
-        $order->add_order_note(
-            sprintf(
-            /* translators: %s: amount which was successfully voided */
-                __( 'Void of %s successfully sent to Monri.', 'monri' ),
-                wc_price( $amount, array( 'currency' => $order->get_currency() ) )
-            )
-        );
+	    Monri_WC_Order_Processing::process_order_void( $order_id );
     }
 
     /**

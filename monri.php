@@ -2,7 +2,7 @@
 /*
 Plugin Name: Monri Payments
 Description: Official Monri Payments gateway for WooCommerce
-Version: 3.9.4
+Version: 3.10.0
 Author: Monri Payments d.o.o.
 Author URI: https://monri.com
 License: GPLv3
@@ -14,7 +14,7 @@ Domain Path: /languages
 */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'MONRI_WC_VERSION', '3.9.4' );
+define( 'MONRI_WC_VERSION', '3.10.0' );
 define( 'MONRI_WC_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'MONRI_WC_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'MONRI_WC_PLUGIN_INDEX', __FILE__ );
@@ -22,6 +22,7 @@ define( 'MONRI_WC_PLUGIN_INDEX', __FILE__ );
 require_once __DIR__ . '/includes/settings.php';
 require_once __DIR__ . '/includes/utils.php';
 require_once __DIR__ . '/includes/logger.php';
+require_once __DIR__ . '/includes/order-processing.php';
 
 /**
  * Loads the bundled translations.
@@ -96,11 +97,11 @@ add_action( 'before_woocommerce_init', 'monri_declare_woo_feature_compatibility'
 
 
 function monri_wc_action_links( $links ) {
-	$links[] = sprintf(
-		'<a href="%s">%s</a>',
-		admin_url( 'admin.php?page=wc-settings&tab=checkout&section=monri' ),
-		__( 'Settings', 'monri' )
-	);
+	$links[] = '<a href="'
+	           . esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=monri' ) )
+	           . '">'
+	           . esc_html( __( 'Settings', 'monri' ) )
+	           . '</a>';
 
 	return $links;
 }

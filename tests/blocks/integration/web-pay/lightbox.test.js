@@ -93,6 +93,52 @@ describe('blocks/integration/web-pay/lightbox.js', () => {
             formContainer.remove();
         });
 
+        it('redirects to the cancel url when the customer closes the lightbox', () => {
+            const formContainer = document.createElement('div');
+            formContainer.className = 'wc-block-components-form';
+            document.body.appendChild(formContainer);
+
+            const mockButton = document.createElement('button');
+            mockButton.className = 'monri-lightbox-button-el';
+            document.body.appendChild(mockButton);
+
+            const handlers = {};
+            window.monriLightBox = {
+                on: jest.fn((event, callback) => {
+                    handlers[event] = callback;
+                }),
+            };
+
+            const originalLocation = window.location;
+            delete window.location;
+            window.location = 'https://example.com/old-checkout/';
+
+            loadMonriData({
+                paymentDetails: {
+                    src: 'https://ipgtest.monri.com/dist/lightbox.js',
+                    'data-cancel-url-override': 'https://example.com/cancel',
+                },
+            });
+
+            formContainer.querySelector('script.lightbox-button').onload();
+
+            expect(window.monriLightBox.on).toHaveBeenCalledWith('close', expect.any(Function));
+
+            handlers['close']();
+            expect(window.location).toBe('https://example.com/cancel');
+
+            // A second lightbox instance must not fire a second cancel request.
+            window.location = 'https://example.com/untouched/';
+            handlers['close']();
+            expect(window.location).toBe('https://example.com/untouched/');
+
+            window.location = originalLocation;
+            delete window.monriLightBox;
+            delete window.monriCancelling;
+            mockButton.remove();
+            formContainer.remove();
+        });
+
         it('handles exceptions gracefully when form container is missing', () => {
             loadMonriData({ paymentDetails: { src: 'https://test.js' } });
             expect(console).toHaveErrored();
