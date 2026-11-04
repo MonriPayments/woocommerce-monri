@@ -7,6 +7,7 @@ Author: Monri Payments d.o.o.
 Author URI: https://monri.com
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
+Requires at least: 6.6
 WC requires at least: 4.3.0
 WC tested up to: 11.2.1
 Text Domain: monri
