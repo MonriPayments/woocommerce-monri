@@ -13,8 +13,8 @@
     "bump-version": "bash tasks/bump-version.sh",
     "publish": "bash tasks/publish.sh",
     "release": "npm run pack && npm run publish",
-    "test": "wp-scripts test-unit-js",
-    "test:watch": "wp-scripts test-unit-js --watch"
+    "test": "wp-scripts test-unit-jest",
+    "test:watch": "wp-scripts test-unit-jest --watch"
   },
   "author": "",
   "license": "ISC",
@@ -22,16 +22,28 @@
     "url": "https://github.com/favicode/woocommerce-monri/issues"
   },
   "homepage": "https://github.com/favicode/woocommerce-monri#readme",
+  "engines": {
+    "node": ">=24.15.0",
+    "npm": ">=11"
+  },
   "devDependencies": {
+    "@babel/core": "^7.29.7",
     "@types/jest": "^30.0.0",
-    "@woocommerce/dependency-extraction-webpack-plugin": "^2.3.0",
-    "@wordpress/html-entities": "^4.54.0",
-    "@wordpress/i18n": "^6.27.0",
-    "@wordpress/scripts": "^30.19.0",
-    "archiver": "^6.0.1",
+    "@woocommerce/dependency-extraction-webpack-plugin": "^5.1.0",
+    "@wordpress/babel-preset-default": "^8.55.0",
+    "@wordpress/html-entities": "^5.1.0",
+    "@wordpress/i18n": "^7.1.0",
+    "@wordpress/jest-preset-default": "^14.2.0",
+    "@wordpress/scripts": "^37.1.0",
+    "archiver": "^8.0.0",
+    "babel-jest": "^30.5.0",
     "colors": "^1.4.0",
-    "rimraf": "^5.0.5",
-    "shelljs": "^0.8.5",
-    "webpack": "^5.100.0"
+    "jest": "^30.5.0",
+    "jest-environment-jsdom": "^30.5.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "rimraf": "^6.1.4",
+    "shelljs": "^0.10.0",
+    "webpack": "^5.112.2"
   }
 }

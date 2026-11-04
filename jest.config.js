@@ -1,7 +1,13 @@
-const baseConfig = require('@wordpress/scripts/config/jest-unit.config');
+const baseConfig = require('@wordpress/jest-preset-default/jest-preset');
 
 module.exports = {
-    ...baseConfig,
+    preset: '@wordpress/jest-preset-default',
+    transform: {
+        '\\.[jt]sx?$': [
+            'babel-jest',
+            { presets: [ '@wordpress/babel-preset-default' ] },
+        ],
+    },
     testMatch: [
         '<rootDir>/tests/blocks/**/*.test.js',
     ],

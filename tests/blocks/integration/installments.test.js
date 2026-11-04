@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
-import { act } from 'react-dom/test-utils';
 import { Installments } from '../../../blocks/integration/installments';
 import { __setSettings, __resetSettings } from '@woocommerce/settings';
 import { __setMockSelectData, __resetMockSelectData } from '@wordpress/data';

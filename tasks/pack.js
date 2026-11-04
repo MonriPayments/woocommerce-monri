@@ -3,7 +3,7 @@
 'use strict';
 const { mkdir, cp } = require( 'shelljs' );
 const colors = require( 'colors' );
-const archiver = require( 'archiver' );
+const { ZipArchive } = require( 'archiver' );
 const fs = require( 'fs' );
 const { rimrafSync: rimraf } = require('rimraf');
 
@@ -37,7 +37,7 @@ cp( '-Rf', filesToCopy, targetFolder );
 const output = fs.createWriteStream(
     releaseFolder + '/' + pluginSlug + '.zip'
 );
-const archive = archiver( 'zip', { zlib: { level: 9 } } );
+const archive = new ZipArchive( { zlib: { level: 9 } } );
 
 output.on( 'close', () => {
     console.log(

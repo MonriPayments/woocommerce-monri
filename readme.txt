@@ -1,9 +1,9 @@
 === Monri Payments ===
 Contributors: monripayments
 Tags: monri, woocommerce, payment gateway, credit card payments, online payments, croatia, wspay, keks pay, apple pay, google pay, installments
-Requires at least: 5.3
+Requires at least: 6.7
 Tested up to: 7.1.4
-Requires PHP: 7.4
+Requires PHP: 8.1
 Stable tag: 3.10.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
