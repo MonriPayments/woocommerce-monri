@@ -3,7 +3,7 @@ includes:
 
 parameters:
     level: 3
-    phpVersion: 70400
+    phpVersion: 80100
 
     paths:
         - monri.php

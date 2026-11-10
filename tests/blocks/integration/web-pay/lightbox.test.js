@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
-import { act } from 'react-dom/test-utils';
 import {
     loadMonriData,
     WebPayLightbox,
@@ -109,14 +108,15 @@ describe('blocks/integration/web-pay/lightbox.js', () => {
                 }),
             };
 
-            const originalLocation = window.location;
-            delete window.location;
-            window.location = 'https://example.com/old-checkout/';
+            // jsdom does not allow mocking window.location and only implements
+            // same-document navigation, so use hash based URLs to observe redirects.
+            const originalHref = window.location.href;
+            const cancelUrl = originalHref.split('#')[0] + '#cancel';
 
             loadMonriData({
                 paymentDetails: {
                     src: 'https://ipgtest.monri.com/dist/lightbox.js',
-                    'data-cancel-url-override': 'https://example.com/cancel',
+                    'data-cancel-url-override': cancelUrl,
                 },
             });
 
@@ -125,14 +125,14 @@ describe('blocks/integration/web-pay/lightbox.js', () => {
             expect(window.monriLightBox.on).toHaveBeenCalledWith('close', expect.any(Function));
 
             handlers['close']();
-            expect(window.location).toBe('https://example.com/cancel');
+            expect(window.location.href).toBe(cancelUrl);
 
             // A second lightbox instance must not fire a second cancel request.
-            window.location = 'https://example.com/untouched/';
+            window.location.hash = 'untouched';
             handlers['close']();
-            expect(window.location).toBe('https://example.com/untouched/');
+            expect(window.location.hash).toBe('#untouched');
 
-            window.location = originalLocation;
+            window.location.hash = '';
             delete window.monriLightBox;
             delete window.monriCancelling;
             mockButton.remove();
