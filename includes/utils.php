@@ -46,6 +46,7 @@ class Monri_WC_Utils {
 	public static function order_lock( $order_id ) {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- this is a locking mechanism, and needs to work this way.
 		$result = $wpdb->get_var(
 			$wpdb->prepare(
 				'SELECT GET_LOCK(%s, %d)',
@@ -69,6 +70,7 @@ class Monri_WC_Utils {
 	public static function order_unlock( $order_id ) {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- this is a locking mechanism, and needs to work this way.
 		$result = $wpdb->get_var(
 			$wpdb->prepare(
 				'SELECT RELEASE_LOCK(%s)',
